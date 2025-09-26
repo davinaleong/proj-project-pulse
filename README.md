@@ -1,2 +1,3 @@
-# proj-project-pulse
+# Project Pulse
+
 A revamp of my task tracker.

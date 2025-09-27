@@ -30,20 +30,14 @@ export default function Button({
   color = "primary",
 }: ButtonProps) {
   const colorClasses = {
-    primary:
-      "bg-blue-500/20 hover:bg-pp-teal-500/30 text-pp-teal-900 dark:text-pp-teal-100",
-    secondary:
-      "bg-gray-500/20 hover:bg-pp-slate-500/30 text-pp-slate-900 dark:text-pp-slate-100",
-    danger: "bg-red-500/20 hover:bg-red-500/30 text-red-900 dark:text-red-100",
-    success:
-      "bg-green-500/20 hover:bg-green-500/30 text-green-900 dark:text-green-100",
-    warning:
-      "bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-900 dark:text-yellow-100",
-    info: "bg-blue-500/20 hover:bg-blue-500/30 text-blue-900 dark:text-blue-100",
-    default:
-      "bg-gray-500/20 hover:bg-gray-500/30 text-gray-900 dark:text-gray-100",
-    transparent:
-      "bg-white/10 hover:bg-white/20 text-gray-900 dark:text-gray-100",
+    primary: "bg-pp-teal-500/10 text-pp-teal-900 dark:text-pp-teal-100",
+    secondary: "bg-pp-gray-500/10 text-pp-gray-900 dark:text-pp-gray-100",
+    danger: "bg-red-500/10 text-red-900 dark:text-red-100",
+    success: "bg-green-500/10 text-green-900 dark:text-green-100",
+    warning: "bg-yellow-500/10 text-yellow-900 dark:text-yellow-100",
+    info: "bg-blue-500/10 text-blue-900 dark:text-blue-100",
+    default: "bg-white/10 text-gray-900 dark:text-gray-100",
+    transparent: "bg-white/5 text-gray-900 dark:text-gray-100",
     custom: "",
   }
 
@@ -51,8 +45,8 @@ export default function Button({
     <button
       onClick={onClick}
       className={clsx(
-        // Glass look base
-        "cursor-pointer inline-flex items-center justify-center gap-[0.5em] rounded-sm px-[1em] py-[0.5em] font-medium hover:opacity-70",
+        // Base glass look
+        "cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 font-medium",
         "border border-white/30 backdrop-blur-md shadow-md",
         "transition-all duration-200 hover:scale-[1.02] hover:shadow-lg",
         "disabled:opacity-50 disabled:cursor-not-allowed",
@@ -67,14 +61,14 @@ export default function Button({
           <img
             src={src}
             alt=""
-            className="w-[1em] h-[1em] object-contain"
+            className="w-4 h-4 object-contain"
             draggable={false}
           />
           {children}
         </>
       )}
 
-      {variant === "icon" && Icon && <Icon className="w-[1em] h-[1em]" />}
+      {variant === "icon" && Icon && <Icon className="w-4 h-4" />}
     </button>
   )
 }

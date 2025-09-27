@@ -26,14 +26,14 @@ function DropdownMenu({
   const [open, setOpen] = useState(false)
 
   const colorClasses = {
-    primary: "bg-pp-teal-500/20 text-pp-teal-900 dark:text-pp-teal-100",
-    secondary: "bg-pp-slate-500/20 text-pp-slate-900 dark:text-pp-slate-100",
-    danger: "bg-red-500/20 text-red-900 dark:text-red-100",
-    success: "bg-green-500/20 text-green-900 dark:text-green-100",
-    warning: "bg-yellow-500/20 text-yellow-900 dark:text-yellow-100",
-    info: "bg-blue-500/20 text-blue-900 dark:text-blue-100",
-    default: "bg-gray-500/20 text-gray-900 dark:text-gray-100",
-    transparent: "bg-white/10 text-gray-900 dark:text-gray-100",
+    primary: "bg-pp-teal-500/10 text-pp-teal-900 dark:text-pp-teal-100",
+    secondary: "bg-pp-gray-500/10 text-pp-gray-900 dark:text-pp-gray-100",
+    danger: "bg-red-500/10 text-red-900 dark:text-red-100",
+    success: "bg-green-500/10 text-green-900 dark:text-green-100",
+    warning: "bg-yellow-500/10 text-yellow-900 dark:text-yellow-100",
+    info: "bg-blue-500/10 text-blue-900 dark:text-blue-100",
+    default: "bg-white/10 text-gray-900 dark:text-gray-100",
+    transparent: "bg-white/5 text-gray-900 dark:text-gray-100",
     custom: "",
   }
 

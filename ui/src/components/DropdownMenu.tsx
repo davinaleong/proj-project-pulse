@@ -59,8 +59,9 @@ function DropdownMenu({
       {open && (
         <ul
           className={clsx(
-            "absolute w-48 rounded-sm border border-white/30 backdrop-blur-md shadow-lg",
-            "px-[1em] space-y-[0.5em] z-50",
+            "absolute mt-[1em] rounded-sm border border-white/30 backdrop-blur-md shadow-lg",
+            "z-50",
+            "w-full", // match button width
             colorClasses[color]
           )}
         >

@@ -87,6 +87,19 @@ body {
   font-family: var(--font-sans);
   color: theme("colors.gray.900");
   background-color: theme("colors.gray.50");
+
+  background-image: linear-gradient(
+      to right,
+      theme("colors.gray.200") 1px,
+      transparent 1px
+    ),
+    linear-gradient(to bottom, theme("colors.gray.200") 1px, transparent 1px);
+  background-size: 20px 20px; /* adjust square size */
+
+  padding-block-start: theme("spacing.4");
+  padding-block-end: theme("spacing.4");
+  padding-inline-start: theme("spacing.4");
+  padding-inline-end: theme("spacing.4");
 }
 
 :focus {
@@ -108,15 +121,14 @@ body {
   }
 
   .bg-diamond-grid {
-    background-color: theme("colors.gray.50"); /* almost white base */
+    background-color: var(--tw-color-gray-50);
     background-image: linear-gradient(
         to right,
-        theme("colors.gray.200") 1px,
+        var(--tw-color-gray-200) 1px,
         transparent 1px
       ),
-      linear-gradient(to bottom, theme("colors.gray.200") 1px, transparent 1px);
-    background-size: 20px 20px; /* adjust square size */
-    transform: rotate(45deg); /* rotate whole pattern */
+      linear-gradient(to bottom, var(--tw-color-gray-200) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
 
   /* optional: keep the element content upright */

@@ -79,7 +79,6 @@
 
 body {
   font-family: var(--font-sans);
-  /* color: theme("colors.gray.900"); */
-  color: theme("colors.pp.teal.900"); /* Test */
+  color: theme("colors.gray.900");
   background-color: theme("colors.gray.50");
 }

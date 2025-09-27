@@ -1,68 +1,85 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "tailwindcss";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Montserrat */
+@font-face {
+  font-family: "Montserrat";
+  src: url("./assets/fonts/montserrat/Montserrat-VariableFont_wght.ttf")
+    format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+@font-face {
+  font-family: "Montserrat";
+  src: url("./assets/fonts/montserrat/Montserrat-Italic-VariableFont_wght.ttf")
+    format("truetype");
+  font-weight: 100 900;
+  font-style: italic;
 }
-a:hover {
-  color: #535bf2;
+
+/* Playfair Display */
+@font-face {
+  font-family: "Playfair Display";
+  src: url("./assets/fonts/playfairDisplay/PlayfairDisplay-VariableFont_wght.ttf")
+    format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Playfair";
+  src: url("./assets/fonts/playfairDisplay/PlayfairDisplay-Italic-VariableFont_wght.ttf")
+    format("truetype");
+  font-weight: 100 900;
+  font-style: italic;
+}
+
+/* Inconsolata */
+@font-face {
+  font-family: "Inconsolata";
+  src: url("./assets/fonts/inconsolata/Inconsolata-VariableFont_wdth,wght.ttf")
+    format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+}
+
+@theme inline {
+  /* Colors */
+  /* Slate (blue-gray to black) */
+  --color-pp-slate-50: #eaecf0;
+  --color-pp-slate-100: #d5d8dc;
+  --color-pp-slate-200: #c0c5cb;
+  --color-pp-slate-300: #abb2b9;
+  --color-pp-slate-400: #969fa8;
+  --color-pp-slate-500: #808b96;
+  --color-pp-slate-600: #6b7885;
+  --color-pp-slate-700: #566573;
+  --color-pp-slate-800: #415162;
+  --color-pp-slate-900: #2c3e50;
+  --color-pp-slate-950: #000000;
+
+  /* Teal (green-turquoise scale) */
+  --color-pp-teal-50: #e8f8f5;
+  --color-pp-teal-100: #d1f2eb;
+  --color-pp-teal-200: #baebe1;
+  --color-pp-teal-300: #a3e4d7;
+  --color-pp-teal-400: #8ddece;
+  --color-pp-teal-500: #76d7c4;
+  --color-pp-teal-600: #5fd0ba;
+  --color-pp-teal-700: #48c9b0;
+  --color-pp-teal-800: #31c3a6;
+  --color-pp-teal-900: #1abc9c;
+  --color-pp-teal-950: #031310;
+
+  /* Font families */
+  --font-sans: "Montserrat", sans-serif;
+  --font-serif: "Playfair Display", serif;
+  --font-monospace: "Inconsolata", monospace;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+  font-family: var(--font-sans);
+  /* color: theme("colors.gray.900"); */
+  color: theme("colors.pp.teal.900"); /* Test */
+  background-color: theme("colors.gray.50");
 }

@@ -94,14 +94,43 @@ body {
   outline-offset: 2px;
 }
 
-.flow > * + * {
-  margin-top: var(--spacing);
-}
+@layer utilities {
+  .flow > * + * {
+    margin-top: var(--spacing);
+  }
 
-.wrapper {
-  max-width: var(--wrapper-width);
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: var(--spacing);
-  padding-right: var(--spacing);
+  .wrapper {
+    max-width: var(--wrapper-width);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--spacing);
+    padding-right: var(--spacing);
+  }
+
+  .bg-diamond-grid {
+    background-color: theme("colors.gray.50"); /* almost white base */
+    background-image: linear-gradient(
+        to right,
+        theme("colors.gray.200") 1px,
+        transparent 1px
+      ),
+      linear-gradient(to bottom, theme("colors.gray.200") 1px, transparent 1px);
+    background-size: 20px 20px; /* adjust square size */
+    transform: rotate(45deg); /* rotate whole pattern */
+  }
+
+  /* optional: keep the element content upright */
+  .bg-diamond-grid-wrapper {
+    position: relative;
+    overflow: hidden;
+  }
+  .bg-diamond-grid-wrapper::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: inherit;
+    transform: rotate(45deg);
+    transform-origin: center;
+    z-index: -1;
+  }
 }

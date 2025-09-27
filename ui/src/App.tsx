@@ -1,23 +1,13 @@
-import { useState } from "react"
+import Dashboard from "./pages/Dashboard/Dashboard"
 import "./App.css"
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
-      <h1>Project Pulse - UI</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <h1 className="text-6xl font-bold text-pp-slate-900">
+        Project Pulse - UI
+      </h1>
+      <Dashboard />
     </>
   )
 }

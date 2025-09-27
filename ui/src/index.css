@@ -75,10 +75,33 @@
   --font-sans: "Montserrat", sans-serif;
   --font-serif: "Playfair Display", serif;
   --font-monospace: "Inconsolata", monospace;
+
+  /* Other Global Settings */
+  --spacing: theme("spacing.4");
+  --border-radius: theme("borderRadius.sm");
+  --shadow: theme("boxShadow.md");
+  --wrapper-width: theme("maxWidth.lg");
 }
 
 body {
   font-family: var(--font-sans);
   color: theme("colors.gray.900");
   background-color: theme("colors.gray.50");
+}
+
+:focus {
+  outline: 2px solid var(--color-pp-teal-500);
+  outline-offset: 2px;
+}
+
+.flow > * + * {
+  margin-top: var(--spacing);
+}
+
+.wrapper {
+  max-width: var(--wrapper-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing);
+  padding-right: var(--spacing);
 }

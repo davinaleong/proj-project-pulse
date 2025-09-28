@@ -9,7 +9,7 @@ const items: Crumb[] = [{ label: "Home", onClick: () => {} }]
 
 function Header() {
   return (
-    <header className="grid gap-[1em] grid-cols-[1fr_2fr_2fr_1fr] max-w-screen">
+    <header id="top" className="flex gap-[1em] max-w-screen">
       <Button
         variant="image"
         type="button"
@@ -20,9 +20,12 @@ function Header() {
         <strong className="font-bold text-pp-slate-900">Project Pulse</strong>
       </Button>
 
-      <Breadcrumbs items={items} />
+      <Breadcrumbs items={items} className="flex-1" />
 
-      <SearchBar onSearch={(query) => console.log("Search query:", query)} />
+      <SearchBar
+        className="flex-1"
+        onSearch={(query) => console.log("Search query:", query)}
+      />
 
       <DropdownMenu label="Modules" color="primary">
         <DropdownMenuItem variant="text" onClick={() => {}}>

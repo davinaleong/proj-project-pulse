@@ -6,12 +6,7 @@ import ImgLogo from "./../assets/images/logo-coloured-svg.svg"
 function Header() {
   return (
     <header className="flex items-center justify-between">
-      <Button
-        variant="image"
-        color="transparent"
-        src={ImgLogo}
-        onClick={() => {}}
-      >
+      <Button variant="image" color="default" src={ImgLogo} onClick={() => {}}>
         <strong className="font-bold text-pp-slate-900">Project Pulse</strong>
       </Button>
 

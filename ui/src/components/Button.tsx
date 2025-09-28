@@ -30,14 +30,14 @@ export default function Button({
   color = "primary",
 }: ButtonProps) {
   const colorClasses = {
-    primary: "bg-pp-teal-500/10 text-pp-teal-900 dark:text-pp-teal-100",
-    secondary: "bg-pp-gray-500/10 text-pp-gray-900 dark:text-pp-gray-100",
-    danger: "bg-red-500/10 text-red-900 dark:text-red-100",
-    success: "bg-green-500/10 text-green-900 dark:text-green-100",
-    warning: "bg-yellow-500/10 text-yellow-900 dark:text-yellow-100",
-    info: "bg-blue-500/10 text-blue-900 dark:text-blue-100",
-    default: "bg-white/10 text-gray-900 dark:text-gray-100",
-    transparent: "bg-white/5 text-gray-900 dark:text-gray-100",
+    primary: "bg-pp-teal-50 text-pp-teal-900 border-pp-teal-200",
+    secondary: "bg-pp-gray-50 text-pp-gray-900 border-pp-gray-200",
+    danger: "bg-red-50 text-red-900 border-red-200",
+    success: "bg-green-50 text-green-900 border-green-200",
+    warning: "bg-yellow-50 text-yellow-900 border-yellow-200",
+    info: "bg-blue-50 text-blue-900 border-blue-200",
+    default: "bg-white text-gray-900 border-gray-200",
+    transparent: "bg-transparent text-gray-900 border-gray-200",
     custom: "",
   }
 
@@ -45,10 +45,10 @@ export default function Button({
     <button
       onClick={onClick}
       className={clsx(
-        // Base glass look
-        "cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 font-medium",
-        "border border-white/30 backdrop-blur-md shadow-md",
-        "transition-all duration-200 hover:scale-[1.02] hover:shadow-lg",
+        // Paper-like base
+        "cursor-pointer inline-flex items-center justify-center gap-[0.5em] rounded-sm px-[1em] py-[0.5em] font-medium",
+        "border shadow-sm hover:shadow-md active:shadow-inner",
+        "transition-all duration-150 hover:-translate-y-[1px]",
         "disabled:opacity-50 disabled:cursor-not-allowed",
         colorClasses[color],
         className
@@ -61,14 +61,14 @@ export default function Button({
           <img
             src={src}
             alt=""
-            className="w-4 h-4 object-contain"
+            className="w-[1em] h-[1em] object-contain"
             draggable={false}
           />
           {children}
         </>
       )}
 
-      {variant === "icon" && Icon && <Icon className="w-4 h-4" />}
+      {variant === "icon" && Icon && <Icon className="w-[1em] h-[1em]" />}
     </button>
   )
 }

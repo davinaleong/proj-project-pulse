@@ -3,7 +3,7 @@ import clsx from "clsx"
 
 type ButtonProps = {
   onClick: () => void
-  variant?: "text" | "image" | "icon"
+  variant?: "text" | "image" | "icon" | "link"
   children?: React.ReactNode
   src?: string // for images
   icon?: LucideIcon // for Lucide icons
@@ -45,12 +45,19 @@ export default function Button({
     <button
       onClick={onClick}
       className={clsx(
-        // Paper-like base
-        "cursor-pointer inline-flex items-center justify-center gap-[0.5em] rounded-sm px-[1em] py-[0.5em] font-medium",
-        "border shadow-sm hover:shadow-md active:shadow-inner",
-        "transition-all duration-150 hover:-translate-y-[1px]",
+        // Shared base
+        "cursor-pointer inline-flex items-center gap-[0.5em] font-medium transition-all duration-150",
         "disabled:opacity-50 disabled:cursor-not-allowed",
-        colorClasses[color],
+
+        // Variants
+        variant === "link" &&
+          "bg-transparent border-0 p-0 underline underline-offset-4 text-blue-500 hover:text-blue-700 active:text-blue-900 shadow-none rounded-none",
+
+        variant !== "link" &&
+          "justify-center rounded-sm px-[1em] py-[0.5em] border shadow-sm hover:shadow-md active:shadow-inner hover:-translate-y-[1px]",
+
+        variant !== "link" && colorClasses[color],
+
         className
       )}
     >
@@ -69,6 +76,8 @@ export default function Button({
       )}
 
       {variant === "icon" && Icon && <Icon className="w-[1em] h-[1em]" />}
+
+      {variant === "link" && children}
     </button>
   )
 }

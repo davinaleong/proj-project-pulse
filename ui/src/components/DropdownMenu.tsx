@@ -41,6 +41,7 @@ function DropdownMenu({
     <div className="relative inline-block">
       {/* Trigger Button */}
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         className={clsx(
           "cursor-pointer flex items-center justify-between gap-[0.5em] rounded-sm px-[1em] py-[0.5em] font-medium",

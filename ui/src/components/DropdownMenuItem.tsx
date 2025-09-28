@@ -19,6 +19,7 @@ function DropdownMenuItem({
   return (
     <li>
       <button
+        type="button"
         onClick={onClick}
         className="cursor-pointer flex items-center gap-[0.5em] w-full rounded-md px-[1em] py-[0.5em] hover:bg-white/20 transition"
       >

@@ -1,5 +1,6 @@
 import Button from "./Button"
 import Breadcrumbs, { type Crumb } from "./Breadcrumbs"
+import SearchBar from "./SearchBar"
 import DropdownMenu from "./DropdownMenu"
 import DropdownMenuItem from "./DropdownMenuItem"
 import ImgLogo from "./../assets/images/logo-coloured-svg.svg"
@@ -8,12 +9,20 @@ const items: Crumb[] = [{ label: "Home", onClick: () => {} }]
 
 function Header() {
   return (
-    <header className="flex gap-[0.5em] items-center justify-between">
-      <Button variant="image" color="default" src={ImgLogo} onClick={() => {}}>
+    <header className="grid gap-[1em] grid-cols-[1fr_2fr_2fr_1fr] max-w-screen">
+      <Button
+        variant="image"
+        type="button"
+        color="default"
+        src={ImgLogo}
+        onClick={() => {}}
+      >
         <strong className="font-bold text-pp-slate-900">Project Pulse</strong>
       </Button>
 
-      <Breadcrumbs items={items} className="flex-1 mx-4" />
+      <Breadcrumbs items={items} />
+
+      <SearchBar onSearch={(query) => console.log("Search query:", query)} />
 
       <DropdownMenu label="Modules" color="primary">
         <DropdownMenuItem variant="text" onClick={() => {}}>

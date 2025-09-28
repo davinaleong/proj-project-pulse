@@ -1,12 +1,14 @@
+// Button.tsx
 import { type LucideIcon } from "lucide-react"
 import clsx from "clsx"
 
 type ButtonProps = {
   onClick: () => void
-  variant?: "text" | "image" | "icon" | "link"
+  variant?: "text" | "image" | "icon" | "link" | "bare"
+  type?: "button" | "submit" | "reset"
   children?: React.ReactNode
-  src?: string // for images
-  icon?: LucideIcon // for Lucide icons
+  src?: string
+  icon?: LucideIcon
   className?: string
   color?:
     | "primary"
@@ -23,6 +25,7 @@ type ButtonProps = {
 export default function Button({
   onClick,
   variant = "text",
+  type = "button",
   children,
   src,
   icon: Icon,
@@ -43,20 +46,23 @@ export default function Button({
 
   return (
     <button
+      type={type}
       onClick={onClick}
       className={clsx(
-        // Shared base
         "cursor-pointer inline-flex items-center gap-[0.5em] font-medium transition-all duration-150",
         "disabled:opacity-50 disabled:cursor-not-allowed",
 
-        // Variants
         variant === "link" &&
           "bg-transparent border-0 p-0 underline underline-offset-4 text-blue-500 hover:text-blue-700 active:text-blue-900 shadow-none rounded-none",
 
+        variant === "bare" &&
+          "bg-transparent border-0 p-0 shadow-none rounded-none text-inherit hover:opacity-70",
+
         variant !== "link" &&
+          variant !== "bare" &&
           "justify-center rounded-sm px-[1em] py-[0.5em] border shadow-sm hover:shadow-md active:shadow-inner hover:-translate-y-[1px]",
 
-        variant !== "link" && colorClasses[color],
+        variant !== "link" && variant !== "bare" && colorClasses[color],
 
         className
       )}
@@ -76,6 +82,7 @@ export default function Button({
       )}
 
       {variant === "icon" && Icon && <Icon className="w-[1em] h-[1em]" />}
+      {variant === "bare" && Icon && <Icon className="w-[1em] h-[1em]" />}
 
       {variant === "link" && children}
     </button>

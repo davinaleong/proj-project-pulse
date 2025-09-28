@@ -43,25 +43,21 @@ export default function Footer({
 
   return (
     <footer
-      className={`flex flex-col md:flex-row items-center justify-between gap-[0.5em] rounded-sm border shadow-sm hover:shadow-md active:shadow-inner transition-all duration-150 px-[1em] py-[0.5em] ${colorClasses[color]} ${className}`}
+      className={`rounded-sm border shadow-sm hover:shadow-md active:shadow-inner transition-all duration-150 px-[1em] py-[0.5em] ${colorClasses[color]} ${className}`}
     >
-      {/* Back to top */}
-      <Button
-        variant="link"
-        onClick={
-          onBackToTop || (() => window.scrollTo({ top: 0, behavior: "smooth" }))
-        }
-      >
-        Back to top
-      </Button>
-
-      {/* Copyright */}
-      <p className="text-sm text-gray-500 text-center md:text-left">
-        © {year} {company}. All rights reserved.
-      </p>
-
       {/* Links */}
       <div className="flex items-center gap-[1em]">
+        {/* Back to top */}
+        <Button
+          variant="link"
+          onClick={
+            onBackToTop ||
+            (() => window.scrollTo({ top: 0, behavior: "smooth" }))
+          }
+        >
+          Back to top
+        </Button>
+
         <Button variant="link" onClick={onPrivacyPolicy || (() => {})}>
           Privacy Policy
         </Button>
@@ -69,6 +65,11 @@ export default function Footer({
           Terms & Conditions
         </Button>
       </div>
+
+      {/* Copyright */}
+      <p className="text-sm text-gray-500 text-center">
+        © {year} {company}. All rights reserved.
+      </p>
     </footer>
   )
 }

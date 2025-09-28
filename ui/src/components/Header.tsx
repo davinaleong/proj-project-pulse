@@ -1,7 +1,7 @@
 import Button from "./Button"
 import DropdownMenu from "./DropdownMenu"
 import DropdownMenuItem from "./DropdownMenuItem"
-import ImgLogo from "./assets/images/logo-coloured-svg.svg"
+import ImgLogo from "./../assets/images/logo-coloured-svg.svg"
 
 function Header() {
   return (

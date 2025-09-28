@@ -1,5 +1,5 @@
 // Footer.tsx
-import Button from "./Button"
+import Button from "./../common/Button"
 
 type FooterProps = {
   year?: number

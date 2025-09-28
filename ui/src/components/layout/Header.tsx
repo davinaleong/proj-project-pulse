@@ -1,9 +1,9 @@
-import Button from "./Button"
-import Breadcrumbs, { type Crumb } from "./Breadcrumbs"
-import SearchBar from "./SearchBar"
-import DropdownMenu from "./DropdownMenu"
-import DropdownMenuItem from "./DropdownMenuItem"
-import ImgLogo from "./../assets/images/logo-coloured-svg.svg"
+import Button from "./../common/Button"
+import Breadcrumbs, { type Crumb } from "./../common/Breadcrumbs"
+import SearchBar from "./../common/SearchBar"
+import DropdownMenu from "../ui/DropdownMenu"
+import DropdownMenuItem from "../ui/DropdownMenuItem"
+import ImgLogo from "./../../assets/images/logo-coloured-svg.svg"
 
 const items: Crumb[] = [{ label: "Home", onClick: () => {} }]
 

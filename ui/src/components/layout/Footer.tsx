@@ -43,10 +43,10 @@ export default function Footer({
 
   return (
     <footer
-      className={`rounded-sm border shadow-sm hover:shadow-md active:shadow-inner transition-all duration-150 px-[1em] py-[0.5em] ${colorClasses[color]} ${className}`}
+      className={`text-sm rounded-sm border shadow-sm hover:shadow-md active:shadow-inner transition-all duration-150 px-[1em] py-[0.5em] flow ${colorClasses[color]} ${className}`}
     >
       {/* Links */}
-      <div className="flex items-center gap-[1em]">
+      <div className="flex items-center justify-between">
         {/* Back to top */}
         <Button
           variant="link"
@@ -65,9 +65,8 @@ export default function Footer({
           Terms & Conditions
         </Button>
       </div>
-
       {/* Copyright */}
-      <p className="text-sm text-gray-500 text-center">
+      <p className="text-gray-500 text-center">
         © {year} {company}. All rights reserved.
       </p>
     </footer>

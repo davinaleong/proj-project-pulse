@@ -12,6 +12,7 @@ function Test() {
         </p>
 
         <StaticTable
+          caption="Sample Data Table"
           columns={[
             { key: "id", label: "ID", sortable: true },
             { key: "name", label: "Name", sortable: true },

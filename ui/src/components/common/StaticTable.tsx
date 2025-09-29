@@ -1,8 +1,8 @@
-// components/common/StaticTable.tsx
 import { useState } from "react"
 import clsx from "clsx"
 import Button from "./Button"
 import Input from "../forms/Input"
+import StaticTableRow from "./StaticTableRow"
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react"
 
 type Column<T> = {
@@ -19,6 +19,8 @@ type StaticTableProps<T> = {
   enablePagination?: boolean
   sortable?: boolean
   pageSize?: number
+  caption?: string
+  defaultOpen?: boolean
 }
 
 function StaticTable<T extends Record<string, unknown>>({
@@ -29,11 +31,14 @@ function StaticTable<T extends Record<string, unknown>>({
   enablePagination = false,
   sortable = false,
   pageSize = 5,
+  caption,
+  defaultOpen = true,
 }: StaticTableProps<T>) {
   const [search, setSearch] = useState("")
   const [sortKey, setSortKey] = useState<keyof T | null>(null)
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc")
   const [page, setPage] = useState(1)
+  const [open, setOpen] = useState(defaultOpen)
 
   // ✅ Filtering
   const filteredData = enableSearch
@@ -101,7 +106,7 @@ function StaticTable<T extends Record<string, unknown>>({
                 color="default"
                 icon={ChevronLeft}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="p-0 w-[2.5em] h-[2.5em] flex items-center justify-center rounded-sm"
+                className="w-[2.5em] h-[2.5em] flex items-center justify-center rounded-sm"
                 disabled={page === 1}
               />
 
@@ -133,7 +138,7 @@ function StaticTable<T extends Record<string, unknown>>({
                 color="default"
                 icon={ChevronRight}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="p-0 w-[2.5em] h-[2.5em] flex items-center justify-center rounded-sm"
+                className="w-[2.5em] h-[2.5em] flex items-center justify-center rounded-sm"
                 disabled={page === totalPages}
               />
             </div>
@@ -150,73 +155,89 @@ function StaticTable<T extends Record<string, unknown>>({
         className
       )}
     >
-      {enableSearch && (
-        <div className="p-[0.5em] border-b border-gray-200 bg-gray-50">
-          <Input type="search" name="search" placeholder="Search..." />
+      {caption && (
+        <div
+          className="flex items-center justify-between px-[1em] py-[0.5em] bg-gray-100 border-b border-gray-200 cursor-pointer select-none"
+          onClick={() => setOpen(!open)}
+        >
+          <span className="font-semibold text-sm">{caption}</span>
+          {open ? (
+            <ChevronUp className="w-[1em] h-[1em] text-gray-500" />
+          ) : (
+            <ChevronDown className="w-[1em] h-[1em] text-gray-500" />
+          )}
         </div>
       )}
 
-      <table className="w-full border-collapse">
-        <thead className="bg-gray-50 border-b border-gray-200">
-          <tr>
-            {columns.map((col) => (
-              <th
-                key={String(col.key)}
-                onClick={() => col.sortable && handleSort(col.key)}
-                className={clsx(
-                  "px-[1em] py-[0.5em] text-left text-sm font-semibold cursor-pointer select-none",
-                  col.sortable && "hover:underline"
-                )}
-              >
-                <span className="inline-flex items-center gap-[0.5em]">
-                  {col.label}
-                  {sortable &&
-                    sortKey === col.key &&
-                    (sortDir === "asc" ? (
-                      <ChevronUp className="w-[1em] h-[1em] inline" />
-                    ) : (
-                      <ChevronDown className="w-[1em] h-[1em] inline" />
-                    ))}
-                </span>
-              </th>
-            ))}
-          </tr>
-        </thead>
+      {open && (
+        <>
+          {enableSearch && open && (
+            <div className="p-[0.5em] border-b border-gray-200 bg-gray-50">
+              <Input
+                type="search"
+                name="search"
+                placeholder="Search..."
+                value={search}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setSearch(e.target.value)
+                }
+              />
+            </div>
+          )}
 
-        <tbody>
-          {paginatedData.length === 0 ? (
-            <tr>
-              <td
-                colSpan={columns.length}
-                className="px-[1em] py-[1em] text-center text-gray-500"
-              >
-                No records found
-              </td>
-            </tr>
-          ) : (
-            paginatedData.map((row, i) => (
-              <tr
-                key={i}
-                className={clsx(
-                  "border-b border-gray-100",
-                  i % 2 === 0 ? "bg-white" : "bg-gray-50"
-                )}
-              >
+          <table className="w-full border-collapse">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
                 {columns.map((col) => (
-                  <td
+                  <th
                     key={String(col.key)}
-                    className="px-[1em] py-[0.5em] text-sm"
+                    onClick={() => col.sortable && handleSort(col.key)}
+                    className={clsx(
+                      "px-[1em] py-[0.5em] text-left text-sm font-semibold cursor-pointer select-none",
+                      col.sortable && "hover:underline"
+                    )}
                   >
-                    {String(row[col.key])}
-                  </td>
+                    <span className="inline-flex items-center gap-[0.5em]">
+                      {col.label}
+                      {sortable &&
+                        sortKey === col.key &&
+                        (sortDir === "asc" ? (
+                          <ChevronUp className="w-[1em] h-[1em] inline" />
+                        ) : (
+                          <ChevronDown className="w-[1em] h-[1em] inline" />
+                        ))}
+                    </span>
+                  </th>
                 ))}
               </tr>
-            ))
-          )}
-        </tbody>
+            </thead>
 
-        {renderPagination()}
-      </table>
+            <tbody>
+              {paginatedData.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="px-[1em] py-[1em] text-center text-gray-500"
+                  >
+                    No records found
+                  </td>
+                </tr>
+              ) : (
+                paginatedData.map((row, i) => (
+                  <StaticTableRow
+                    key={i}
+                    row={row}
+                    columns={columns}
+                    index={i}
+                  />
+                ))
+              )}
+            </tbody>
+
+            {renderPagination()}
+          </table>
+        </>
+      )}
     </div>
   )
 }

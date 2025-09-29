@@ -1,8 +1,7 @@
 import clsx from "clsx"
+import { ChangeEvent } from "react"
 
-type MessageVariant = "help" | "error" | "success"
-
-type InputProps = {
+export type InputProps = {
   id?: string
   type?: string
   name: string
@@ -10,11 +9,13 @@ type InputProps = {
   placeholder?: string
   required?: boolean
   className?: string
+  value?: string
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void
   message?: string
-  messageVariant?: MessageVariant
+  messageVariant?: "help" | "error" | "success"
 }
 
-function Input({
+export default function Input({
   id,
   type = "text",
   name,
@@ -22,12 +23,14 @@ function Input({
   placeholder,
   required = false,
   className,
+  value,
+  onChange,
   message,
   messageVariant = "help",
 }: InputProps) {
   const inputId = id || name
 
-  const messageClasses: Record<MessageVariant, string> = {
+  const messageClasses: Record<"help" | "error" | "success", string> = {
     help: "text-gray-500",
     error: "text-red-600",
     success: "text-green-600",
@@ -35,7 +38,6 @@ function Input({
 
   return (
     <div className="flow">
-      {/* Optional Label */}
       {label && (
         <label
           htmlFor={inputId}
@@ -45,20 +47,20 @@ function Input({
         </label>
       )}
 
-      {/* Input */}
       <input
         id={inputId}
         name={name}
         type={type}
         placeholder={placeholder}
         required={required}
+        value={value}
+        onChange={onChange}
         className={clsx(
           "block w-full rounded-sm bg-gray-100 px-[1em] py-[0.5em] shadow-inner focus:outline-none focus:ring-2 focus:ring-pp-teal-500",
           className
         )}
       />
 
-      {/* Message */}
       {message && (
         <p className={clsx("text-sm mt-1", messageClasses[messageVariant])}>
           {message}
@@ -67,5 +69,3 @@ function Input({
     </div>
   )
 }
-
-export default Input

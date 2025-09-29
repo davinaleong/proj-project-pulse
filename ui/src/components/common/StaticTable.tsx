@@ -4,6 +4,7 @@ import Button from "./Button"
 import Input from "../forms/Input"
 import StaticTableRow from "./StaticTableRow"
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react"
+import { getColorClasses, type ColorVariant } from "./../../utils/colors"
 
 type Column<T> = {
   key: keyof T
@@ -21,6 +22,7 @@ type StaticTableProps<T> = {
   pageSize?: number
   caption?: string
   defaultOpen?: boolean
+  color?: ColorVariant
 }
 
 function StaticTable<T extends Record<string, unknown>>({
@@ -33,6 +35,7 @@ function StaticTable<T extends Record<string, unknown>>({
   pageSize = 5,
   caption,
   defaultOpen = true,
+  color = "default",
 }: StaticTableProps<T>) {
   const [search, setSearch] = useState("")
   const [sortKey, setSortKey] = useState<keyof T | null>(null)
@@ -106,7 +109,6 @@ function StaticTable<T extends Record<string, unknown>>({
                 color="default"
                 icon={ChevronLeft}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="w-[2.5em] h-[2.5em] flex items-center justify-center rounded-sm"
                 disabled={page === 1}
               />
 
@@ -138,7 +140,6 @@ function StaticTable<T extends Record<string, unknown>>({
                 color="default"
                 icon={ChevronRight}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                className="w-[2.5em] h-[2.5em] flex items-center justify-center rounded-sm"
                 disabled={page === totalPages}
               />
             </div>
@@ -151,13 +152,15 @@ function StaticTable<T extends Record<string, unknown>>({
   return (
     <div
       className={clsx(
-        "overflow-x-auto rounded-sm border border-gray-200 shadow-sm hover:shadow-md active:shadow-inner transition-all duration-150",
+        "overflow-x-auto rounded-sm border shadow-sm hover:shadow-md active:shadow-inner transition-all duration-150",
+        getColorClasses(color),
         className
       )}
     >
+      {/* Caption toggle */}
       {caption && (
         <div
-          className="flex items-center justify-between px-[1em] py-[0.5em] bg-gray-100 border-b border-gray-200 cursor-pointer select-none"
+          className="flex items-center justify-between px-[1em] py-[0.5em] border-b cursor-pointer select-none"
           onClick={() => setOpen(!open)}
         >
           <span className="font-semibold text-sm">{caption}</span>
@@ -171,7 +174,8 @@ function StaticTable<T extends Record<string, unknown>>({
 
       {open && (
         <>
-          {enableSearch && open && (
+          {/* ✅ Search */}
+          {enableSearch && (
             <div className="p-[0.5em] border-b border-gray-200 bg-gray-50">
               <Input
                 type="search"
@@ -185,6 +189,7 @@ function StaticTable<T extends Record<string, unknown>>({
             </div>
           )}
 
+          {/* ✅ Table */}
           <table className="w-full border-collapse">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -197,7 +202,7 @@ function StaticTable<T extends Record<string, unknown>>({
                       col.sortable && "hover:underline"
                     )}
                   >
-                    <span className="inline-flex items-center gap-[0.5em]">
+                    <span className="inline-flex items-center gap-[0.25em]">
                       {col.label}
                       {sortable &&
                         sortKey === col.key &&
@@ -229,6 +234,7 @@ function StaticTable<T extends Record<string, unknown>>({
                     row={row}
                     columns={columns}
                     index={i}
+                    color={color}
                   />
                 ))
               )}

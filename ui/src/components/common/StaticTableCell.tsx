@@ -1,33 +1,22 @@
 import clsx from "clsx"
-import StaticTableCell from "./StaticTableCell"
 import { getColorClasses, type ColorVariant } from "./../../utils/colors"
 
-type StaticTableRowProps<T> = {
-  row: T
-  columns: { key: keyof T; label: string }[]
-  index: number
+type StaticTableCellProps = {
+  value: unknown
   color?: ColorVariant
 }
 
-function StaticTableRow<T extends Record<string, unknown>>({
-  row,
-  columns,
-  index,
-  color = "default",
-}: StaticTableRowProps<T>) {
+function StaticTableCell({ value, color = "default" }: StaticTableCellProps) {
   return (
-    <tr
+    <td
       className={clsx(
-        "border-b border-gray-200",
-        index % 2 === 0 ? "bg-white" : "bg-gray-50",
+        "px-[1em] py-[0.5em] text-sm border border-gray-100",
         getColorClasses(color)
       )}
     >
-      {columns.map((col) => (
-        <StaticTableCell key={String(col.key)} value={row[col.key]} />
-      ))}
-    </tr>
+      {String(value ?? "")}
+    </td>
   )
 }
 
-export default StaticTableRow
+export default StaticTableCell

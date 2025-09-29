@@ -1,10 +1,11 @@
 // Panel.tsx
-import { useState } from "react"
+import { useState, type JSX } from "react"
 import clsx from "clsx"
 import { ChevronDown, ChevronRight } from "lucide-react"
 
 type PanelProps = {
   title?: string
+  titleLevel?: 0 | 1 | 2 | 3 | 4 | 5 | 6
   children: React.ReactNode
   footer?: React.ReactNode
   className?: string
@@ -23,6 +24,7 @@ type PanelProps = {
 
 export default function Panel({
   title,
+  titleLevel = 0,
   children,
   footer,
   className,
@@ -43,6 +45,12 @@ export default function Panel({
     custom: "",
   }
 
+  // Heading tag logic: 0 → span, 1–6 → h1–h6
+  const HeadingTag: keyof JSX.IntrinsicElements =
+    titleLevel === 0
+      ? "span"
+      : (`h${titleLevel}` as keyof JSX.IntrinsicElements)
+
   return (
     <section
       role="region"
@@ -56,10 +64,10 @@ export default function Panel({
     >
       {title && (
         <header
-          className="flex items-center justify-between mb-[0.5em] font-semibold text-base border-b border-gray-200 pb-[0.5em] cursor-pointer select-none"
+          className="flex items-center justify-between mb-[0.5em] border-b border-gray-200 pb-[0.5em] cursor-pointer select-none"
           onClick={() => setOpen(!open)}
         >
-          <span>{title}</span>
+          <HeadingTag className="font-semibold text-base">{title}</HeadingTag>
           {open ? (
             <ChevronDown className="w-[1em] h-[1em] text-gray-500" />
           ) : (

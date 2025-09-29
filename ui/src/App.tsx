@@ -1,9 +1,11 @@
 // import Login from "./pages/Auth/Login"
-import Terms from "./pages/Documents/Terms"
+// import Privacy from "./pages/Documents/Privacy"
+// import Terms from "./pages/Documents/Terms"
+import Dashboard from "./pages/Modules/Dashboard"
 import "./App.css"
 
 function App() {
-  return <Terms />
+  return <Dashboard />
 }
 
 export default App

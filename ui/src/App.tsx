@@ -1,9 +1,9 @@
 // import Login from "./pages/Auth/Login"
-import Privacy from "./pages/Documents/Privacy"
+import Terms from "./pages/Documents/Terms"
 import "./App.css"
 
 function App() {
-  return <Privacy />
+  return <Terms />
 }
 
 export default App

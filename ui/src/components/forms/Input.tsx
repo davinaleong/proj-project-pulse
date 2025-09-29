@@ -2,11 +2,12 @@ import clsx from "clsx"
 
 type MessageVariant = "help" | "error" | "success"
 
-type InputFieldProps = {
+type InputProps = {
   id?: string
   type?: string
   name: string
-  label: string
+  label?: string
+  placeholder?: string
   required?: boolean
   className?: string
   message?: string
@@ -18,11 +19,12 @@ function Input({
   type = "text",
   name,
   label,
+  placeholder,
   required = false,
   className,
   message,
   messageVariant = "help",
-}: InputFieldProps) {
+}: InputProps) {
   const inputId = id || name
 
   const messageClasses: Record<MessageVariant, string> = {
@@ -33,19 +35,22 @@ function Input({
 
   return (
     <div className="flow">
-      {/* Label */}
-      <label
-        htmlFor={inputId}
-        className="block text-sm font-medium text-gray-700"
-      >
-        {label}
-      </label>
+      {/* Optional Label */}
+      {label && (
+        <label
+          htmlFor={inputId}
+          className="block text-sm font-medium text-gray-700"
+        >
+          {label}
+        </label>
+      )}
 
       {/* Input */}
       <input
         id={inputId}
         name={name}
         type={type}
+        placeholder={placeholder}
         required={required}
         className={clsx(
           "block w-full rounded-sm bg-gray-100 px-[1em] py-[0.5em] shadow-inner focus:outline-none focus:ring-2 focus:ring-pp-teal-500",

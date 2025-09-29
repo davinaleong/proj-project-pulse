@@ -2,6 +2,7 @@
 import { useState } from "react"
 import clsx from "clsx"
 import Button from "./Button"
+import Input from "../forms/Input"
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react"
 
 type Column<T> = {
@@ -151,13 +152,7 @@ function StaticTable<T extends Record<string, unknown>>({
     >
       {enableSearch && (
         <div className="p-[0.5em] border-b border-gray-200 bg-gray-50">
-          <input
-            type="text"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-sm border border-gray-300 px-[1em] py-[0.5em] text-sm"
-          />
+          <Input type="search" name="search" placeholder="Search..." />
         </div>
       )}
 
@@ -169,18 +164,18 @@ function StaticTable<T extends Record<string, unknown>>({
                 key={String(col.key)}
                 onClick={() => col.sortable && handleSort(col.key)}
                 className={clsx(
-                  "px-4 py-2 text-left text-sm font-semibold cursor-pointer select-none",
+                  "px-[1em] py-[0.5em] text-left text-sm font-semibold cursor-pointer select-none",
                   col.sortable && "hover:underline"
                 )}
               >
-                <span className="inline-flex items-center gap-1">
+                <span className="inline-flex items-center gap-[0.5em]">
                   {col.label}
                   {sortable &&
                     sortKey === col.key &&
                     (sortDir === "asc" ? (
-                      <ChevronUp className="w-3 h-3 inline" />
+                      <ChevronUp className="w-[1em] h-[1em] inline" />
                     ) : (
-                      <ChevronDown className="w-3 h-3 inline" />
+                      <ChevronDown className="w-[1em] h-[1em] inline" />
                     ))}
                 </span>
               </th>
@@ -193,7 +188,7 @@ function StaticTable<T extends Record<string, unknown>>({
             <tr>
               <td
                 colSpan={columns.length}
-                className="px-4 py-4 text-center text-gray-500"
+                className="px-[1em] py-[1em] text-center text-gray-500"
               >
                 No records found
               </td>
@@ -208,7 +203,10 @@ function StaticTable<T extends Record<string, unknown>>({
                 )}
               >
                 {columns.map((col) => (
-                  <td key={String(col.key)} className="px-4 py-2 text-sm">
+                  <td
+                    key={String(col.key)}
+                    className="px-[1em] py-[0.5em] text-sm"
+                  >
                     {String(row[col.key])}
                   </td>
                 ))}

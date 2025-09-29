@@ -1,6 +1,7 @@
 // pages/Auth/Login.tsx
 import AuthLayout from "../../components/layout/AuthLayout"
 import Button from "../../components/common/Button"
+import Input from "../../components/forms/Input"
 import { useState, type FormEvent } from "react"
 
 function Login() {
@@ -16,11 +17,10 @@ function Login() {
       return
     }
 
-    const name = formData.get("name") as string
     const email = formData.get("email") as string
     const password = formData.get("password") as string
 
-    console.log({ name, email, password }) // replace with auth call
+    console.log({ email, password }) // replace with auth call
     setError(null)
   }
 
@@ -35,37 +35,14 @@ function Login() {
 
         {/* Login form */}
         <form onSubmit={handleSubmit} className="flow">
-          <div className="flow">
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              className="block w-full rounded-sm bg-gray-100 px-[1em] py-[0.5em] shadow-inner focus:outline-none focus:ring-2 focus:ring-pp-teal-500"
-            />
-          </div>
+          <Input label="Email" type="email" name="email" required={true} />
 
-          <div className="flow">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              className="block w-full rounded-sm bg-gray-100 px-[1em] py-[0.5em] shadow-inner focus:outline-none focus:ring-2 focus:ring-pp-teal-500"
-            />
-          </div>
+          <Input
+            label="Password"
+            type="password"
+            name="password"
+            required={true}
+          />
 
           {/* Honeypot field (hidden from real users) */}
           <input

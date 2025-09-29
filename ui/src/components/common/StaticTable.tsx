@@ -106,8 +106,8 @@ function StaticTable<T extends Record<string, unknown>>({
 
               {pages.map((p, idx) =>
                 p === "..." ? (
-                  <span key={idx} className="px-2 text-gray-500">
-                    ...
+                  <span key={idx} className="px-[0.5em] text-gray-500">
+                    &hellip;
                   </span>
                 ) : (
                   <Button
@@ -150,7 +150,7 @@ function StaticTable<T extends Record<string, unknown>>({
       )}
     >
       {enableSearch && (
-        <div className="p-2 border-b border-gray-200 bg-gray-50">
+        <div className="p-[0.5em] border-b border-gray-200 bg-gray-50">
           <input
             type="text"
             placeholder="Search..."

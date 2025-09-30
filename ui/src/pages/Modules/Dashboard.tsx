@@ -3,19 +3,28 @@ import ModuleLayout from "../../components/layout/ModuleLayout"
 import Panel from "../../components/common/Panel"
 import Donut from "../../components/charts/Donut"
 import Line from "../../components/charts/Line"
-import StaticTable from "../../components/common/StaticTable"
-import { demoProjects, type Project } from "../../data/demoProjects"
+import StaticTable, { type Column } from "../../components/common/StaticTable"
+import {
+  personalProjects,
+  type PersonalProject,
+} from "../../data/demoPersonalProjects"
 
-const columns: { key: keyof Project; label: string; sortable?: boolean }[] = [
+const columns: Column<PersonalProject>[] = [
   { key: "id", label: "ID", sortable: true },
-  { key: "name", label: "Project Name", sortable: true },
-  { key: "owner", label: "Owner", sortable: true },
-  { key: "status", label: "Status", sortable: true },
+  { key: "uuid", label: "UUID" },
   { key: "priority", label: "Priority", sortable: true },
-  { key: "dueDate", label: "Due Date", sortable: true },
+  { key: "beganAt", label: "Began At", sortable: true },
+  { key: "completedAt", label: "Completed At", sortable: true },
+  { key: "owner", label: "Owner", sortable: true },
+  { key: "category", label: "Category", sortable: true },
 ]
 
 function Dashboard() {
+  // ✅ Only keep projects with priority >= 4
+  const highPriorityProjects = personalProjects.filter(
+    (proj) => proj.priority >= 4
+  )
+
   return (
     <ModuleLayout>
       <Panel title="Dashboard" titleLevel={1} className="flow">
@@ -24,18 +33,18 @@ function Dashboard() {
             <h3 className="font-semibold text-xl">Donut Chart</h3>
             <Donut />
           </div>
-          <StaticTable<Project>
+
+          <StaticTable<PersonalProject>
             caption="High Priority Projects"
             columns={columns}
-            data={demoProjects}
-            enableSearch
-            enablePagination
-            sortable
-            pageSize={3}
+            data={highPriorityProjects}
+            pageSize={10}
             color="danger"
           />
+
           <p>Table</p>
         </div>
+
         <h3 className="font-semibold text-xl">Line Chart</h3>
         <Line />
       </Panel>

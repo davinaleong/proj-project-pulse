@@ -6,7 +6,7 @@ import StaticTableRow from "./StaticTableRow"
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react"
 import { getColorClasses, type ColorVariant } from "./../../utils/colors"
 
-type Column<T> = {
+export type Column<T> = {
   key: keyof T
   label: string
   sortable?: boolean
@@ -23,6 +23,7 @@ type StaticTableProps<T> = {
   caption?: string
   defaultOpen?: boolean
   color?: ColorVariant
+  bodyMaxHeight?: string // NEW: e.g. "300px"
 }
 
 function StaticTable<T extends Record<string, unknown>>({
@@ -36,6 +37,7 @@ function StaticTable<T extends Record<string, unknown>>({
   caption,
   defaultOpen = true,
   color = "default",
+  bodyMaxHeight = "300px",
 }: StaticTableProps<T>) {
   const [search, setSearch] = useState("")
   const [sortKey, setSortKey] = useState<keyof T | null>(null)
@@ -191,7 +193,7 @@ function StaticTable<T extends Record<string, unknown>>({
 
           {/* ✅ Table */}
           <table className="w-full border-collapse">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
               <tr>
                 {columns.map((col) => (
                   <th
@@ -217,9 +219,22 @@ function StaticTable<T extends Record<string, unknown>>({
               </tr>
             </thead>
 
-            <tbody>
+            {/* 👇 Added scrollable tbody wrapper */}
+            <tbody
+              style={{
+                maxHeight: bodyMaxHeight,
+                overflowY: "auto",
+                display: "block",
+              }}
+            >
               {paginatedData.length === 0 ? (
-                <tr>
+                <tr
+                  style={{
+                    display: "table",
+                    width: "100%",
+                    tableLayout: "fixed",
+                  }}
+                >
                   <td
                     colSpan={columns.length}
                     className="px-[1em] py-[1em] text-center text-gray-500"

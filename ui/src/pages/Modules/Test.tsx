@@ -1,5 +1,7 @@
 import ModuleLayout from "../../components/layout/ModuleLayout"
 import Panel from "../../components/common/Panel"
+import Input from "../../components/forms/Input"
+import TextArea from "../../components/forms/TextArea"
 import StaticTable from "../../components/common/StaticTable"
 
 function Test() {
@@ -10,6 +12,15 @@ function Test() {
           This page is use to test the appearance and functionality of the
           frontend UI.
         </p>
+
+        <Input label="Sample Input" name="name" placeholder="Name" />
+
+        <TextArea
+          label="Sample Text Area"
+          name="comment"
+          placeholder="Comment"
+          rows={6}
+        />
 
         <StaticTable
           caption="Sample Data Table"

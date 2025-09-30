@@ -1,27 +1,27 @@
 import clsx from "clsx"
 import { type ChangeEvent } from "react"
 
-export type InputProps = {
+export type TextAreaProps = {
   id?: string
   name: string
   label?: string
-  type?: string
   placeholder?: string
   required?: boolean
   className?: string
   value?: string
-  onChange?: (e: ChangeEvent<HTMLInputElement>) => void
+  onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void
   message?: string
   messageVariant?: "help" | "error" | "success"
+  cols?: number
+  rows?: number
   disabled?: boolean
   readOnly?: boolean
 }
 
-function Input({
+function TextArea({
   id,
   name,
   label,
-  type = "text",
   placeholder,
   required = false,
   className,
@@ -29,10 +29,12 @@ function Input({
   onChange,
   message,
   messageVariant = "help",
+  cols = 30,
+  rows = 5,
   disabled = false,
   readOnly = false,
-}: InputProps) {
-  const inputId = id || name
+}: TextAreaProps) {
+  const textAreaId = id || name
 
   const messageClasses: Record<"help" | "error" | "success", string> = {
     help: "text-gray-500",
@@ -44,7 +46,7 @@ function Input({
     <div className="flow">
       {label && (
         <label
-          htmlFor={inputId}
+          htmlFor={textAreaId}
           className={clsx(
             "block text-sm font-medium",
             disabled || readOnly ? "text-gray-400" : "text-gray-700"
@@ -54,18 +56,19 @@ function Input({
         </label>
       )}
 
-      <input
-        id={inputId}
+      <textarea
+        id={textAreaId}
         name={name}
-        type={type}
         placeholder={placeholder}
         required={required}
         value={value}
         onChange={onChange}
+        cols={cols}
+        rows={rows}
         disabled={disabled}
         readOnly={readOnly}
         className={clsx(
-          "block w-full rounded-sm px-[1em] py-[0.5em] shadow-inner",
+          "block w-full rounded-sm px-[1em] py-[0.5em] shadow-inner resize-y",
           "focus:outline-none focus:ring-2 focus:ring-pp-teal-500",
           disabled || readOnly
             ? "bg-gray-200 text-gray-500 cursor-not-allowed opacity-70"
@@ -83,4 +86,4 @@ function Input({
   )
 }
 
-export default Input
+export default TextArea

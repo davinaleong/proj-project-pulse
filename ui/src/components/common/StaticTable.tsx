@@ -23,7 +23,7 @@ type StaticTableProps<T> = {
   caption?: string
   defaultOpen?: boolean
   color?: ColorVariant
-  bodyMaxHeight?: string // NEW: e.g. "300px"
+  bodyMaxHeight?: string // e.g. "300px"
 }
 
 function StaticTable<T extends Record<string, unknown>>({
@@ -191,72 +191,61 @@ function StaticTable<T extends Record<string, unknown>>({
             </div>
           )}
 
-          {/* ✅ Table */}
-          <table className="w-full border-collapse">
-            <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
-              <tr>
-                {columns.map((col) => (
-                  <th
-                    key={String(col.key)}
-                    onClick={() => col.sortable && handleSort(col.key)}
-                    className={clsx(
-                      "px-[1em] py-[0.5em] text-left text-sm font-semibold cursor-pointer select-none",
-                      col.sortable && "hover:underline"
-                    )}
-                  >
-                    <span className="inline-flex items-center gap-[0.25em]">
-                      {col.label}
-                      {sortable &&
-                        sortKey === col.key &&
-                        (sortDir === "asc" ? (
-                          <ChevronUp className="w-[1em] h-[1em] inline" />
-                        ) : (
-                          <ChevronDown className="w-[1em] h-[1em] inline" />
-                        ))}
-                    </span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            {/* 👇 Added scrollable tbody wrapper */}
-            <tbody
-              style={{
-                maxHeight: bodyMaxHeight,
-                overflowY: "auto",
-                display: "block",
-              }}
-            >
-              {paginatedData.length === 0 ? (
-                <tr
-                  style={{
-                    display: "table",
-                    width: "100%",
-                    tableLayout: "fixed",
-                  }}
-                >
-                  <td
-                    colSpan={columns.length}
-                    className="px-[1em] py-[1em] text-center text-gray-500"
-                  >
-                    No records found
-                  </td>
+          {/* ✅ Scrollable Table */}
+          <div style={{ maxHeight: bodyMaxHeight, overflowY: "auto" }}>
+            <table className="w-full border-collapse">
+              <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+                <tr>
+                  {columns.map((col) => (
+                    <th
+                      key={String(col.key)}
+                      onClick={() => col.sortable && handleSort(col.key)}
+                      className={clsx(
+                        "px-[1em] py-[0.5em] text-left text-sm font-semibold cursor-pointer select-none bg-gray-50",
+                        col.sortable && "hover:underline"
+                      )}
+                    >
+                      <span className="inline-flex items-center gap-[0.25em]">
+                        {col.label}
+                        {sortable &&
+                          sortKey === col.key &&
+                          (sortDir === "asc" ? (
+                            <ChevronUp className="w-[1em] h-[1em] inline" />
+                          ) : (
+                            <ChevronDown className="w-[1em] h-[1em] inline" />
+                          ))}
+                      </span>
+                    </th>
+                  ))}
                 </tr>
-              ) : (
-                paginatedData.map((row, i) => (
-                  <StaticTableRow
-                    key={i}
-                    row={row}
-                    columns={columns}
-                    index={i}
-                    color={color}
-                  />
-                ))
-              )}
-            </tbody>
+              </thead>
 
-            {renderPagination()}
-          </table>
+              <tbody>
+                {paginatedData.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="px-[1em] py-[1em] text-center text-gray-500"
+                    >
+                      No records found
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedData.map((row, i) => (
+                    <StaticTableRow
+                      key={i}
+                      row={row}
+                      columns={columns}
+                      index={i}
+                      color={color}
+                    />
+                  ))
+                )}
+              </tbody>
+
+              {renderPagination()}
+            </table>
+          </div>
         </>
       )}
     </div>

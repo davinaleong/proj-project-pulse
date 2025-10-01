@@ -9,7 +9,7 @@ import {
   type PersonalProject,
 } from "../../data/demoPersonalProjects"
 
-const columns: Column<PersonalProject>[] = [
+const personalProjectColumns: Column<PersonalProject>[] = [
   { key: "id", label: "ID", sortable: true },
   { key: "uuid", label: "UUID" },
   { key: "priority", label: "Priority", sortable: true },
@@ -36,7 +36,7 @@ function Dashboard() {
 
           <StaticTable<PersonalProject>
             caption="High Priority Projects"
-            columns={columns}
+            columns={personalProjectColumns}
             data={highPriorityProjects}
             pageSize={10}
             color="danger"

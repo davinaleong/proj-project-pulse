@@ -61,7 +61,7 @@ function Button({
       {variant === "text" && children}
 
       {variant === "image" && src && (
-        <>
+        <span className="flex items-center gap-[0.5em]">
           <img
             src={src}
             alt=""
@@ -69,7 +69,7 @@ function Button({
             draggable={false}
           />
           {children}
-        </>
+        </span>
       )}
 
       {variant === "icon" && Icon && <Icon className="w-[1em] h-[1em]" />}

@@ -12,6 +12,7 @@ import {
 const personalProjectColumns: Column<PersonalProject>[] = [
   { key: "id", label: "ID", sortable: true },
   { key: "uuid", label: "UUID" },
+  { key: "title", label: "Title" },
   { key: "priority", label: "Priority", sortable: true },
   { key: "beganAt", label: "Began At", sortable: true },
   { key: "completedAt", label: "Completed At", sortable: true },
@@ -28,7 +29,7 @@ function Dashboard() {
   return (
     <ModuleLayout>
       <Panel title="Dashboard" titleLevel={1} className="flow">
-        <div className="grid grid-cols-3 gap-[1em]">
+        <div className="grid grid-cols-2 gap-[1em]">
           <div className="flow">
             <h3 className="font-semibold text-xl">Donut Chart</h3>
             <Donut />
@@ -41,8 +42,6 @@ function Dashboard() {
             pageSize={10}
             color="danger"
           />
-
-          <p>Table</p>
         </div>
 
         <h3 className="font-semibold text-xl">Line Chart</h3>

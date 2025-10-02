@@ -9,6 +9,7 @@ type ButtonProps = {
   children?: React.ReactNode
   src?: string
   icon?: LucideIcon
+  iconPosition?: "left" | "right"
   className?: string
   disabled?: boolean
   color?: ColorVariant
@@ -21,6 +22,7 @@ function Button({
   children,
   src,
   icon: Icon,
+  iconPosition = "left",
   className,
   disabled = false,
   color = "primary",
@@ -30,7 +32,7 @@ function Button({
       type={type}
       onClick={onClick}
       className={clsx(
-        "cursor-pointer inline-flex items-center font-medium transition-all duration-150",
+        "cursor-pointer inline-flex items-center justify-center font-medium transition-all duration-150 gap-[0.5em]",
         "disabled:opacity-50 disabled:cursor-not-allowed",
 
         // Link variant
@@ -43,13 +45,13 @@ function Button({
 
         // Icon variant (no padding, square-ish button)
         variant === "icon" &&
-          "justify-center rounded-sm border shadow-sm hover:shadow-md active:shadow-inner hover:-translate-y-[1px] p-0 w-[2.5em] h-[2.5em]",
+          "rounded-sm border shadow-sm hover:shadow-md active:shadow-inner hover:-translate-y-[1px] p-0 w-[2.5em] h-[2.5em]",
 
         // Default paper-style variants (text, image)
         variant !== "link" &&
           variant !== "bare" &&
           variant !== "icon" &&
-          "justify-center rounded-sm px-[1em] py-[0.5em] border shadow-sm hover:shadow-md active:shadow-inner hover:-translate-y-[1px]",
+          "rounded-sm px-[1em] py-[0.5em] border shadow-sm hover:shadow-md active:shadow-inner hover:-translate-y-[1px]",
 
         // Apply color classes except for bare/link
         variant !== "link" && variant !== "bare" && getColorClasses(color),
@@ -58,23 +60,47 @@ function Button({
       )}
       disabled={disabled}
     >
-      {variant === "text" && children}
-
-      {variant === "image" && src && (
-        <span className="flex items-center gap-[0.5em]">
-          <img
-            src={src}
-            alt=""
-            className="w-[1em] h-[1em] object-contain"
-            draggable={false}
-          />
+      {/* TEXT (with optional icon) */}
+      {variant === "text" && (
+        <>
+          {Icon && iconPosition === "left" && (
+            <Icon className="w-[1em] h-[1em]" />
+          )}
           {children}
-        </span>
+          {Icon && iconPosition === "right" && (
+            <Icon className="w-[1em] h-[1em]" />
+          )}
+        </>
       )}
 
+      {/* IMAGE (with optional text) */}
+      {variant === "image" && src && (
+        <>
+          {iconPosition === "left" && (
+            <img
+              src={src}
+              alt=""
+              className="w-[1em] h-[1em] object-contain"
+              draggable={false}
+            />
+          )}
+          {children}
+          {iconPosition === "right" && (
+            <img
+              src={src}
+              alt=""
+              className="w-[1em] h-[1em] object-contain"
+              draggable={false}
+            />
+          )}
+        </>
+      )}
+
+      {/* ICON ONLY */}
       {variant === "icon" && Icon && <Icon className="w-[1em] h-[1em]" />}
       {variant === "bare" && Icon && <Icon className="w-[1em] h-[1em]" />}
 
+      {/* LINK */}
       {variant === "link" && children}
     </button>
   )

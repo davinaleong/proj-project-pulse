@@ -4,6 +4,7 @@ import Panel from "../../components/common/Panel"
 import Input from "../../components/forms/Input"
 import TextArea from "../../components/forms/TextArea"
 import NumericInput from "../../components/forms/NumericInput"
+import ColorInput from "../../components/forms/ColorInput"
 import DateTimePicker from "../../components/forms/DateTimePicker"
 import Select from "../../components/forms/Select"
 import StaticTable from "../../components/common/StaticTable"
@@ -94,6 +95,19 @@ function Test() {
           decimalPlaces={2}
           useCommas={true}
           message="Enter an amount"
+          messageVariant="help"
+        />
+
+        <ColorInput
+          name="favColor"
+          label="Pick a Color"
+          value="#ff0000"
+          format="rgba"
+          onChange={(val, formats) => {
+            console.log("Selected (preferred):", val)
+            console.log("All formats:", formats)
+          }}
+          message="Pick your theme color"
           messageVariant="help"
         />
 

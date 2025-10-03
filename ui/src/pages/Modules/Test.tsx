@@ -3,6 +3,7 @@ import ModuleLayout from "../../components/layout/ModuleLayout"
 import Panel from "../../components/common/Panel"
 import Input from "../../components/forms/Input"
 import TextArea from "../../components/forms/TextArea"
+import NumericInput from "../../components/forms/NumericInput"
 import DateTimePicker from "../../components/forms/DateTimePicker"
 import Select from "../../components/forms/Select"
 import StaticTable from "../../components/common/StaticTable"
@@ -84,6 +85,17 @@ function Test() {
             messageVariant="help"
           />
         </div>
+
+        <NumericInput
+          name="price"
+          label="Price"
+          value={1234.5}
+          onChange={() => {}}
+          decimalPlaces={2}
+          useCommas={true}
+          message="Enter an amount"
+          messageVariant="help"
+        />
 
         {/* ✅ StaticTable test */}
         <StaticTable

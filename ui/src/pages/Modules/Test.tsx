@@ -15,8 +15,54 @@ import RadioGroup from "../../components/forms/RadioGroup"
 import CheckboxGroup from "../../components/forms/CheckboxGroup"
 import RatingInput from "../../components/forms/RatingInput"
 import StaticTable from "../../components/common/StaticTable"
+import DataGrid, { type DataGridColumn } from "../../components/common/DataGrid"
+import {
+  personalProjects,
+  type PersonalProject,
+} from "../../data/demoPersonalProjects"
 
 function Test() {
+  const columns: DataGridColumn<PersonalProject>[] = [
+    { key: "id", label: "ID", type: "number", sortable: true },
+    { key: "uuid", label: "UUID", type: "text" },
+    {
+      key: "title",
+      label: "Title",
+      type: "text",
+      sortable: true,
+      required: true,
+    },
+    {
+      key: "priority",
+      label: "Priority",
+      type: "number",
+      editable: true,
+      sortable: true,
+    },
+    {
+      key: "beganAt",
+      label: "Began At",
+      type: "date",
+      editable: true,
+      sortable: true,
+    },
+    {
+      key: "completedAt",
+      label: "Completed At",
+      type: "date",
+      editable: true,
+      sortable: true,
+    },
+    { key: "owner", label: "Owner", type: "text", editable: true },
+    {
+      key: "category",
+      label: "Category",
+      type: "text",
+      editable: true,
+      sortable: true,
+    },
+  ]
+
   const [dateValue, setDateValue] = useState("")
   const [timeValue, setTimeValue] = useState("")
   const [dateTimeValue, setDateTimeValue] = useState("")
@@ -248,6 +294,15 @@ function Test() {
           enablePagination
           sortable
           pageSize={2}
+        />
+
+        <DataGrid<PersonalProject>
+          caption="Tech Projects"
+          columns={columns}
+          data={personalProjects}
+          pageSize={10}
+          color="default"
+          onSave={(updated) => console.log("✅ Updated Projects:", updated)}
         />
 
         {/* Debug values */}

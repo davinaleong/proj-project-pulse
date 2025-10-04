@@ -23,6 +23,7 @@ export type DataGridProps<T> = {
   pageSize?: number
   className?: string
   onSave?: (data: T[]) => void
+  defaultOpen?: boolean
 }
 
 function DataGrid<T extends Record<string, any>>({
@@ -33,6 +34,7 @@ function DataGrid<T extends Record<string, any>>({
   pageSize = 10,
   className,
   onSave,
+  defaultOpen = true,
 }: DataGridProps<T>) {
   const [gridData, setGridData] = useState<T[]>(data)
   const [sortKey, setSortKey] = useState<keyof T | null>(null)
@@ -41,6 +43,7 @@ function DataGrid<T extends Record<string, any>>({
     null
   )
   const [page, setPage] = useState(1)
+  const [open, setOpen] = useState(defaultOpen)
 
   const totalPages = Math.ceil(gridData.length / pageSize)
   const paginatedData = gridData.slice((page - 1) * pageSize, page * pageSize)
@@ -137,98 +140,118 @@ function DataGrid<T extends Record<string, any>>({
   return (
     <div
       className={clsx(
-        "rounded-sm border shadow-sm overflow-x-auto",
+        "rounded-sm border shadow-sm transition-all duration-150 overflow-hidden",
         getColorClasses(color),
         className
       )}
     >
+      {/* ✅ Caption with Expand/Collapse */}
       {caption && (
-        <div className="px-[1em] py-[0.5em] border-b bg-gray-50 font-semibold text-sm">
-          {caption}
+        <div
+          className="flex items-center justify-between px-[1em] py-[0.5em] border-b bg-gray-50 uppercase font-semibold text-sm cursor-pointer select-none hover:bg-gray-100"
+          onClick={() => setOpen(!open)}
+        >
+          <span>{caption}</span>
+          {open ? (
+            <ChevronUp className="w-[1em] h-[1em] text-gray-500" />
+          ) : (
+            <ChevronDown className="w-[1em] h-[1em] text-gray-500" />
+          )}
         </div>
       )}
 
-      <table className="w-full border-collapse">
-        <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
-          <tr>
-            {columns.map((col) => (
-              <th
-                key={String(col.key)}
-                onClick={() => col.sortable && handleSort(col.key)}
-                className={clsx(
-                  "px-[1em] py-[0.5em] text-left text-sm font-semibold cursor-pointer select-none",
-                  col.sortable && "hover:underline"
-                )}
-              >
-                <span className="inline-flex items-center gap-1">
-                  {col.label}
-                  {sortKey === col.key &&
-                    (sortDir === "asc" ? (
-                      <ChevronUp className="w-3 h-3 inline" />
-                    ) : (
-                      <ChevronDown className="w-3 h-3 inline" />
-                    ))}
-                </span>
-              </th>
-            ))}
-          </tr>
-        </thead>
+      {/* ✅ Table section (collapsible) */}
+      {open && (
+        <>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+                <tr>
+                  {columns.map((col) => (
+                    <th
+                      key={String(col.key)}
+                      onClick={() => col.sortable && handleSort(col.key)}
+                      className={clsx(
+                        "px-[1em] py-[0.5em] text-left text-sm font-semibold cursor-pointer select-none",
+                        col.sortable && "hover:underline"
+                      )}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        {col.label}
+                        {sortKey === col.key &&
+                          (sortDir === "asc" ? (
+                            <ChevronUp className="w-3 h-3 inline" />
+                          ) : (
+                            <ChevronDown className="w-3 h-3 inline" />
+                          ))}
+                      </span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
 
-        <tbody>
-          {paginatedData.map((row, rowIndex) => (
-            <tr
-              key={rowIndex}
-              className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-            >
-              {columns.map((col) => {
-                const isEditing =
-                  editing?.row === rowIndex && editing.key === col.key
-                const value = row[col.key]
-
-                return (
-                  <td
-                    key={String(col.key)}
-                    className="px-[1em] py-[0.5em] text-sm cursor-pointer"
-                    onClick={() =>
-                      col.editable &&
-                      setEditing({ row: rowIndex, key: col.key })
-                    }
+              <tbody>
+                {paginatedData.map((row, rowIndex) => (
+                  <tr
+                    key={rowIndex}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                   >
-                    {isEditing && col.editable ? (
-                      <input
-                        type={col.type || "text"}
-                        defaultValue={value}
-                        onBlur={(e) => {
-                          handleCellChange(rowIndex, col.key, e.target.value)
-                          handleBlur()
-                        }}
-                        className="w-full rounded-sm border border-gray-300 px-[1em] py-[0.5em] shadow-inner focus:ring-2 focus:ring-pp-teal-500"
-                        autoFocus
-                      />
-                    ) : (
-                      String(value)
-                    )}
-                  </td>
-                )
-              })}
-            </tr>
-          ))}
-        </tbody>
+                    {columns.map((col) => {
+                      const isEditing =
+                        editing?.row === rowIndex && editing.key === col.key
+                      const value = row[col.key]
 
-        {renderPagination()}
-      </table>
+                      return (
+                        <td
+                          key={String(col.key)}
+                          className="px-[1em] py-[0.5em] text-sm cursor-pointer"
+                          onClick={() =>
+                            col.editable &&
+                            setEditing({ row: rowIndex, key: col.key })
+                          }
+                        >
+                          {isEditing && col.editable ? (
+                            <input
+                              type={col.type || "text"}
+                              defaultValue={value}
+                              onBlur={(e) => {
+                                handleCellChange(
+                                  rowIndex,
+                                  col.key,
+                                  e.target.value
+                                )
+                                handleBlur()
+                              }}
+                              className="w-full rounded-sm border border-gray-300 px-[1em] py-[0.5em] shadow-inner focus:ring-2 focus:ring-pp-teal-500"
+                              autoFocus
+                            />
+                          ) : (
+                            String(value)
+                          )}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                ))}
+              </tbody>
 
-      {/* Save Button */}
-      {onSave && (
-        <div className="flex justify-end p-3 border-t bg-gray-50">
-          <Button
-            onClick={() => onSave(gridData)}
-            color="success"
-            variant="text"
-          >
-            Save Changes
-          </Button>
-        </div>
+              {renderPagination()}
+            </table>
+          </div>
+
+          {/* ✅ Save Button */}
+          {onSave && (
+            <div className="flex justify-end p-3 border-t bg-gray-50">
+              <Button
+                onClick={() => onSave(gridData)}
+                color="success"
+                variant="text"
+              >
+                Save Changes
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

@@ -10,6 +10,7 @@ import PasswordInput from "../../components/forms/PasswordInput"
 import DateTimeInput from "../../components/forms/DateTimeInput"
 import Select from "../../components/forms/Select"
 import HumanCheckInput from "../../components/forms/HumanCheckInput"
+import LightSwitchInput from "../../components/forms/LightSwitchInput"
 import StaticTable from "../../components/common/StaticTable"
 
 function Test() {
@@ -146,6 +147,31 @@ function Test() {
           messageVariant="help"
           onChange={(checked) => console.log("Human check:", checked)}
         />
+
+        <div className="flex gap-[0.5em] items-center">
+          <LightSwitchInput
+            name="notifications"
+            labelLeft="Off"
+            labelRight="On"
+            variant="boolean"
+            onChange={(v) => console.log("Boolean value:", v)}
+          />
+
+          <LightSwitchInput
+            name="marketingConsent"
+            labelRight="Allow Marketing Emails"
+            variant="accepted"
+            onChange={(v) => console.log("Accepted variant:", v)}
+          />
+
+          <LightSwitchInput
+            name="darkMode"
+            labelLeft="Light"
+            labelRight="Dark"
+            variant="text"
+            onChange={(v) => console.log("Text variant:", v)}
+          />
+        </div>
 
         {/* ✅ StaticTable test */}
         <StaticTable

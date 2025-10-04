@@ -162,7 +162,7 @@ function StaticTable<T extends Record<string, unknown>>({
       {/* Caption toggle */}
       {caption && (
         <div
-          className="flex items-center justify-between px-[1em] py-[0.5em] border-b cursor-pointer select-none"
+          className="flex items-center justify-between px-[1em] py-[0.5em] uppercase border-b cursor-pointer select-none"
           onClick={() => setOpen(!open)}
         >
           <span className="font-semibold text-sm">{caption}</span>

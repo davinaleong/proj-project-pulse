@@ -9,6 +9,7 @@ import EmailInput from "../../components/forms/EmailInput"
 import PasswordInput from "../../components/forms/PasswordInput"
 import DateTimeInput from "../../components/forms/DateTimeInput"
 import Select from "../../components/forms/Select"
+import HumanCheckInput from "../../components/forms/HumanCheckInput"
 import StaticTable from "../../components/common/StaticTable"
 
 function Test() {
@@ -137,6 +138,13 @@ function Test() {
           onConfirmChange={(val, match) =>
             console.log("Confirm:", val, "Match:", match)
           }
+        />
+
+        <HumanCheckInput
+          label="I am not a robot 🤖"
+          message="Just confirming you're human!"
+          messageVariant="help"
+          onChange={(checked) => console.log("Human check:", checked)}
         />
 
         {/* ✅ StaticTable test */}

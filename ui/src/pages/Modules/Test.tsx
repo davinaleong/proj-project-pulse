@@ -6,6 +6,7 @@ import TextArea from "../../components/forms/TextArea"
 import NumericInput from "../../components/forms/NumericInput"
 import ColorInput from "../../components/forms/ColorInput"
 import EmailInput from "../../components/forms/EmailInput"
+import PasswordInput from "../../components/forms/PasswordInput"
 import DateTimeInput from "../../components/forms/DateTimeInput"
 import Select from "../../components/forms/Select"
 import StaticTable from "../../components/common/StaticTable"
@@ -121,6 +122,21 @@ function Test() {
           message="Please enter your preferred email"
           messageVariant="help"
           onChange={(val, valid) => console.log("Email:", val, "Valid:", valid)}
+        />
+
+        <PasswordInput
+          label="Password"
+          name="password"
+          required
+          convention="strong"
+          showConfirmation
+          message="Use a strong password for better security"
+          onChange={(val, valid) =>
+            console.log("Password:", val, "Valid:", valid)
+          }
+          onConfirmChange={(val, match) =>
+            console.log("Confirm:", val, "Match:", match)
+          }
         />
 
         {/* ✅ StaticTable test */}

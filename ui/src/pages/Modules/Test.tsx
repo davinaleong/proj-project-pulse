@@ -5,7 +5,8 @@ import Input from "../../components/forms/Input"
 import TextArea from "../../components/forms/TextArea"
 import NumericInput from "../../components/forms/NumericInput"
 import ColorInput from "../../components/forms/ColorInput"
-import DateTimePicker from "../../components/forms/DateTimeInput"
+import EmailInput from "../../components/forms/EmailInput"
+import DateTimeInput from "../../components/forms/DateTimeInput"
 import Select from "../../components/forms/Select"
 import StaticTable from "../../components/common/StaticTable"
 
@@ -56,7 +57,7 @@ function Test() {
 
         {/* ✅ DateTimePicker test */}
         <div className="grid grid-cols-3 gap-[1em]">
-          <DateTimePicker
+          <DateTimeInput
             name="sampleDate"
             label="Pick a Date"
             variant="date"
@@ -66,7 +67,7 @@ function Test() {
             messageVariant="help"
           />
 
-          <DateTimePicker
+          <DateTimeInput
             name="sampleTime"
             label="Pick a Time"
             variant="time"
@@ -76,7 +77,7 @@ function Test() {
             messageVariant="help"
           />
 
-          <DateTimePicker
+          <DateTimeInput
             name="sampleDateTime"
             label="Pick Date & Time"
             variant="datetime"
@@ -109,6 +110,17 @@ function Test() {
           }}
           message="Pick your theme color"
           messageVariant="help"
+        />
+
+        <EmailInput
+          label="Work Email"
+          name="email"
+          required
+          rules="whitelist"
+          allowedDomains={["gmail.com", "outlook.com"]}
+          message="Please enter your preferred email"
+          messageVariant="help"
+          onChange={(val, valid) => console.log("Email:", val, "Valid:", valid)}
         />
 
         {/* ✅ StaticTable test */}

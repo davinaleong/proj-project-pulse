@@ -11,7 +11,9 @@ import DateTimeInput from "../../components/forms/DateTimeInput"
 import Select from "../../components/forms/Select"
 import HumanCheckInput from "../../components/forms/HumanCheckInput"
 import LightSwitchInput from "../../components/forms/LightSwitchInput"
+import RadioGroup from "../../components/forms/RadioGroup"
 import StaticTable from "../../components/common/StaticTable"
+import { Smile, Frown, Meh } from "lucide-react"
 
 function Test() {
   const [dateValue, setDateValue] = useState("")
@@ -172,6 +174,19 @@ function Test() {
             onChange={(v) => console.log("Text variant:", v)}
           />
         </div>
+
+        <RadioGroup
+          name="mood"
+          label="Select your mood:"
+          options={[
+            { value: "happy", label: "Happy", icon: Smile },
+            { value: "neutral", label: "Neutral", icon: Meh },
+            { value: "sad", label: "Sad", icon: Frown },
+          ]}
+          defaultValue="neutral"
+          color="info"
+          onChange={(val) => console.log("Selected:", val)}
+        />
 
         {/* ✅ StaticTable test */}
         <StaticTable

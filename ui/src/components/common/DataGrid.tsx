@@ -2,7 +2,6 @@
 import { useState } from "react"
 import clsx from "clsx"
 import Button from "./Button"
-import Input from "../forms/Input"
 import { getColorClasses, type ColorVariant } from "../../utils/colors"
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react"
 
@@ -26,7 +25,7 @@ export type DataGridProps<T> = {
   defaultOpen?: boolean
 }
 
-function DataGrid<T extends Record<string, any>>({
+function DataGrid<T extends Record<string, unknown>>({
   caption,
   columns,
   data,
@@ -66,7 +65,7 @@ function DataGrid<T extends Record<string, any>>({
     )
   }
 
-  function handleCellChange(rowIndex: number, key: keyof T, value: any) {
+  function handleCellChange(rowIndex: number, key: keyof T, value: unknown) {
     const updated = [...gridData]
     updated[rowIndex] = { ...updated[rowIndex], [key]: value }
     setGridData(updated)
@@ -213,7 +212,14 @@ function DataGrid<T extends Record<string, any>>({
                           {isEditing && col.editable ? (
                             <input
                               type={col.type || "text"}
-                              defaultValue={value}
+                              defaultValue={
+                                typeof value === "string" ||
+                                typeof value === "number"
+                                  ? value
+                                  : value !== null && value !== undefined
+                                  ? String(value)
+                                  : ""
+                              }
                               onBlur={(e) => {
                                 handleCellChange(
                                   rowIndex,

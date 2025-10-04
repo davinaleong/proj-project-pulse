@@ -13,6 +13,7 @@ import HumanCheckInput from "../../components/forms/HumanCheckInput"
 import LightSwitchInput from "../../components/forms/LightSwitchInput"
 import RadioGroup from "../../components/forms/RadioGroup"
 import CheckboxGroup from "../../components/forms/CheckboxGroup"
+import RatingInput from "../../components/forms/RatingInput"
 import StaticTable from "../../components/common/StaticTable"
 
 function Test() {
@@ -202,6 +203,32 @@ function Test() {
           defaultValue={["backup"]}
           color="primary"
           onChange={(vals) => console.log("Checked:", vals)}
+        />
+
+        <RatingInput
+          name="usability"
+          label="Rate usability"
+          steps={5}
+          variant="stars"
+          allowReset
+          color="success"
+          onChange={(val) => console.log("Rating:", val)}
+        />
+
+        <RatingInput
+          name="mood"
+          label="How do you feel?"
+          steps={3}
+          variant="smiley"
+          color="warning"
+        />
+
+        <RatingInput
+          name="accuracy"
+          label="Rate accuracy"
+          steps={10}
+          variant="circle"
+          color="info"
         />
 
         {/* ✅ StaticTable test */}

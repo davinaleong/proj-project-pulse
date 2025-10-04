@@ -1,9 +1,9 @@
 import { useState } from "react"
 import clsx from "clsx"
 import dayjs from "dayjs"
-import Button from "./../common/Button"
+import Button from "../common/Button"
 
-type DateTimePickerProps = {
+type DateTmeInputProps = {
   id?: string
   name: string
   label?: string
@@ -18,7 +18,7 @@ type DateTimePickerProps = {
   messageVariant?: "help" | "error" | "success"
 }
 
-function DateTimePicker({
+function DateTmeInput({
   id,
   name,
   label,
@@ -31,7 +31,7 @@ function DateTimePicker({
   readOnly = false,
   message,
   messageVariant = "help",
-}: DateTimePickerProps) {
+}: DateTmeInputProps) {
   const [internalValue, setInternalValue] = useState<string>(value || "")
 
   const inputId = id || name
@@ -137,4 +137,4 @@ function DateTimePicker({
   )
 }
 
-export default DateTimePicker
+export default DateTmeInput

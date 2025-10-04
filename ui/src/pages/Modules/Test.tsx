@@ -5,7 +5,7 @@ import Input from "../../components/forms/Input"
 import TextArea from "../../components/forms/TextArea"
 import NumericInput from "../../components/forms/NumericInput"
 import ColorInput from "../../components/forms/ColorInput"
-import DateTimePicker from "../../components/forms/DateTimePicker"
+import DateTimePicker from "../../components/forms/DateTimeInput"
 import Select from "../../components/forms/Select"
 import StaticTable from "../../components/common/StaticTable"
 

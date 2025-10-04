@@ -12,8 +12,8 @@ import Select from "../../components/forms/Select"
 import HumanCheckInput from "../../components/forms/HumanCheckInput"
 import LightSwitchInput from "../../components/forms/LightSwitchInput"
 import RadioGroup from "../../components/forms/RadioGroup"
+import CheckboxGroup from "../../components/forms/CheckboxGroup"
 import StaticTable from "../../components/common/StaticTable"
-import { Smile, Frown, Meh } from "lucide-react"
 
 function Test() {
   const [dateValue, setDateValue] = useState("")
@@ -156,6 +156,7 @@ function Test() {
             labelLeft="Off"
             labelRight="On"
             variant="boolean"
+            color="primary"
             onChange={(v) => console.log("Boolean value:", v)}
           />
 
@@ -163,6 +164,7 @@ function Test() {
             name="marketingConsent"
             labelRight="Allow Marketing Emails"
             variant="accepted"
+            color="success"
             onChange={(v) => console.log("Accepted variant:", v)}
           />
 
@@ -171,21 +173,35 @@ function Test() {
             labelLeft="Light"
             labelRight="Dark"
             variant="text"
+            color="info"
             onChange={(v) => console.log("Text variant:", v)}
           />
         </div>
 
         <RadioGroup
-          name="mood"
-          label="Select your mood:"
+          name="priority"
+          label="Select Priority Level"
           options={[
-            { value: "happy", label: "Happy", icon: Smile },
-            { value: "neutral", label: "Neutral", icon: Meh },
-            { value: "sad", label: "Sad", icon: Frown },
+            { value: "low", label: "Low" },
+            { value: "medium", label: "Medium" },
+            { value: "high", label: "High" },
           ]}
-          defaultValue="neutral"
-          color="info"
+          defaultValue="medium"
+          color="primary"
           onChange={(val) => console.log("Selected:", val)}
+        />
+
+        <CheckboxGroup
+          name="features"
+          label="Select Features"
+          options={[
+            { value: "analytics", label: "Analytics" },
+            { value: "backup", label: "Automatic Backup" },
+            { value: "darkmode", label: "Dark Mode" },
+          ]}
+          defaultValue={["backup"]}
+          color="primary"
+          onChange={(vals) => console.log("Checked:", vals)}
         />
 
         {/* ✅ StaticTable test */}

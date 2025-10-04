@@ -1,22 +1,21 @@
 import { useState } from "react"
 import clsx from "clsx"
-import { type LucideIcon, Circle, CheckCircle } from "lucide-react"
+import { Square, CheckSquare } from "lucide-react"
 import { getColorClasses, type ColorVariant } from "../../utils/colors"
 
-export type RadioOption = {
+export type CheckboxOption = {
   value: string
   label: string
-  icon?: LucideIcon // optional Lucide icon
 }
 
-export type RadioGroupProps = {
+export type CheckboxGroupProps = {
   id?: string
   name: string
-  label?: string // group label/title
-  options: RadioOption[]
-  defaultValue?: string
-  value?: string
-  onChange?: (value: string) => void
+  label?: string
+  options: CheckboxOption[]
+  value?: string[]
+  defaultValue?: string[]
+  onChange?: (value: string[]) => void
   className?: string
   disabled?: boolean
   readOnly?: boolean
@@ -24,31 +23,35 @@ export type RadioGroupProps = {
 }
 
 /**
- * RadioGroup Component
- * - Matches Input / LightSwitch style
- * - Uses custom radio input designs with Lucide icons
- * - Supports color variants from utils/colors
- * - Inline: "O Label"
+ * CheckboxGroup Component
+ * - Matches Input/LightSwitch styling
+ * - Uses shared color utils for consistent variant themes
+ * - Clean [] Label vertical layout
  */
-function RadioGroup({
+function CheckboxGroup({
   id,
   name,
   label,
   options,
-  defaultValue,
   value,
+  defaultValue,
   onChange,
   className,
   disabled = false,
   readOnly = false,
   color = "primary",
-}: RadioGroupProps) {
-  const [selected, setSelected] = useState<string>(value ?? defaultValue ?? "")
+}: CheckboxGroupProps) {
+  const [selected, setSelected] = useState<string[]>(
+    value ?? defaultValue ?? []
+  )
 
-  function handleChange(val: string) {
+  function toggleValue(val: string) {
     if (disabled || readOnly) return
-    setSelected(val)
-    onChange?.(val)
+    const updated = selected.includes(val)
+      ? selected.filter((v) => v !== val)
+      : [...selected, val]
+    setSelected(updated)
+    onChange?.(updated)
   }
 
   return (
@@ -73,32 +76,32 @@ function RadioGroup({
 
       <div className="flex flex-col gap-[0.5em]">
         {options.map((opt, idx) => {
-          const isChecked = selected === opt.value
-          const Icon = opt.icon ?? (isChecked ? CheckCircle : Circle)
+          const isChecked = selected.includes(opt.value)
+          const Icon = isChecked ? CheckSquare : Square
 
           return (
             <label
               key={idx}
               htmlFor={`${name}-${opt.value}`}
               className={clsx(
-                "inline-flex items-center gap-[0.5em] px-[0.5em] py-[0.25em] rounded-sm cursor-pointer select-none transition-all duration-150",
+                "flex items-center gap-[0.5em] px-[0.75em] py-[0.4em] rounded-sm cursor-pointer select-none text-sm transition-all duration-150",
                 "hover:-translate-y-[1px] focus-within:ring-2 focus-within:ring-pp-teal-500",
                 isChecked
                   ? getColorClasses(color, "border font-medium")
                   : "text-gray-700 border border-transparent",
                 disabled && "cursor-not-allowed hover:translate-y-0"
               )}
-              onClick={() => handleChange(opt.value)}
+              onClick={() => toggleValue(opt.value)}
             >
               <input
                 id={`${name}-${opt.value}`}
                 name={name}
-                type="radio"
+                type="checkbox"
                 value={opt.value}
                 checked={isChecked}
                 disabled={disabled}
                 readOnly={readOnly}
-                onChange={() => handleChange(opt.value)}
+                onChange={() => toggleValue(opt.value)}
                 className="hidden"
               />
 
@@ -127,4 +130,4 @@ function RadioGroup({
   )
 }
 
-export default RadioGroup
+export default CheckboxGroup

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import clsx from "clsx"
+import { getColorClasses, type ColorVariant } from "../../utils/colors"
 
 export type LightSwitchVariant = "boolean" | "numeric" | "text" | "accepted"
 
@@ -15,8 +16,15 @@ export type LightSwitchInputProps = {
   readOnly?: boolean
   onChange?: (value: boolean | string | number) => void
   variant?: LightSwitchVariant
+  color?: ColorVariant
 }
 
+/**
+ * LightSwitchInput
+ * - Minimal, Input-style switch
+ * - Color variants affect the toggle control
+ * - Supports different output variants: boolean, numeric, text, accepted
+ */
 function LightSwitchInput({
   id,
   name,
@@ -29,9 +37,22 @@ function LightSwitchInput({
   readOnly = false,
   onChange,
   variant = "boolean",
+  color = "primary",
 }: LightSwitchInputProps) {
   const [checked, setChecked] = useState<boolean>(value ?? defaultChecked)
   const inputId = id || name
+
+  const colorClasses = {
+    primary: "bg-pp-teal-500 border-pp-teal-600 focus:ring-pp-teal-500",
+    secondary: "bg-pp-gray-500 border-pp-gray-600 focus:ring-pp-gray-500",
+    danger: "bg-red-500 border-red-600 focus:ring-red-500",
+    success: "bg-green-500 border-green-600 focus:ring-green-500",
+    warning: "bg-yellow-400 border-yellow-500 focus:ring-yellow-400",
+    info: "bg-blue-500 border-blue-600 focus:ring-blue-500",
+    default: "bg-gray-300 border-gray-400 focus:ring-gray-400",
+    transparent: "bg-transparent border-gray-300 focus:ring-gray-300",
+    custom: "",
+  }
 
   function handleToggle() {
     if (disabled || readOnly) return
@@ -62,7 +83,7 @@ function LightSwitchInput({
         className
       )}
     >
-      {/* Left Label (optional) */}
+      {/* Left Label */}
       {labelLeft && (
         <span
           className={clsx(
@@ -74,7 +95,7 @@ function LightSwitchInput({
         </span>
       )}
 
-      {/* Switch */}
+      {/* Switch Control */}
       <button
         id={inputId}
         name={name}
@@ -83,9 +104,8 @@ function LightSwitchInput({
         disabled={disabled}
         onClick={handleToggle}
         className={clsx(
-          "relative w-[3em] h-[1.5em] rounded-full shadow-inner transition-all duration-200",
-          checked ? "bg-pp-teal-500 border-pp-teal-600" : "bg-gray-200",
-          "focus:outline-none focus:ring-2 focus:ring-pp-teal-500",
+          "relative w-[3em] h-[1.5em] rounded-full border shadow-inner transition-all duration-200 focus:outline-none focus:ring-2",
+          checked ? colorClasses[color] : "bg-gray-200 border-gray-300",
           disabled && "cursor-not-allowed"
         )}
       >
@@ -97,7 +117,7 @@ function LightSwitchInput({
         ></span>
       </button>
 
-      {/* Right Label (optional) */}
+      {/* Right Label */}
       {labelRight && (
         <span
           className={clsx(

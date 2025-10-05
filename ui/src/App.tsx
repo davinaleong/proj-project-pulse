@@ -2,12 +2,12 @@
 // import Privacy from "./pages/Documents/Privacy"
 // import Terms from "./pages/Documents/Terms"
 // import Dashboard from "./pages/Modules/Dashboard"
-// import Index from "./pages/Modules/Projects/Index"
-import Test from "./pages/Modules/Test"
+import Index from "./pages/Modules/Projects/Index"
+// import Test from "./pages/Modules/Test"
 import "./App.css"
 
 function App() {
-  return <Test />
+  return <Index />
 }
 
 export default App

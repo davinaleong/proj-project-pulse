@@ -277,7 +277,6 @@ function Test() {
           color="info"
         />
 
-        {/* ✅ StaticTable test */}
         <StaticTable
           caption="Sample Data Table"
           columns={[

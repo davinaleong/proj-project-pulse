@@ -1,6 +1,14 @@
 import { useState } from "react"
+import {
+  Info,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  ChevronRight,
+} from "lucide-react"
 import ModuleLayout from "../../components/layout/ModuleLayout"
 import Panel from "../../components/common/Panel"
+import Card from "../../components/common/Card"
 import Input from "../../components/forms/Input"
 import TextArea from "../../components/forms/TextArea"
 import NumericInput from "../../components/forms/NumericInput"
@@ -74,6 +82,86 @@ function Test() {
           This page is used to test the appearance and functionality of the
           frontend UI.
         </p>
+
+        {/* 1️⃣ Basic default card */}
+        <Card title="Default Card" footer="Footer text here">
+          <p>This is a simple card with default color and a footer.</p>
+        </Card>
+
+        {/* 2️⃣ Color variants */}
+        <div className="grid md:grid-cols-3 gap-6">
+          <Card title="Primary" color="primary">
+            <p>Primary variant for general emphasis.</p>
+          </Card>
+          <Card
+            title="Danger"
+            color="danger"
+            icon={<XCircle />}
+            iconPosition="left"
+          >
+            <p>Danger variant with left icon.</p>
+          </Card>
+          <Card
+            title="Success"
+            color="success"
+            icon={<CheckCircle />}
+            iconPosition="right"
+          >
+            <p>Success variant with right icon.</p>
+          </Card>
+        </div>
+
+        {/* 3️⃣ Expandable card */}
+        <Card
+          title="Expandable Info"
+          color="info"
+          expandable
+          defaultOpen={true}
+          icon={<Info />}
+          iconPosition="left"
+          footer="Last updated 2 hours ago"
+          className="flow"
+        >
+          <p>
+            This card can be expanded or collapsed. Try clicking the arrow in
+            the header.
+          </p>
+          <p>It demonstrates controlled state for showing/hiding content.</p>
+        </Card>
+
+        {/* 4️⃣ Top & Bottom Icon positions */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card
+            title="Top Icon"
+            color="warning"
+            icon={<AlertTriangle />}
+            iconPosition="top"
+          >
+            <p>Icon is placed above the content.</p>
+          </Card>
+          <Card
+            title="Bottom Icon"
+            color="secondary"
+            icon={<ChevronRight />}
+            iconPosition="bottom"
+          >
+            <p>Icon is placed below the content.</p>
+          </Card>
+        </div>
+
+        {/* 5️⃣ Image + content combination */}
+        <Card
+          title="Card with Images"
+          color="default"
+          imageTop={<img src="https://picsum.photos/600/200" alt="Top" />}
+          imageBottom={<img src="https://picsum.photos/600/150" alt="Bottom" />}
+          footer="Images have no padding and span full width."
+        >
+          <p>
+            This card showcases both top and bottom images with content in the
+            middle.
+          </p>
+        </Card>
 
         <Input label="Sample Input" name="name" placeholder="Name" />
 

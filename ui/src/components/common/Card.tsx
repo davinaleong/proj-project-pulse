@@ -49,8 +49,8 @@ export default function Card({
     const el = icon as ReactElement<{ className?: string }>
     const extraClass =
       iconPosition === "left" || iconPosition === "right"
-        ? "scale-[1.3] mx-3"
-        : "block w-full p-4"
+        ? "scale-[1.3] mx-[1em]"
+        : "block w-full p-[1em]"
 
     return cloneElement(el, {
       className: clsx(el.props.className, extraClass),
@@ -60,14 +60,14 @@ export default function Card({
   return (
     <div
       className={clsx(
-        "rounded-2xl border shadow-sm transition-all duration-300 overflow-hidden",
+        "rounded-sm border shadow-sm transition-all duration-300 overflow-hidden",
         getColorClasses(color),
         className
       )}
     >
       {/* Header */}
       {title && (
-        <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center p-[1em] border-b border-gray-200 dark:border-gray-700">
           <h3 className="font-semibold text-lg">{title}</h3>
           {expandable && (
             <button
@@ -86,7 +86,7 @@ export default function Card({
       {/* Content */}
       {open && (
         <div
-          className={clsx("p-4 flex", {
+          className={clsx("p-[1em] flex", {
             "flex-col items-center":
               iconPosition === "top" || iconPosition === "bottom",
             "items-center": iconPosition === "left" || iconPosition === "right",
@@ -109,7 +109,7 @@ export default function Card({
 
       {/* Footer */}
       {footer && (
-        <div className="border-t border-gray-200 dark:border-gray-700 p-4 text-sm">
+        <div className="border-t border-gray-200 dark:border-gray-700 p-[1em] text-sm">
           {footer}
         </div>
       )}

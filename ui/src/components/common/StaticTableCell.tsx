@@ -6,7 +6,10 @@ type StaticTableCellProps = {
   color?: ColorVariant
 }
 
-function StaticTableCell({ value, color = "default" }: StaticTableCellProps) {
+function StaticTableCell({
+  value,
+  color = "transparent",
+}: StaticTableCellProps) {
   return (
     <td
       className={clsx(

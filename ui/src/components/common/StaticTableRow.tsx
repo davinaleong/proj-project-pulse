@@ -13,13 +13,16 @@ function StaticTableRow<T extends Record<string, unknown>>({
   row,
   columns,
   index,
-  color = "default",
+  color = "transparent",
 }: StaticTableRowProps<T>) {
   return (
     <tr
       className={clsx(
-        "border-b border-gray-200",
+        // ✅ Base styling
+        "border-b border-gray-200 transition-colors duration-150",
         index % 2 === 0 ? "bg-white" : "bg-gray-50",
+        // ✅ Hover effect
+        "hover:bg-pp-teal-50 hover:text-pp-teal-900 cursor-pointer",
         getColorClasses(color)
       )}
     >

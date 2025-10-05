@@ -49,8 +49,8 @@ export default function Card({
     const el = icon as ReactElement<{ className?: string }>
     const extraClass =
       iconPosition === "left" || iconPosition === "right"
-        ? "scale-[1.3] mx-[1em]"
-        : "block w-full p-[1em]"
+        ? "scale-[1.3] mx-[1em] shrink-0"
+        : "block scale-[1.3] my-[1em] text-center"
 
     return cloneElement(el, {
       className: clsx(el.props.className, extraClass),
@@ -86,16 +86,17 @@ export default function Card({
       {/* Content */}
       {open && (
         <div
-          className={clsx("p-[1em] flex", {
-            "flex-col items-center":
+          className={clsx("p-[1em]", {
+            "flex flex-row items-center":
+              iconPosition === "left" || iconPosition === "right",
+            "flex flex-col items-center":
               iconPosition === "top" || iconPosition === "bottom",
-            "items-center": iconPosition === "left" || iconPosition === "right",
           })}
         >
           {iconPosition === "top" && renderIcon()}
           {iconPosition === "left" && renderIcon()}
 
-          <div className="flex-1">{children}</div>
+          <div className="flex-1 text-center md:text-left">{children}</div>
 
           {iconPosition === "right" && renderIcon()}
           {iconPosition === "bottom" && renderIcon()}

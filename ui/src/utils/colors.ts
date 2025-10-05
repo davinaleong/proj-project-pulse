@@ -13,7 +13,7 @@ export type ColorVariant =
 
 const colorClasses: Record<ColorVariant, string> = {
   primary: "bg-pp-teal-50 text-pp-teal-900 border-pp-teal-200",
-  secondary: "bg-pp-gray-50 text-pp-gray-900 border-pp-gray-200",
+  secondary: "bg-pp-slate-50 text-pp-slate-900 border-pp-slate-200",
   danger: "bg-red-50 text-red-900 border-red-200",
   success: "bg-green-50 text-green-900 border-green-200",
   warning: "bg-yellow-50 text-yellow-900 border-yellow-200",

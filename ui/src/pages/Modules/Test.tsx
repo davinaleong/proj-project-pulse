@@ -89,7 +89,7 @@ function Test() {
         </Card>
 
         {/* 2️⃣ Color variants */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-[1em]">
           <Card title="Primary" color="primary">
             <p>Primary variant for general emphasis.</p>
           </Card>
@@ -130,7 +130,7 @@ function Test() {
         </Card>
 
         {/* 4️⃣ Top & Bottom Icon positions */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-[1em]">
           <Card
             title="Top Icon"
             color="warning"

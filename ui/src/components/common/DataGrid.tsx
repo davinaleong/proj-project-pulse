@@ -1,14 +1,19 @@
-// components/common/DataGrid.tsx
 import { useState } from "react"
 import clsx from "clsx"
 import Button from "./Button"
+import {
+  ChevronUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+} from "lucide-react"
 import { getColorClasses, type ColorVariant } from "../../utils/colors"
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react"
 
 export type DataGridColumn<T> = {
   key: keyof T
   label: string
-  type?: string // text, number, date, email, etc.
+  type?: string
   sortable?: boolean
   editable?: boolean
   required?: boolean
@@ -21,7 +26,7 @@ export type DataGridProps<T> = {
   color?: ColorVariant
   pageSize?: number
   className?: string
-  onSave?: (data: T[]) => void
+  onSave?: (data: T[] | T) => void
   defaultOpen?: boolean
 }
 
@@ -75,8 +80,14 @@ function DataGrid<T extends Record<string, unknown>>({
     setEditing(null)
   }
 
+  function handleRowSave(rowIndex: number) {
+    if (!onSave) return
+    onSave(gridData[rowIndex]) // send single record
+  }
+
   function renderPagination() {
     if (totalPages <= 1) return null
+
     const pages: (number | string)[] = []
     for (let i = 1; i <= totalPages; i++) {
       if (i === 1 || i === totalPages || Math.abs(i - page) <= 1) {
@@ -88,6 +99,7 @@ function DataGrid<T extends Record<string, unknown>>({
         pages.push("...")
       }
     }
+
     return (
       <tfoot>
         <tr>
@@ -100,6 +112,7 @@ function DataGrid<T extends Record<string, unknown>>({
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
               />
+
               {pages.map((p, idx) =>
                 p === "..." ? (
                   <span key={idx} className="px-2 text-gray-500">
@@ -122,6 +135,7 @@ function DataGrid<T extends Record<string, unknown>>({
                   </Button>
                 )
               )}
+
               <Button
                 variant="icon"
                 color="default"
@@ -186,6 +200,10 @@ function DataGrid<T extends Record<string, unknown>>({
                       </span>
                     </th>
                   ))}
+                  {/* ✅ Actions column */}
+                  <th className="px-[1em] py-[0.5em] text-left text-sm font-semibold">
+                    Actions
+                  </th>
                 </tr>
               </thead>
 
@@ -237,6 +255,17 @@ function DataGrid<T extends Record<string, unknown>>({
                         </td>
                       )
                     })}
+
+                    {/* ✅ Per-row Save button */}
+                    <td className="px-[1em] py-[0.5em] text-center">
+                      <Button
+                        variant="icon"
+                        color="success"
+                        icon={Check}
+                        onClick={() => handleRowSave(rowIndex)}
+                        className="hover:-translate-y-[1px]"
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -245,7 +274,7 @@ function DataGrid<T extends Record<string, unknown>>({
             </table>
           </div>
 
-          {/* ✅ Save Button */}
+          {/* ✅ Optional footer Save button (bulk save) */}
           {onSave && (
             <div className="flex justify-end p-3 border-t bg-gray-50">
               <Button
@@ -253,7 +282,7 @@ function DataGrid<T extends Record<string, unknown>>({
                 color="success"
                 variant="text"
               >
-                Save Changes
+                Save All Changes
               </Button>
             </div>
           )}

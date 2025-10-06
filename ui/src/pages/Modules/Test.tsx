@@ -5,6 +5,9 @@ import {
   CheckCircle,
   XCircle,
   ChevronRight,
+  Edit,
+  Trash2,
+  Plus,
 } from "lucide-react"
 import ModuleLayout from "../../components/layout/ModuleLayout"
 import Panel from "../../components/common/Panel"
@@ -22,6 +25,7 @@ import LightSwitchInput from "../../components/forms/LightSwitchInput"
 import RadioGroup from "../../components/forms/RadioGroup"
 import CheckboxGroup from "../../components/forms/CheckboxGroup"
 import RatingInput from "../../components/forms/RatingInput"
+import IconButton from "../../components/common/IconButton"
 import StaticTable from "../../components/common/StaticTable"
 import DataGrid, { type DataGridColumn } from "../../components/common/DataGrid"
 import {
@@ -364,6 +368,12 @@ function Test() {
           variant="circle"
           color="info"
         />
+
+        <div className="flex gap-[1em]">
+          <IconButton icon={Edit} color="primary" tooltip="Edit item" />
+          <IconButton icon={Trash2} color="danger" tooltip="Delete item" />
+          <IconButton icon={Plus} color="success" tooltip="Add new" />
+        </div>
 
         <StaticTable
           caption="Sample Data Table"

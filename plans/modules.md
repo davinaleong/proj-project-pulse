@@ -1,0 +1,96 @@
+# Modules
+
+    - Projects
+    	- ID
+    	- UUID
+    	- Title
+    	- Description
+    	- Stage (Planning, Analysis, Design, Implementation, Testing, Deployment, Maintenance)
+    	- User ID (Owner)
+    	- Began At
+    	- Completed At
+    	- Calculation Frequency (suggest a better name. Frequeny that the project is billed. E.g.: hourly, monthly, etc)
+    	- Cost (Rate per Frequency. Suggest a better name)
+    	- Currency (The currency that the project is paid in. E.g.: USD, SGD, MYR, etc)
+    	- Created At
+    	- Updated At
+    	- Deleted At
+    - Tasks
+    	- ID
+    	- UUID
+    	- Project ID
+    	- Title
+    	- Definition of Done
+    	- Status (Backlog, TODO, WIP, Done, Blocked, On-hold)
+    	- User ID (Assignee)
+    	- Started At
+    	- Ended At
+    	- Duration in Time Unit from the Project (Suggest a better name.)
+    	- Cost in Project cost and currency (Suggest a better name)
+    	- Created At
+    	- Updated At
+    	- Deleted At
+    - Notes
+    	- ID
+    	- UUID
+    	- Title
+    	- Description
+    	- Body
+    	- Status (Draft, Published, Private, Public)
+    	- User ID (Creator)
+    	- Created At
+    	- Updated At
+    	- Deleted At
+    - Users
+        - ID
+        - UUID
+        - Name
+        - Email
+        - Email Verified At
+        - Password
+        - Role (user, admin, manager, superadmin)
+        - Status (active, inactive, banned, pending)
+        - Last Login At
+        - Last Login IP
+        - TwoFactorEnabled
+        - TwoFactorSecret
+        - RememberToken
+        - Created At
+    	- Updated At
+    	- Deleted At
+    - Profiles
+        - ID
+        - UUID
+        - User ID
+        - Bio
+        - AvatarUrl
+        - CoverUrl
+        - Timezone
+        - Language
+        - Theme (Light, Dark, System)
+        - Social Links
+        - Notifications
+        - Visibility (Public, Private)
+        - Created At
+        - Updated At
+    - Activities
+        - ID
+        - User ID
+        - Action
+        - Model Type
+        - Model ID
+        - Context
+        - Description
+        - Old Values
+        - New Values
+        - IP Address
+        - User agent
+        - Created At
+    - Sessions
+        - ID
+        - User ID
+        - User Agent
+        - IP Address
+        - Token
+        - Last Active At
+        - Revoked At

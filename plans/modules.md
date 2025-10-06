@@ -9,9 +9,9 @@
     	- User ID (Owner)
     	- Began At
     	- Completed At
-    	- Calculation Frequency (suggest a better name. Frequeny that the project is billed. E.g.: hourly, monthly, etc)
-    	- Cost (Rate per Frequency. Suggest a better name)
-    	- Currency (The currency that the project is paid in. E.g.: USD, SGD, MYR, etc)
+    	- Billing Cycle
+    	- Rate
+    	- Currency
     	- Created At
     	- Updated At
     	- Deleted At
@@ -25,8 +25,8 @@
     	- User ID (Assignee)
     	- Started At
     	- Ended At
-    	- Duration in Time Unit from the Project (Suggest a better name.)
-    	- Cost in Project cost and currency (Suggest a better name)
+    	- Time Spent
+    	- Cost In Project Currency
     	- Created At
     	- Updated At
     	- Deleted At
@@ -55,6 +55,8 @@
         - TwoFactorEnabled
         - TwoFactorSecret
         - RememberToken
+        - Failed Login Attempts
+        - Locked Until
         - Created At
     	- Updated At
     	- Deleted At
@@ -94,3 +96,20 @@
         - Token
         - Last Active At
         - Revoked At
+    - Settings
+        - ID
+        - UUID
+        - Key
+        - Value
+        - Type
+        - Category
+        - Visibility (User, Admin, System)
+        - Updated At
+    - Password Reset Tokens
+        - ID
+        - UUID
+        - User ID
+        - Token
+        - Expires At
+        - Used At
+        - Created At

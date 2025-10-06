@@ -19,12 +19,6 @@ export type LightSwitchInputProps = {
   color?: ColorVariant
 }
 
-/**
- * LightSwitchInput
- * - Minimal, Input-style switch
- * - Color variants affect the toggle control
- * - Supports different output variants: boolean, numeric, text, accepted
- */
 function LightSwitchInput({
   id,
   name,
@@ -41,18 +35,6 @@ function LightSwitchInput({
 }: LightSwitchInputProps) {
   const [checked, setChecked] = useState<boolean>(value ?? defaultChecked)
   const inputId = id || name
-
-  const colorClasses = {
-    primary: "bg-pp-teal-500 border-pp-teal-600 focus:ring-pp-teal-500",
-    secondary: "bg-pp-gray-500 border-pp-gray-600 focus:ring-pp-gray-500",
-    danger: "bg-red-500 border-red-600 focus:ring-red-500",
-    success: "bg-green-500 border-green-600 focus:ring-green-500",
-    warning: "bg-yellow-400 border-yellow-500 focus:ring-yellow-400",
-    info: "bg-blue-500 border-blue-600 focus:ring-blue-500",
-    default: "bg-gray-300 border-gray-400 focus:ring-gray-400",
-    transparent: "bg-transparent border-gray-300 focus:ring-gray-300",
-    custom: "",
-  }
 
   function handleToggle() {
     if (disabled || readOnly) return
@@ -105,7 +87,7 @@ function LightSwitchInput({
         onClick={handleToggle}
         className={clsx(
           "relative w-[3em] h-[1.5em] rounded-full border shadow-inner transition-all duration-200 focus:outline-none focus:ring-2",
-          checked ? colorClasses[color] : "bg-gray-200 border-gray-300",
+          checked ? getColorClasses(color) : "bg-gray-200 border-gray-300",
           disabled && "cursor-not-allowed"
         )}
       >

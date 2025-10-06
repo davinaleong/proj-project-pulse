@@ -26,6 +26,7 @@ import RadioGroup from "../../components/forms/RadioGroup"
 import CheckboxGroup from "../../components/forms/CheckboxGroup"
 import RatingInput from "../../components/forms/RatingInput"
 import IconButton from "../../components/common/IconButton"
+import AvatarBadge from "../../components/common/AvatarBadge"
 import StaticTable from "../../components/common/StaticTable"
 import DataGrid, { type DataGridColumn } from "../../components/common/DataGrid"
 import {
@@ -373,6 +374,24 @@ function Test() {
           <IconButton icon={Edit} color="primary" tooltip="Edit item" />
           <IconButton icon={Trash2} color="danger" tooltip="Delete item" />
           <IconButton icon={Plus} color="success" tooltip="Add new" />
+        </div>
+
+        <div className="flex gap-[1em] items-center">
+          {/* With image */}
+          <AvatarBadge
+            name="Davina Leong"
+            imageUrl="https://i.pravatar.cc/100?img=5"
+            color="primary"
+          />
+
+          {/* With initials */}
+          <AvatarBadge name="John Tan" color="success" />
+
+          {/* Anonymous with random Lucide icon */}
+          <AvatarBadge color="secondary" />
+
+          {/* Custom size */}
+          <AvatarBadge name="Adele Foo" color="warning" size={64} />
         </div>
 
         <StaticTable

@@ -113,7 +113,7 @@ function DataGrid<T extends Record<string, unknown>>({
       <tfoot>
         <tr>
           <td colSpan={columns.length + 1}>
-            <div className="flex justify-center items-center gap-2 py-2 text-sm">
+            <div className="flex justify-center items-center gap-[1em] py-[1em] text-sm">
               <Button
                 variant="icon"
                 color="default"
@@ -263,7 +263,7 @@ function DataGrid<T extends Record<string, unknown>>({
                     })}
 
                     {/* ✅ Actions: Save + Cancel */}
-                    <td className="px-[1em] py-[0.5em] text-center flex justify-center gap-1">
+                    <td className="px-[1em] py-[0.5em] text-center flex justify-center gap-[1em]">
                       <Button
                         variant="icon"
                         color="success"
@@ -286,7 +286,7 @@ function DataGrid<T extends Record<string, unknown>>({
           </div>
 
           {onSave && (
-            <div className="flex justify-end p-3 border-t bg-gray-50">
+            <div className="flex justify-end p-[1em] border-t bg-gray-50">
               <Button
                 onClick={() => onSave(gridData)}
                 color="success"

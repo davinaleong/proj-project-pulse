@@ -16,7 +16,7 @@ function ChatBubble({ role, text }: ChatBubbleProps) {
     <div className={clsx("flex w-full", align)}>
       <div
         className={clsx(
-          "rounded-2xl px-3 py-2 max-w-[80%] text-sm shadow-sm",
+          "rounded-sm px-[1em] py-[0.5em] max-w-[80%] text-sm shadow-sm",
           bubbleColor
         )}
       >

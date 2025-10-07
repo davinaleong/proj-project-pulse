@@ -1,5 +1,4 @@
 import { useState } from "react"
-import ChatHeader from "./ChatHeader"
 import ChatMessages from "./ChatMessages"
 import ChatInput from "./ChatInput"
 import Card from "../common/Card"
@@ -30,15 +29,9 @@ function ChatWindow({ onClose }: ChatWindowProps) {
     <Card
       title="AI Chat Assistant"
       color="default"
-      className="w-[340px] sm:w-[380px] h-[480px] flex flex-col mb-4 shadow-xl"
+      className="w-[340px] sm:w-[380px] h-[480px] flex flex-col mb-[1em] shadow-xl"
       expandable={false}
     >
-      <ChatHeader
-        minimised={minimised}
-        setMinimised={setMinimised}
-        onClose={onClose}
-      />
-
       {!minimised && (
         <>
           <ChatMessages messages={messages} />

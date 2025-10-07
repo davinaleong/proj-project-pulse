@@ -1,1 +1,1 @@
-console.log('crypto.ts')
+console.info('utils/crypto.ts')

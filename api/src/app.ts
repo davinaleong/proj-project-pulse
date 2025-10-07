@@ -1,1 +1,1 @@
-console.log('app.ts')
+console.info('app.ts')

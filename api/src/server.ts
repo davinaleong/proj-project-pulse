@@ -1,1 +1,1 @@
-console.log('server.ts')
+console.info('server.ts')

@@ -1,1 +1,1 @@
-console.log('auth.ts')
+console.info('middlewares/auth.ts')

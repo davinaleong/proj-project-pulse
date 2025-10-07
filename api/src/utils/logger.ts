@@ -1,1 +1,1 @@
-console.log('logger.ts')
+console.info('utils/logger.ts')

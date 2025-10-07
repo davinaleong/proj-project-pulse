@@ -1,1 +1,1 @@
-console.log('rateLimiter.ts')
+console.info('middlewares/rateLimiter.ts')

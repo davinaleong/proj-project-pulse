@@ -1,1 +1,1 @@
-console.log('validator.ts')
+console.log('utils/validator.ts')

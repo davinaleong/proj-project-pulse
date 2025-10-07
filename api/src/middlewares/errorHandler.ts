@@ -1,1 +1,1 @@
-console.log('errorHandler.ts')
+console.info('middlewares/errorHandler.ts')

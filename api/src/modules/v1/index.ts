@@ -1,1 +1,1 @@
-console.log('modules/v1/index.ts')
+console.info('modules/v1/index.ts')

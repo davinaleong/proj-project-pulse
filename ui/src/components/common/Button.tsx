@@ -3,7 +3,7 @@ import clsx from "clsx"
 import { getColorClasses, type ColorVariant } from "./../../utils/colors"
 
 type ButtonProps = {
-  onClick: () => void
+  onClick?: () => void
   variant?: "text" | "image" | "icon" | "link" | "bare"
   type?: "button" | "submit" | "reset"
   children?: React.ReactNode

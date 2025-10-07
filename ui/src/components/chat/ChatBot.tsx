@@ -9,7 +9,7 @@ export default function ChatBot() {
   return (
     <div className="fixed bottom-[1em] right-[1em] z-50 flex flex-col items-end">
       {/* Chat window */}
-      {open && <ChatWindow onClose={() => setOpen(false)} />}
+      {open && <ChatWindow />}
 
       {/* Floating chat icon button */}
       <IconButton

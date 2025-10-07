@@ -7,11 +7,12 @@ type ChatInputProps = {
   onSend: (text: string) => void
 }
 
-export default function ChatInput({ onSend }: ChatInputProps) {
+function ChatInput({ onSend }: ChatInputProps) {
   const [text, setText] = useState("")
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (!text.trim()) return
     onSend(text)
     setText("")
   }
@@ -25,17 +26,19 @@ export default function ChatInput({ onSend }: ChatInputProps) {
         name="chatMessage"
         placeholder="Type your message..."
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e: unknown) => setText(e.target.value)}
         className="flex-1"
       />
 
       <Button
-        onClick={() => onSend(text)}
         type="submit"
         variant="icon"
         icon={Send}
         color="primary"
+        className="rounded-full"
       />
     </form>
   )
 }
+
+export default ChatInput

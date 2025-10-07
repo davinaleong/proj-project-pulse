@@ -1,1 +1,1 @@
-console.info('modules/v1/users/user.controller.ts')
+console.info('modules/v1/users/user.service.ts')

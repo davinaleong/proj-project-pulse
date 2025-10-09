@@ -1,15 +1,260 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// -------------------------------------------
+// Datasource & Generator
+// -------------------------------------------
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// -------------------------------------------
+// Enums
+// -------------------------------------------
+enum ProjectStage {
+  PLANNING
+  ANALYSIS
+  DESIGN
+  IMPLEMENTATION
+  TESTING
+  DEPLOYMENT
+  MAINTENANCE
+}
+
+enum TaskStatus {
+  BACKLOG
+  TODO
+  WIP
+  DONE
+  BLOCKED
+  ON_HOLD
+}
+
+enum NoteStatus {
+  DRAFT
+  PUBLISHED
+  PRIVATE
+  PUBLIC
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MANAGER
+  SUPERADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BANNED
+  PENDING
+}
+
+enum Theme {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum SettingVisibility {
+  USER
+  ADMIN
+  SYSTEM
+}
+
+// -------------------------------------------
+// Core Models
+// -------------------------------------------
+
+model User {
+  id                  Int                  @id @default(autoincrement())
+  uuid                String               @unique @default(uuid())
+  name                String
+  email               String               @unique
+  emailVerifiedAt     DateTime?
+  password            String
+  role                UserRole             @default(USER)
+  status              UserStatus           @default(ACTIVE)
+  lastLoginAt         DateTime?
+  lastLoginIp         String?
+  twoFactorEnabled    Boolean              @default(false)
+  twoFactorSecret     String?
+  rememberToken       String?
+  failedLoginAttempts Int                  @default(0)
+  lockedUntil         DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  deletedAt           DateTime?
+
+  // Relations
+  profile             Profile?
+  projects            Project[]            @relation("UserProjects")
+  tasks               Task[]               @relation("UserTasks")
+  notes               Note[]
+  activities          Activity[]
+  sessions            Session[]
+  settings            Setting[]
+  passwordResetTokens PasswordResetToken[]
+
+  @@index([email])
+}
+
+// -------------------------------------------
+
+model Profile {
+  id           Int        @id @default(autoincrement())
+  uuid         String     @unique @default(uuid())
+  userId       Int        @unique
+  bio          String?    @db.Text
+  avatarUrl    String?
+  coverUrl     String?
+  timezone     String?
+  language     String?
+  theme        Theme      @default(SYSTEM)
+  socialLinks  Json?
+  notifications Json?
+  visibility   Visibility @default(PUBLIC)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// -------------------------------------------
+
+model Project {
+  id           Int          @id @default(autoincrement())
+  uuid         String       @unique @default(uuid())
+  title        String
+  description  String?      @db.Text
+  stage        ProjectStage @default(PLANNING)
+  userId       Int
+  beganAt      DateTime?
+  completedAt  DateTime?
+  billingCycle String?
+  rate         Decimal?     @db.Decimal(10,2)
+  currency     String?      @default("SGD")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  deletedAt    DateTime?
+
+  // Relations
+  user   User   @relation("UserProjects", fields: [userId], references: [id], onDelete: Cascade)
+  tasks  Task[]
+  notes  Note[]
+}
+
+// -------------------------------------------
+
+model Task {
+  id                  Int          @id @default(autoincrement())
+  uuid                String       @unique @default(uuid())
+  projectId           Int
+  title               String
+  definitionOfDone    String?      @db.Text
+  status              TaskStatus   @default(BACKLOG)
+  userId              Int?
+  startedAt           DateTime?
+  endedAt             DateTime?
+  timeSpent           Decimal?     @db.Decimal(10,2)
+  costInProjectCurrency Decimal?   @db.Decimal(10,2)
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  deletedAt           DateTime?
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User?   @relation("UserTasks", fields: [userId], references: [id], onDelete: SetNull)
+}
+
+// -------------------------------------------
+
+model Note {
+  id          Int         @id @default(autoincrement())
+  uuid        String      @unique @default(uuid())
+  title       String
+  description String?     @db.Text
+  body        String?     @db.Text
+  status      NoteStatus  @default(DRAFT)
+  userId      Int
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project  Project? @relation(fields: [projectId], references: [id])
+  projectId Int?
+}
+
+// -------------------------------------------
+
+model Activity {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  action      String
+  modelType   String
+  modelId     String
+  context     String?
+  description String?   @db.Text
+  oldValues   Json?
+  newValues   Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// -------------------------------------------
+
+model Session {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  userAgent    String?
+  ipAddress    String?
+  token        String    @unique
+  lastActiveAt DateTime?
+  revokedAt    DateTime?
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// -------------------------------------------
+
+model Setting {
+  id          Int                @id @default(autoincrement())
+  uuid        String             @unique @default(uuid())
+  key         String
+  value       String?
+  type        String?
+  category    String?
+  visibility  SettingVisibility  @default(USER)
+  updatedAt   DateTime           @updatedAt
+
+  userId      Int?
+  user        User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+// -------------------------------------------
+
+model PasswordResetToken {
+  id        Int       @id @default(autoincrement())
+  uuid      String    @unique @default(uuid())
+  userId    Int
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

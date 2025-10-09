@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development nodemon src/server.ts",
+    "dev": "nodemon",
     "build": "tsc",
-    "start": "cross-env NODE_ENV=production node dist/server.js",
+    "start": "node dist/server.js",
     "test": "cross-env NODE_ENV=test jest --runInBand",
     "test:watch": "cross-env NODE_ENV=test jest --watch",
     "test:coverage": "cross-env NODE_ENV=test jest --coverage",
@@ -21,7 +21,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@prisma/client": "^6.16.3",
+    "@prisma/client": "^6.17.0",
     "bcrypt": "^6.0.0",
     "dayjs": "^1.11.18",
     "dotenv": "^17.2.3",

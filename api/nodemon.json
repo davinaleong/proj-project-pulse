@@ -1,0 +1,10 @@
+{
+  "watch": ["src"],
+  "ext": "ts,json,env",
+  "ignore": ["dist", "node_modules", "tests"],
+  "exec": "cross-env NODE_ENV=development ts-node src/server.ts",
+  "env": {
+    "TS_NODE_TRANSPILE_ONLY": "true"
+  },
+  "legacyWatch": true
+}

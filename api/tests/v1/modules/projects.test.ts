@@ -1,1 +1,5 @@
-console.info('tests/v1/modules/projects.test.ts')
+describe('Projects Module', () => {
+  it('should be implemented', () => {
+    expect(true).toBe(true)
+  })
+})

@@ -1,1 +1,5 @@
-console.info('tests/v1/modules/users.test.ts')
+describe('Tasks Module', () => {
+  it('should be implemented', () => {
+    expect(true).toBe(true)
+  })
+})

@@ -1,1 +1,5 @@
-console.info('tests/v1/modules/auth.test.ts')
+describe('Auth Module', () => {
+  it('should be implemented', () => {
+    expect(true).toBe(true)
+  })
+})

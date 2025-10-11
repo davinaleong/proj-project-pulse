@@ -1,1 +1,5 @@
-console.info('tests/v1/e2e/api.test.ts')
+describe('E2E API Tests', () => {
+  it('should be implemented', () => {
+    expect(true).toBe(true)
+  })
+})

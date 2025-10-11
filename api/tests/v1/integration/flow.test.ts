@@ -1,1 +1,5 @@
-console.info('tests/v1/integration/flow.test.ts')
+describe('Integration Flow Tests', () => {
+  it('should be implemented', () => {
+    expect(true).toBe(true)
+  })
+})

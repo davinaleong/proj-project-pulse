@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express'
 import helmet from 'helmet'
 import cors from 'cors'
 import { ENV } from './config/env'
+import v1Router from './modules/v1'
 
 export function createApp() {
   const app = express()
@@ -27,6 +28,9 @@ export function createApp() {
   app.get('/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', env: ENV.NODE_ENV })
   })
+
+  // API routes
+  app.use('/api/v1', v1Router)
 
   // Basic error handler — specific app error handler can be mounted after createApp is called
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {

@@ -9,9 +9,17 @@ declare global {
       // populated by authentication middleware when available
       user?: {
         id: number
-        uuid?: string
-        email?: string
-        role?: string
+        uuid: string
+        email: string
+        role: string
+        name: string
+        status: string
+        emailVerifiedAt: Date | null
+        lastLoginAt: Date | null
+        twoFactorEnabled: boolean
+        createdAt: Date
+        updatedAt: Date
+        profile?: unknown
       }
     }
   }

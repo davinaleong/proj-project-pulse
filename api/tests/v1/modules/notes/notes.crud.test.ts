@@ -1,6 +1,6 @@
 import request from 'supertest'
 import { createApp } from '../../../../src/app'
-import { notesTestHelpers } from './notes.helpers'
+import { notesTestHelpers, prisma } from './notes.helpers'
 
 const app = createApp()
 
@@ -277,7 +277,7 @@ describe('Notes CRUD Operations', () => {
       expect(response.body.message).toBe('Note deleted successfully')
 
       // Verify note is soft deleted
-      const deletedNote = await notesTestHelpers.prisma.note.findFirst({
+      const deletedNote = await prisma.note.findFirst({
         where: { uuid: noteToDelete },
       })
       expect(deletedNote?.deletedAt).not.toBeNull()

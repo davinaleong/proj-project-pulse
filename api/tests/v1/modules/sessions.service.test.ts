@@ -1,34 +1,30 @@
 import { SessionService } from '../../../src/modules/v1/sessions/session.service'
-import { PrismaClient } from '@prisma/client'
 import {
   SessionDto,
-  SessionWithUserDto,
-  SessionListResponse,
   SessionQueryParams,
-  SessionStatsDto,
-  SessionAnalytics,
-  BulkOperationResult,
 } from '../../../src/modules/v1/sessions/session.model'
 
 // Mock Prisma Client
+const mockPrismaClient = {
+  session: {
+    findMany: jest.fn(),
+    findFirst: jest.fn(),
+    findUnique: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    updateMany: jest.fn(),
+    delete: jest.fn(),
+    deleteMany: jest.fn(),
+    count: jest.fn(),
+    aggregate: jest.fn(),
+  },
+  user: {
+    findUnique: jest.fn(),
+  },
+}
+
 jest.mock('@prisma/client', () => ({
-  PrismaClient: jest.fn().mockImplementation(() => ({
-    session: {
-      findMany: jest.fn(),
-      findFirst: jest.fn(),
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      updateMany: jest.fn(),
-      delete: jest.fn(),
-      deleteMany: jest.fn(),
-      count: jest.fn(),
-      aggregate: jest.fn(),
-    },
-    user: {
-      findUnique: jest.fn(),
-    },
-  })),
+  PrismaClient: jest.fn(() => mockPrismaClient),
   Prisma: {
     SessionWhereInput: {},
   },
@@ -36,22 +32,15 @@ jest.mock('@prisma/client', () => ({
 
 describe('SessionService', () => {
   let sessionService: SessionService
-  let mockPrisma: jest.Mocked<PrismaClient>
+  let mockPrisma: typeof mockPrismaClient
 
   beforeEach(() => {
     sessionService = new SessionService()
-    mockPrisma = (sessionService as any).prisma
+    mockPrisma = mockPrismaClient
     jest.clearAllMocks()
   })
 
   describe('getUserSessions', () => {
-    const mockUser = {
-      id: 1,
-      uuid: 'user-uuid',
-      name: 'Test User',
-      email: 'test@example.com',
-      role: 'user',
-    }
     const mockSession: SessionDto = {
       id: 1,
       userId: 1,
@@ -69,6 +58,7 @@ describe('SessionService', () => {
         limit: 10,
         sortBy: 'lastActiveAt',
         sortOrder: 'desc',
+        active: undefined,
       }
 
       mockPrisma.session.findMany.mockResolvedValue([mockSession])
@@ -153,6 +143,7 @@ describe('SessionService', () => {
         limit: 5,
         sortBy: 'createdAt',
         sortOrder: 'asc',
+        active: undefined,
       }
 
       mockPrisma.session.findMany.mockResolvedValue([])
@@ -230,16 +221,12 @@ describe('SessionService', () => {
   })
 
   describe('createSession', () => {
-    const sessionData = {
-      userId: 1,
-      userAgent: 'Mozilla/5.0',
-      ipAddress: '192.168.1.1',
-    }
-
     it('should create a new session successfully', async () => {
       const mockCreatedSession = {
         id: 1,
-        ...sessionData,
+        userId: 1,
+        userAgent: 'Mozilla/5.0',
+        ipAddress: '192.168.1.1',
         lastActiveAt: new Date(),
         revokedAt: null,
         isActive: true,
@@ -248,22 +235,26 @@ describe('SessionService', () => {
 
       mockPrisma.session.create.mockResolvedValue(mockCreatedSession)
 
-      const result = await sessionService.createSession(sessionData)
+      const result = await sessionService.createSession(
+        1,
+        'test-token',
+        'Mozilla/5.0',
+        '192.168.1.1',
+      )
 
       expect(result).toEqual(mockCreatedSession)
       expect(mockPrisma.session.create).toHaveBeenCalledWith({
         data: {
-          userId: sessionData.userId,
-          userAgent: sessionData.userAgent,
-          ipAddress: sessionData.ipAddress,
+          userId: 1,
+          token: 'test-token',
+          userAgent: 'Mozilla/5.0',
+          ipAddress: '192.168.1.1',
           lastActiveAt: expect.any(Date),
-          isActive: true,
         },
       })
     })
 
     it('should handle missing optional fields', async () => {
-      const minimalSessionData = { userId: 1 }
       const mockCreatedSession = {
         id: 1,
         userId: 1,
@@ -277,16 +268,16 @@ describe('SessionService', () => {
 
       mockPrisma.session.create.mockResolvedValue(mockCreatedSession)
 
-      const result = await sessionService.createSession(minimalSessionData)
+      const result = await sessionService.createSession(1, 'test-token')
 
       expect(result).toEqual(mockCreatedSession)
       expect(mockPrisma.session.create).toHaveBeenCalledWith({
         data: {
           userId: 1,
+          token: 'test-token',
           userAgent: undefined,
           ipAddress: undefined,
           lastActiveAt: expect.any(Date),
-          isActive: true,
         },
       })
     })
@@ -403,11 +394,6 @@ describe('SessionService', () => {
 
   describe('getSessionStats', () => {
     it('should return session statistics', async () => {
-      const mockStats = [
-        { _count: { id: 10 }, revokedAt: null }, // active sessions
-        { _count: { id: 5 }, revokedAt: expect.any(Date) }, // revoked sessions
-      ]
-
       mockPrisma.session.count
         .mockResolvedValueOnce(15) // total sessions
         .mockResolvedValueOnce(10) // active sessions

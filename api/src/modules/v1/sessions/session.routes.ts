@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { sessionController } from './session.controller.clean'
+import { sessionController } from './session.controller'
 import { auth } from '../../../middlewares/auth'
 
 const sessionRouter = Router()

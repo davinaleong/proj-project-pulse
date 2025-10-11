@@ -45,6 +45,22 @@ services:
       - /app/node_modules
     command: sh -c "npx prisma migrate deploy && npm run dev"
 
+  # Test runner container
+  test:
+    build: .
+    container_name: pulse_test
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@db_test:5432/project_pulse_test
+      JWT_SECRET: test-jwt-secret-key-for-testing-only
+      PORT: 3001
+    depends_on:
+      - db_test
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npx prisma migrate deploy && npm run test"
+
 volumes:
   db_data:
   db_test_data:

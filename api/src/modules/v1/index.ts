@@ -1,10 +1,12 @@
 import { Router } from 'express'
+import authRoutes from './auth/auth.routes'
 import noteRoutes from './notes/note.routes'
 import { userRoutes } from './users/user.routes'
 
 const router = Router()
 
 // Mount module routes
+router.use('/auth', authRoutes)
 router.use('/notes', noteRoutes)
 router.use('/users', userRoutes)
 

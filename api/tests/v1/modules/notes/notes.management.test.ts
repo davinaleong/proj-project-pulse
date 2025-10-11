@@ -1,6 +1,6 @@
 import request from 'supertest'
 import { createApp } from '../../../../src/app'
-import { notesTestHelpers } from './notes.helpers'
+import { notesTestHelpers, prisma } from './notes.helpers'
 
 const app = createApp()
 
@@ -49,7 +49,7 @@ describe('Notes Management', () => {
       expect(response.body.data.uuid).toBe(deletedNoteUuid)
 
       // Verify note is restored
-      const restoredNote = await notesTestHelpers.prisma.note.findFirst({
+      const restoredNote = await prisma.note.findFirst({
         where: { uuid: deletedNoteUuid },
       })
       expect(restoredNote?.deletedAt).toBeNull()
@@ -138,7 +138,7 @@ describe('Notes Management', () => {
         .expect(404)
 
       // Verify note still exists in database with deletedAt timestamp
-      const deletedNote = await notesTestHelpers.prisma.note.findFirst({
+      const deletedNote = await prisma.note.findFirst({
         where: { uuid: noteForDeletionTest },
       })
       expect(deletedNote).not.toBeNull()
@@ -151,7 +151,7 @@ describe('Notes Management', () => {
         .expect(200)
 
       const foundNote = response.body.data.find(
-        (note: any) => note.uuid === noteForDeletionTest,
+        (note: { uuid: string }) => note.uuid === noteForDeletionTest,
       )
       expect(foundNote).toBeUndefined()
     })
@@ -179,7 +179,7 @@ describe('Notes Management', () => {
         .expect(200)
 
       const foundNote = listResponse.body.data.find(
-        (note: any) => note.uuid === noteForDeletionTest,
+        (note: { uuid: string }) => note.uuid === noteForDeletionTest,
       )
       expect(foundNote).toBeDefined()
     })
@@ -245,7 +245,7 @@ describe('Notes Management', () => {
   })
 
   describe('Bulk Operations', () => {
-    let bulkTestNotes: string[] = []
+    const bulkTestNotes: string[] = []
 
     beforeAll(async () => {
       // Create multiple notes for bulk operations testing

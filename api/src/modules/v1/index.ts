@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import authRoutes from './auth/auth.routes'
 import noteRoutes from './notes/note.routes'
+import sessionRoutes from './sessions/session.routes'
 import { userRoutes } from './users/user.routes'
 
 const router = Router()
@@ -8,6 +9,7 @@ const router = Router()
 // Mount module routes
 router.use('/auth', authRoutes)
 router.use('/notes', noteRoutes)
+router.use('/sessions', sessionRoutes)
 router.use('/users', userRoutes)
 
 // Health check for v1 API

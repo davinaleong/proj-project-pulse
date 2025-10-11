@@ -184,9 +184,14 @@ describe('Sessions CRUD Operations', () => {
         where: { id: sessionId },
       })
       expect(updatedSession?.lastActiveAt).toBeDefined()
-      expect(new Date(updatedSession!.lastActiveAt).getTime()).toBeGreaterThan(
-        new Date(originalSession!.lastActiveAt).getTime(),
-      )
+      expect(updatedSession?.lastActiveAt).not.toBeNull()
+      expect(originalSession?.lastActiveAt).not.toBeNull()
+
+      if (updatedSession?.lastActiveAt && originalSession?.lastActiveAt) {
+        expect(new Date(updatedSession.lastActiveAt).getTime()).toBeGreaterThan(
+          new Date(originalSession.lastActiveAt).getTime(),
+        )
+      }
     })
 
     it('should return 404 for non-existent session', async () => {

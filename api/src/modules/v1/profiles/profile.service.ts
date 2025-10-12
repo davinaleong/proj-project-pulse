@@ -6,14 +6,17 @@ import {
   ProfileWithUser,
   ProfileFilters,
   ProfilePaginationOptions,
+  NotificationSettings,
 } from './profile.model'
-import { userModel } from '../users/user.model'
+import prisma from '../../../config/db'
 
 export class ProfileService {
   // Create a new profile for a user
   async createProfile(data: CreateProfileData): Promise<Profile> {
     // Check if user exists
-    const user = await userModel.findById(data.userId)
+    const user = await prisma.user.findUnique({
+      where: { id: data.userId },
+    })
     if (!user) {
       throw new Error('User not found')
     }
@@ -74,7 +77,9 @@ export class ProfileService {
     }
 
     // Check if requester is the profile owner or admin
-    const requester = await userModel.findById(requesterId)
+    const requester = await prisma.user.findUnique({
+      where: { id: requesterId },
+    })
     if (!requester) {
       throw new Error('Requester not found')
     }
@@ -155,7 +160,9 @@ export class ProfileService {
     }
 
     // Check if requester is the profile owner or admin
-    const requester = await userModel.findById(requesterId)
+    const requester = await prisma.user.findUnique({
+      where: { id: requesterId },
+    })
     if (!requester) {
       throw new Error('Requester not found')
     }
@@ -185,7 +192,9 @@ export class ProfileService {
 
     // Check if profile is public or requester is owner/admin
     if (profile.visibility !== Visibility.PUBLIC && requesterId) {
-      const requester = await userModel.findById(requesterId)
+      const requester = await prisma.user.findUnique({
+        where: { id: requesterId },
+      })
       if (!requester) {
         throw new Error('Requester not found')
       }
@@ -205,7 +214,7 @@ export class ProfileService {
     theme: Theme
     language: string
     timezone: string
-    notifications: any
+    notifications: NotificationSettings
     visibility: Visibility
   }> {
     const profile = await profileModel.findByUserId(userId)
@@ -215,9 +224,9 @@ export class ProfileService {
 
     return {
       theme: profile.theme,
-      language: profile.language,
-      timezone: profile.timezone,
-      notifications: profile.notifications,
+      language: profile.language || '',
+      timezone: profile.timezone || '',
+      notifications: profile.notifications as NotificationSettings,
       visibility: profile.visibility,
     }
   }
@@ -229,7 +238,7 @@ export class ProfileService {
       theme?: Theme
       language?: string
       timezone?: string
-      notifications?: any
+      notifications?: NotificationSettings
       visibility?: Visibility
     },
   ): Promise<Profile> {

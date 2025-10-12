@@ -1,19 +1,11 @@
 import { Router } from 'express'
-import { profileController } from './profile.controller'
-import { authenticate } from '../../../middlewares/auth'
-import { activityLogger } from '../../../middlewares/activityLogger'
+import { ProfileController } from './profile.controller'
 
 const router = Router()
+const profileController = new ProfileController()
 
-// Apply authentication to all profile routes
-router.use(authenticate)
-
-// Profile CRUD routes
-router.post(
-  '/',
-  activityLogger,
-  profileController.createProfile.bind(profileController),
-)
+// Profile routes
+router.post('/', profileController.createProfile.bind(profileController))
 router.get('/me', profileController.getMyProfile.bind(profileController))
 router.get(
   '/public',
@@ -25,20 +17,11 @@ router.get(
 )
 router.put(
   '/settings',
-  activityLogger,
   profileController.updateProfileSettings.bind(profileController),
 )
 router.get('/:uuid', profileController.getProfile.bind(profileController))
-router.put(
-  '/:uuid',
-  activityLogger,
-  profileController.updateProfile.bind(profileController),
-)
-router.delete(
-  '/:uuid',
-  activityLogger,
-  profileController.deleteProfile.bind(profileController),
-)
+router.put('/:uuid', profileController.updateProfile.bind(profileController))
+router.delete('/:uuid', profileController.deleteProfile.bind(profileController))
 router.get(
   '/:uuid/stats',
   profileController.getProfileStats.bind(profileController),

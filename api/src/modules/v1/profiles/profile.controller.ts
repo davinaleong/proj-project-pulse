@@ -1,9 +1,7 @@
 import { Request, Response } from 'express'
 import { profileService } from './profile.service'
-import { CreateProfileData, UpdateProfileData } from './profile.model'
+import { CreateProfileData } from './profile.model'
 import { Theme, Visibility } from '@prisma/client'
-import { sendResponse, sendError } from '../../../utils/response'
-import { validate } from '../../../utils/validator'
 import { z } from 'zod'
 
 // Validation schemas
@@ -49,14 +47,6 @@ const createProfileSchema = z.object({
 
 const updateProfileSchema = createProfileSchema.partial()
 
-const profileQuerySchema = z.object({
-  page: z.string().transform(Number).default('1'),
-  limit: z.string().transform(Number).default('20'),
-  search: z.string().optional(),
-  language: z.string().optional(),
-  theme: z.nativeEnum(Theme).optional(),
-})
-
 const settingsSchema = z.object({
   theme: z.nativeEnum(Theme).optional(),
   language: z.string().min(2).max(5).optional(),
@@ -87,63 +77,67 @@ const settingsSchema = z.object({
 
 export class ProfileController {
   // Create a new profile
-  async createProfile(req: Request, res: Response): Promise<void> {
+  async createProfile(req: Request, res: Response) {
     try {
-      const { error, data } = validate(createProfileSchema, req.body)
-      if (error) {
-        sendError(res, 400, 'Validation failed', error)
-        return
+      const validationResult = createProfileSchema.safeParse(req.body)
+      if (!validationResult.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validationResult.error.issues,
+        })
       }
 
       const userId = req.user?.id
       if (!userId) {
-        sendError(res, 401, 'User not authenticated')
-        return
+        return res.status(401).json({ error: 'User not authenticated' })
       }
 
       const profileData: CreateProfileData = {
-        ...data,
+        ...validationResult.data,
         userId,
       }
 
       const profile = await profileService.createProfile(profileData)
-      sendResponse(res, 201, 'Profile created successfully', { profile })
-    } catch (error: any) {
-      sendError(res, 400, error.message)
+      res.json({
+        success: true,
+        data: profile,
+      })
+    } catch (error: unknown) {
+      res.status(400).json({ error: (error as Error).message })
     }
   }
 
   // Get current user's profile
-  async getMyProfile(req: Request, res: Response): Promise<void> {
+  async getMyProfile(req: Request, res: Response) {
     try {
       const userId = req.user?.id
       if (!userId) {
-        sendError(res, 401, 'User not authenticated')
-        return
+        return res.status(401).json({ error: 'User not authenticated' })
       }
 
       const profile = await profileService.getProfileByUserId(userId)
       if (!profile) {
-        sendError(res, 404, 'Profile not found')
-        return
+        return res.status(404).json({ error: 'Profile not found' })
       }
 
-      sendResponse(res, 200, 'Profile retrieved successfully', { profile })
-    } catch (error: any) {
-      sendError(res, 500, error.message)
+      res.json({
+        success: true,
+        data: profile,
+      })
+    } catch (error: unknown) {
+      res.status(500).json({ error: (error as Error).message })
     }
   }
 
   // Get profile by UUID
-  async getProfile(req: Request, res: Response): Promise<void> {
+  async getProfile(req: Request, res: Response) {
     try {
       const { uuid } = req.params
       const requesterId = req.user?.id
 
       const profile = await profileService.getProfileByUuid(uuid)
       if (!profile) {
-        sendError(res, 404, 'Profile not found')
-        return
+        return res.status(404).json({ error: 'Profile not found' })
       }
 
       // Check if profile is public or user has access
@@ -152,137 +146,151 @@ export class ProfileController {
           !requesterId ||
           (profile.userId !== requesterId && req.user?.role !== 'ADMIN')
         ) {
-          sendError(res, 403, 'Profile is private')
-          return
+          return res.status(403).json({ error: 'Profile is private' })
         }
       }
 
-      sendResponse(res, 200, 'Profile retrieved successfully', { profile })
-    } catch (error: any) {
-      sendError(res, 500, error.message)
+      res.json({
+        success: true,
+        data: profile,
+      })
+    } catch (error: unknown) {
+      res.status(500).json({ error: (error as Error).message })
     }
   }
 
   // Get public profiles with filters
-  async getPublicProfiles(req: Request, res: Response): Promise<void> {
+  async getPublicProfiles(req: Request, res: Response) {
     try {
-      const { error, data } = validate(profileQuerySchema, req.query)
-      if (error) {
-        sendError(res, 400, 'Validation failed', error)
-        return
-      }
-
-      const { page, limit, search, language, theme } = data
+      const page = parseInt(req.query.page as string) || 1
+      const limit = parseInt(req.query.limit as string) || 20
+      const search = req.query.search as string
 
       const result = await profileService.getPublicProfiles(
-        { search, language, theme },
-        { page, limit, sortBy: 'createdAt', sortOrder: 'desc' },
+        { search },
+        { page, limit },
       )
 
-      sendResponse(res, 200, 'Public profiles retrieved successfully', result)
-    } catch (error: any) {
-      sendError(res, 500, error.message)
+      res.json({
+        success: true,
+        data: result.profiles,
+        pagination: result.pagination,
+      })
+    } catch (error: unknown) {
+      res.status(500).json({ error: (error as Error).message })
     }
   }
 
   // Update profile
-  async updateProfile(req: Request, res: Response): Promise<void> {
+  async updateProfile(req: Request, res: Response) {
     try {
       const { uuid } = req.params
-      const { error, data } = validate(updateProfileSchema, req.body)
-      if (error) {
-        sendError(res, 400, 'Validation failed', error)
-        return
+      const validationResult = updateProfileSchema.safeParse(req.body)
+      if (!validationResult.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validationResult.error.issues,
+        })
       }
 
       const requesterId = req.user?.id
       if (!requesterId) {
-        sendError(res, 401, 'User not authenticated')
-        return
+        return res.status(401).json({ error: 'User not authenticated' })
       }
 
       const profile = await profileService.updateProfile(
         uuid,
-        data,
+        validationResult.data,
         requesterId,
       )
-      sendResponse(res, 200, 'Profile updated successfully', { profile })
-    } catch (error: any) {
-      sendError(res, 400, error.message)
+      res.json({
+        success: true,
+        data: profile,
+      })
+    } catch (error: unknown) {
+      res.status(400).json({ error: (error as Error).message })
     }
   }
 
   // Delete profile
-  async deleteProfile(req: Request, res: Response): Promise<void> {
+  async deleteProfile(req: Request, res: Response) {
     try {
       const { uuid } = req.params
       const requesterId = req.user?.id
       if (!requesterId) {
-        sendError(res, 401, 'User not authenticated')
-        return
+        return res.status(401).json({ error: 'User not authenticated' })
       }
 
       await profileService.deleteProfile(uuid, requesterId)
-      sendResponse(res, 200, 'Profile deleted successfully')
-    } catch (error: any) {
-      sendError(res, 400, error.message)
+      res.json({
+        success: true,
+        message: 'Profile deleted successfully',
+      })
+    } catch (error: unknown) {
+      res.status(400).json({ error: (error as Error).message })
     }
   }
 
   // Get profile statistics
-  async getProfileStats(req: Request, res: Response): Promise<void> {
+  async getProfileStats(req: Request, res: Response) {
     try {
       const { uuid } = req.params
       const requesterId = req.user?.id
 
       const stats = await profileService.getProfileStats(uuid, requesterId)
-      sendResponse(res, 200, 'Profile statistics retrieved successfully', {
-        stats,
+      res.json({
+        success: true,
+        data: stats,
       })
-    } catch (error: any) {
-      sendError(res, 400, error.message)
+    } catch (error: unknown) {
+      res.status(400).json({ error: (error as Error).message })
     }
   }
 
   // Get profile settings (for authenticated user)
-  async getProfileSettings(req: Request, res: Response): Promise<void> {
+  async getProfileSettings(req: Request, res: Response) {
     try {
       const userId = req.user?.id
       if (!userId) {
-        sendError(res, 401, 'User not authenticated')
-        return
+        return res.status(401).json({ error: 'User not authenticated' })
       }
 
       const settings = await profileService.getProfileSettings(userId)
-      sendResponse(res, 200, 'Profile settings retrieved successfully', {
-        settings,
+      res.json({
+        success: true,
+        data: settings,
       })
-    } catch (error: any) {
-      sendError(res, 500, error.message)
+    } catch (error: unknown) {
+      res.status(500).json({ error: (error as Error).message })
     }
   }
 
   // Update profile settings
-  async updateProfileSettings(req: Request, res: Response): Promise<void> {
+  async updateProfileSettings(req: Request, res: Response) {
     try {
-      const { error, data } = validate(settingsSchema, req.body)
-      if (error) {
-        sendError(res, 400, 'Validation failed', error)
-        return
+      const validationResult = settingsSchema.safeParse(req.body)
+      if (!validationResult.success) {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: validationResult.error.issues,
+        })
       }
 
       const userId = req.user?.id
       if (!userId) {
-        sendError(res, 401, 'User not authenticated')
-        return
+        return res.status(401).json({ error: 'User not authenticated' })
       }
 
-      const profile = await profileService.updateProfileSettings(userId, data)
-      sendResponse(res, 200, 'Profile settings updated successfully', {
-        profile,
+      const profile = await profileService.updateProfileSettings(
+        userId,
+        validationResult.data,
+      )
+      res.json({
+        success: true,
+        data: profile,
       })
-    } catch (error: any) {
-      sendError(res, 400, error.message)
+    } catch (error: unknown) {
+      res.status(400).json({ error: (error as Error).message })
     }
   }
 }

@@ -4,6 +4,8 @@ import noteRoutes from './notes/note.routes'
 import sessionRoutes from './sessions/session.routes'
 import userRoutes from './users/user.routes'
 import profileRoutes from './profiles/profile.routes'
+import settingRoutes from './settings/setting.routes'
+import passwordResetRoutes from './password-resets/passwordReset.routes'
 
 const router = Router()
 
@@ -13,6 +15,8 @@ router.use('/notes', noteRoutes)
 router.use('/sessions', sessionRoutes)
 router.use('/users', userRoutes)
 router.use('/profiles', profileRoutes)
+router.use('/settings', settingRoutes)
+router.use('/password-resets', passwordResetRoutes)
 
 // Health check for v1 API
 router.get('/health', (req, res) => {

@@ -7,6 +7,7 @@ import profileRoutes from './profiles/profile.routes'
 import settingRoutes from './settings/setting.routes'
 import passwordResetRoutes from './password-resets/passwordReset.routes'
 import projectRoutes from './projects'
+import taskRoutes from './tasks/task.routes'
 
 const router = Router()
 
@@ -19,6 +20,7 @@ router.use('/profiles', profileRoutes)
 router.use('/settings', settingRoutes)
 router.use('/password-resets', passwordResetRoutes)
 router.use('/projects', projectRoutes)
+router.use('/tasks', taskRoutes)
 
 // Health check for v1 API
 router.get('/health', (req, res) => {

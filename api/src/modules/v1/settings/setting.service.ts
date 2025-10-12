@@ -1,4 +1,4 @@
-import { SettingVisibility } from '@prisma/client'
+import { SettingVisibility, UserRole } from '@prisma/client'
 import {
   settingModel,
   CreateSettingInput,
@@ -6,6 +6,7 @@ import {
   SettingQuery,
   SettingResponse,
 } from './setting.model'
+import prisma from '../../../config/db'
 
 // Custom error class for settings
 class SettingError extends Error {
@@ -24,7 +25,7 @@ export class SettingService {
     // Validate permissions for creating settings
     if (
       data.visibility === SettingVisibility.SYSTEM &&
-      !this.isSystemAdmin(requestingUserId)
+      !(await this.isSystemAdmin(requestingUserId))
     ) {
       throw new SettingError(
         'Insufficient permissions to create system settings',
@@ -34,7 +35,7 @@ export class SettingService {
 
     if (
       data.visibility === SettingVisibility.ADMIN &&
-      !this.isAdmin(requestingUserId)
+      !(await this.isAdmin(requestingUserId))
     ) {
       throw new SettingError(
         'Insufficient permissions to create admin settings',
@@ -52,30 +53,25 @@ export class SettingService {
   }
 
   // Get settings with filtering and pagination
-  async getSettings(
-    query: SettingQuery,
-    requestingUserId?: number,
-    isAdmin = false,
-  ) {
+  async getSettings(query: SettingQuery, requestingUserId?: number) {
     // Apply visibility restrictions
-    const filteredQuery = this.applyVisibilityFilter(
+    const filteredQuery = await this.applyVisibilityFilter(
       query,
       requestingUserId,
-      isAdmin,
     )
 
     return await settingModel.findMany(filteredQuery)
   }
 
   // Get setting by ID
-  async getSettingById(id: number, requestingUserId?: number, isAdmin = false) {
+  async getSettingById(id: number, requestingUserId?: number) {
     const setting = await settingModel.findById(id)
     if (!setting) {
       throw new SettingError('Setting not found', 404)
     }
 
     // Check access permissions
-    if (!this.canAccessSetting(setting, requestingUserId, isAdmin)) {
+    if (!(await this.canAccessSetting(setting, requestingUserId))) {
       throw new SettingError('Access denied', 403)
     }
 
@@ -83,18 +79,14 @@ export class SettingService {
   }
 
   // Get setting by UUID
-  async getSettingByUuid(
-    uuid: string,
-    requestingUserId?: number,
-    isAdmin = false,
-  ) {
+  async getSettingByUuid(uuid: string, requestingUserId?: number) {
     const setting = await settingModel.findByUuid(uuid)
     if (!setting) {
       throw new SettingError('Setting not found', 404)
     }
 
     // Check access permissions
-    if (!this.canAccessSetting(setting, requestingUserId, isAdmin)) {
+    if (!(await this.canAccessSetting(setting, requestingUserId))) {
       throw new SettingError('Access denied', 403)
     }
 
@@ -106,7 +98,6 @@ export class SettingService {
     key: string,
     userId?: number,
     requestingUserId?: number,
-    isAdmin = false,
   ) {
     const setting = await settingModel.findByKey(key, userId)
     if (!setting) {
@@ -114,7 +105,7 @@ export class SettingService {
     }
 
     // Check access permissions
-    if (!this.canAccessSetting(setting, requestingUserId, isAdmin)) {
+    if (!(await this.canAccessSetting(setting, requestingUserId))) {
       throw new SettingError('Access denied', 403)
     }
 
@@ -126,7 +117,6 @@ export class SettingService {
     id: number,
     data: UpdateSettingInput,
     requestingUserId?: number,
-    isAdmin = false,
   ) {
     const setting = await settingModel.findById(id)
     if (!setting) {
@@ -134,7 +124,7 @@ export class SettingService {
     }
 
     // Check permissions
-    if (!this.canModifySetting(setting, requestingUserId, isAdmin)) {
+    if (!(await this.canModifySetting(setting, requestingUserId))) {
       throw new SettingError(
         'Insufficient permissions to modify this setting',
         403,
@@ -145,7 +135,7 @@ export class SettingService {
     if (data.visibility) {
       if (
         data.visibility === SettingVisibility.SYSTEM &&
-        !this.isSystemAdmin(requestingUserId)
+        !(await this.isSystemAdmin(requestingUserId))
       ) {
         throw new SettingError(
           'Insufficient permissions to set system visibility',
@@ -154,7 +144,7 @@ export class SettingService {
       }
       if (
         data.visibility === SettingVisibility.ADMIN &&
-        !this.isAdmin(requestingUserId)
+        !(await this.isAdmin(requestingUserId))
       ) {
         throw new SettingError(
           'Insufficient permissions to set admin visibility',
@@ -167,14 +157,14 @@ export class SettingService {
   }
 
   // Delete setting
-  async deleteSetting(id: number, requestingUserId?: number, isAdmin = false) {
+  async deleteSetting(id: number, requestingUserId?: number) {
     const setting = await settingModel.findById(id)
     if (!setting) {
       throw new SettingError('Setting not found', 404)
     }
 
     // Check permissions
-    if (!this.canModifySetting(setting, requestingUserId, isAdmin)) {
+    if (!(await this.canModifySetting(setting, requestingUserId))) {
       throw new SettingError(
         'Insufficient permissions to delete this setting',
         403,
@@ -189,10 +179,12 @@ export class SettingService {
     userId: number,
     category?: string,
     requestingUserId?: number,
-    isAdmin = false,
   ) {
     // Users can only access their own settings unless they're admin
-    if (userId !== requestingUserId && !isAdmin) {
+    if (
+      userId !== requestingUserId &&
+      !(await this.isAdmin(requestingUserId))
+    ) {
       throw new SettingError('Access denied', 403)
     }
 
@@ -204,13 +196,9 @@ export class SettingService {
   }
 
   // Get system settings
-  async getSystemSettings(
-    category?: string,
-    requestingUserId?: number,
-    isAdmin = false,
-  ) {
+  async getSystemSettings(category?: string, requestingUserId?: number) {
     // Only admins can access system settings
-    if (!isAdmin) {
+    if (!(await this.isAdmin(requestingUserId))) {
       throw new SettingError('Access denied', 403)
     }
 
@@ -222,19 +210,13 @@ export class SettingService {
     key: string,
     data: CreateSettingInput,
     requestingUserId?: number,
-    isAdmin = false,
   ) {
     // Check if setting exists
     const existing = await settingModel.findByKey(key, data.userId)
 
     if (existing) {
       // Update existing
-      return await this.updateSetting(
-        existing.id,
-        data,
-        requestingUserId,
-        isAdmin,
-      )
+      return await this.updateSetting(existing.id, data, requestingUserId)
     } else {
       // Create new
       return await this.createSetting(data, requestingUserId)
@@ -242,8 +224,8 @@ export class SettingService {
   }
 
   // Get settings statistics
-  async getSettingsStats(requestingUserId?: number, isAdmin = false) {
-    if (!isAdmin) {
+  async getSettingsStats(requestingUserId?: number) {
+    if (!(await this.isAdmin(requestingUserId))) {
       throw new SettingError('Access denied', 403)
     }
 
@@ -263,60 +245,59 @@ export class SettingService {
   }
 
   // Permission helper methods
-  private canAccessSetting(
+  private async canAccessSetting(
     setting: SettingResponse,
     requestingUserId?: number,
-    isAdmin = false,
-  ): boolean {
-    // System settings require admin access
+  ): Promise<boolean> {
+    // System settings require system admin access
     if (setting.visibility === SettingVisibility.SYSTEM) {
-      return isAdmin
+      return await this.isSystemAdmin(requestingUserId)
     }
 
     // Admin settings require admin access
     if (setting.visibility === SettingVisibility.ADMIN) {
-      return isAdmin
+      return await this.isAdmin(requestingUserId)
     }
 
     // User settings can be accessed by the owner or admin
     if (setting.visibility === SettingVisibility.USER) {
-      return isAdmin || setting.userId === requestingUserId
+      const userIsAdmin = await this.isAdmin(requestingUserId)
+      return userIsAdmin || setting.userId === requestingUserId
     }
 
     return false
   }
 
-  private canModifySetting(
+  private async canModifySetting(
     setting: SettingResponse,
     requestingUserId?: number,
-    isAdmin = false,
-  ): boolean {
+  ): Promise<boolean> {
     // System settings require system admin
     if (setting.visibility === SettingVisibility.SYSTEM) {
-      return this.isSystemAdmin(requestingUserId)
+      return await this.isSystemAdmin(requestingUserId)
     }
 
     // Admin settings require admin
     if (setting.visibility === SettingVisibility.ADMIN) {
-      return isAdmin
+      return await this.isAdmin(requestingUserId)
     }
 
     // User settings can be modified by owner or admin
     if (setting.visibility === SettingVisibility.USER) {
-      return isAdmin || setting.userId === requestingUserId
+      const userIsAdmin = await this.isAdmin(requestingUserId)
+      return userIsAdmin || setting.userId === requestingUserId
     }
 
     return false
   }
 
-  private applyVisibilityFilter(
+  private async applyVisibilityFilter(
     query: SettingQuery,
     requestingUserId?: number,
-    isAdmin = false,
-  ): SettingQuery {
+  ): Promise<SettingQuery> {
     const filteredQuery = { ...query }
 
-    if (!isAdmin) {
+    if (!(await this.isAdmin(requestingUserId))) {
       // Non-admin users can only see their own USER settings
       filteredQuery.visibility = SettingVisibility.USER
       filteredQuery.userId = requestingUserId
@@ -325,20 +306,40 @@ export class SettingService {
     return filteredQuery
   }
 
-  private isAdmin(userId?: number): boolean {
-    // This would typically check user roles in the database
-    // For now, we'll assume admin status is passed from the controller
-    // TODO: Implement actual role checking logic
-    console.log('Checking admin status for user:', userId)
-    return false // Placeholder - implement based on your user role system
+  private async isAdmin(userId?: number): Promise<boolean> {
+    if (!userId) return false
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      })
+
+      return (
+        user?.role === UserRole.ADMIN ||
+        user?.role === UserRole.MANAGER ||
+        user?.role === UserRole.SUPERADMIN
+      )
+    } catch (error) {
+      console.error('Error checking admin status:', error)
+      return false
+    }
   }
 
-  private isSystemAdmin(userId?: number): boolean {
-    // This would check for system admin privileges
-    // For now, we'll assume system admin status is passed from the controller
-    // TODO: Implement actual system admin checking logic
-    console.log('Checking system admin status for user:', userId)
-    return false // Placeholder - implement based on your user role system
+  private async isSystemAdmin(userId?: number): Promise<boolean> {
+    if (!userId) return false
+
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      })
+
+      return user?.role === UserRole.SUPERADMIN
+    } catch (error) {
+      console.error('Error checking system admin status:', error)
+      return false
+    }
   }
 }
 

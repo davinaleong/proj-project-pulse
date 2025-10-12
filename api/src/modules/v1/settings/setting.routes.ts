@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { settingController } from './setting.controller.new'
+import { settingController } from './setting.controller'
 import { auth } from '../../../middlewares/auth'
 
 const router = Router()

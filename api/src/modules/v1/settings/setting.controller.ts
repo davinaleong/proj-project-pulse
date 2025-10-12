@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { settingService } from './setting.service.new'
+import { settingService } from './setting.service'
 import {
   createSettingSchema,
   updateSettingSchema,
@@ -73,9 +73,8 @@ export class SettingController {
 
       const query = validation.data
       const userId = req.user?.id
-      const isAdmin = req.user?.role === 'ADMIN'
 
-      const result = await settingService.getSettings(query, userId, isAdmin)
+      const result = await settingService.getSettings(query, userId)
 
       return res.json({
         success: true,
@@ -106,9 +105,8 @@ export class SettingController {
       }
 
       const userId = req.user?.id
-      const isAdmin = req.user?.role === 'ADMIN'
 
-      const setting = await settingService.getSettingById(id, userId, isAdmin)
+      const setting = await settingService.getSettingById(id, userId)
 
       return createSuccessResponse(
         res,
@@ -149,14 +147,7 @@ export class SettingController {
 
       const { data } = validation
       const userId = req.user?.id
-      const isAdmin = req.user?.role === 'ADMIN'
-
-      const setting = await settingService.updateSetting(
-        id,
-        data,
-        userId,
-        isAdmin,
-      )
+      const setting = await settingService.updateSetting(id, data, userId)
 
       return createSuccessResponse(res, 'Setting updated successfully', setting)
     } catch (error) {
@@ -182,9 +173,8 @@ export class SettingController {
       }
 
       const userId = req.user?.id
-      const isAdmin = req.user?.role === 'ADMIN'
 
-      await settingService.deleteSetting(id, userId, isAdmin)
+      await settingService.deleteSetting(id, userId)
 
       return createSuccessResponse(res, 'Setting deleted successfully')
     } catch (error) {
@@ -220,7 +210,6 @@ export class SettingController {
         userId,
         category as string,
         userId,
-        false,
       )
 
       return createSuccessResponse(
@@ -252,13 +241,11 @@ export class SettingController {
 
       const { category } = req.query
       const requestingUserId = req.user?.id
-      const isAdmin = req.user?.role === 'ADMIN'
 
       const settings = await settingService.getUserSettings(
         targetUserId,
         category as string,
         requestingUserId,
-        isAdmin,
       )
 
       return createSuccessResponse(
@@ -285,12 +272,10 @@ export class SettingController {
     try {
       const { category } = req.query
       const userId = req.user?.id
-      const isAdmin = req.user?.role === 'ADMIN'
 
       const settings = await settingService.getSystemSettings(
         category as string,
         userId,
-        isAdmin,
       )
 
       return createSuccessResponse(
@@ -316,9 +301,8 @@ export class SettingController {
   async getSettingsStats(req: Request, res: Response) {
     try {
       const userId = req.user?.id
-      const isAdmin = req.user?.role === 'ADMIN'
 
-      const stats = await settingService.getSettingsStats(userId, isAdmin)
+      const stats = await settingService.getSettingsStats(userId)
 
       return createSuccessResponse(
         res,

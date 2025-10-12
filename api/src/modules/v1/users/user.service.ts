@@ -499,3 +499,5 @@ export class UserService {
     return userLevel >= requiredLevel
   }
 }
+
+export const userService = new UserService()

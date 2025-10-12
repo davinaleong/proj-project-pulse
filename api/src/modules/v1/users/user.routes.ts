@@ -27,4 +27,4 @@ router.patch('/:uuid', managerOrAdmin, userController.updateUser)
 router.delete('/:uuid', adminOnly, userController.deleteUser)
 router.get('/:uuid/permissions', managerOrAdmin, userController.checkPermission)
 
-export { router as userRoutes }
+export default router

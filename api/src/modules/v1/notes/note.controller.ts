@@ -6,6 +6,10 @@ import {
   noteQuerySchema,
 } from './note.model'
 import { ZodError } from 'zod'
+import {
+  createSuccessResponse,
+  createErrorResponse,
+} from '../../../utils/response'
 
 export class NoteController {
   private noteService: NoteService
@@ -19,23 +23,29 @@ export class NoteController {
     try {
       const userId = req.user?.id
       if (!userId) {
-        return res.status(401).json({ error: 'User not authenticated' })
+        return createErrorResponse(
+          res,
+          'User not authenticated',
+          undefined,
+          401,
+        )
       }
 
       const query = noteQuerySchema.parse(req.query)
       const result = await this.noteService.getNotes(userId, query)
 
-      res.json({
-        success: true,
-        data: result.data,
+      return createSuccessResponse(res, 'Notes retrieved successfully', {
+        notes: result.data,
         pagination: result.pagination,
       })
     } catch (error) {
       if (error instanceof ZodError) {
-        return res.status(400).json({
-          error: 'Invalid query parameters',
-          details: error.issues,
-        })
+        return createErrorResponse(
+          res,
+          'Invalid query parameters',
+          error.issues,
+          400,
+        )
       }
       next(error)
     }
@@ -46,20 +56,22 @@ export class NoteController {
     try {
       const userId = req.user?.id
       if (!userId) {
-        return res.status(401).json({ error: 'User not authenticated' })
+        return createErrorResponse(
+          res,
+          'User not authenticated',
+          undefined,
+          401,
+        )
       }
 
       const { uuid } = req.params
       const note = await this.noteService.getNoteByUuid(uuid, userId)
 
       if (!note) {
-        return res.status(404).json({ error: 'Note not found' })
+        return createErrorResponse(res, 'Note not found', undefined, 404)
       }
 
-      res.json({
-        success: true,
-        data: note,
-      })
+      return createSuccessResponse(res, 'Note retrieved successfully', note)
     } catch (error) {
       next(error)
     }
@@ -70,23 +82,21 @@ export class NoteController {
     try {
       const userId = req.user?.id
       if (!userId) {
-        return res.status(401).json({ error: 'User not authenticated' })
+        return createErrorResponse(
+          res,
+          'User not authenticated',
+          undefined,
+          401,
+        )
       }
 
       const data = createNoteSchema.parse(req.body)
       const note = await this.noteService.createNote(userId, data)
 
-      res.status(201).json({
-        success: true,
-        data: note,
-        message: 'Note created successfully',
-      })
+      return createSuccessResponse(res, 'Note created successfully', note, 201)
     } catch (error) {
       if (error instanceof ZodError) {
-        return res.status(400).json({
-          error: 'Invalid note data',
-          details: error.issues,
-        })
+        return createErrorResponse(res, 'Invalid note data', error.issues, 400)
       }
       next(error)
     }
@@ -97,7 +107,12 @@ export class NoteController {
     try {
       const userId = req.user?.id
       if (!userId) {
-        return res.status(401).json({ error: 'User not authenticated' })
+        return createErrorResponse(
+          res,
+          'User not authenticated',
+          undefined,
+          401,
+        )
       }
 
       const { uuid } = req.params
@@ -106,20 +121,13 @@ export class NoteController {
       const note = await this.noteService.updateNote(uuid, userId, data)
 
       if (!note) {
-        return res.status(404).json({ error: 'Note not found' })
+        return createErrorResponse(res, 'Note not found', undefined, 404)
       }
 
-      res.json({
-        success: true,
-        data: note,
-        message: 'Note updated successfully',
-      })
+      return createSuccessResponse(res, 'Note updated successfully', note)
     } catch (error) {
       if (error instanceof ZodError) {
-        return res.status(400).json({
-          error: 'Invalid note data',
-          details: error.issues,
-        })
+        return createErrorResponse(res, 'Invalid note data', error.issues, 400)
       }
       next(error)
     }
@@ -130,20 +138,22 @@ export class NoteController {
     try {
       const userId = req.user?.id
       if (!userId) {
-        return res.status(401).json({ error: 'User not authenticated' })
+        return createErrorResponse(
+          res,
+          'User not authenticated',
+          undefined,
+          401,
+        )
       }
 
       const { uuid } = req.params
       const deleted = await this.noteService.deleteNote(uuid, userId)
 
       if (!deleted) {
-        return res.status(404).json({ error: 'Note not found' })
+        return createErrorResponse(res, 'Note not found', undefined, 404)
       }
 
-      res.json({
-        success: true,
-        message: 'Note deleted successfully',
-      })
+      return createSuccessResponse(res, 'Note deleted successfully')
     } catch (error) {
       next(error)
     }
@@ -154,21 +164,27 @@ export class NoteController {
     try {
       const userId = req.user?.id
       if (!userId) {
-        return res.status(401).json({ error: 'User not authenticated' })
+        return createErrorResponse(
+          res,
+          'User not authenticated',
+          undefined,
+          401,
+        )
       }
 
       const { uuid } = req.params
       const note = await this.noteService.restoreNote(uuid, userId)
 
       if (!note) {
-        return res.status(404).json({ error: 'Note not found or not deleted' })
+        return createErrorResponse(
+          res,
+          'Note not found or not deleted',
+          undefined,
+          404,
+        )
       }
 
-      res.json({
-        success: true,
-        data: note,
-        message: 'Note restored successfully',
-      })
+      return createSuccessResponse(res, 'Note restored successfully', note)
     } catch (error) {
       next(error)
     }
@@ -179,14 +195,19 @@ export class NoteController {
     try {
       const userId = req.user?.id
       if (!userId) {
-        return res.status(401).json({ error: 'User not authenticated' })
+        return createErrorResponse(
+          res,
+          'User not authenticated',
+          undefined,
+          401,
+        )
       }
 
       const { projectId } = req.params
       const projectIdInt = parseInt(projectId, 10)
 
       if (isNaN(projectIdInt)) {
-        return res.status(400).json({ error: 'Invalid project ID' })
+        return createErrorResponse(res, 'Invalid project ID', undefined, 400)
       }
 
       const notes = await this.noteService.getNotesByProject(
@@ -194,12 +215,11 @@ export class NoteController {
         userId,
       )
 
-      res.json({
-        success: true,
-        data: notes,
-      })
+      return createSuccessResponse(res, 'Notes retrieved successfully', notes)
     } catch (error) {
       next(error)
     }
   }
 }
+
+export const noteController = new NoteController()

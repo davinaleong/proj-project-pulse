@@ -74,7 +74,6 @@ describe('Tasks Security', () => {
     userToken = tasksTestHelpers.generateAuthToken(user)
     adminToken = tasksTestHelpers.generateAuthToken(admin)
     managerToken = tasksTestHelpers.generateAuthToken(manager)
-    otherUserToken = tasksTestHelpers.generateAuthToken(otherUser)
   })
 
   afterAll(async () => {

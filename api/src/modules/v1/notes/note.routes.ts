@@ -1,8 +1,11 @@
 import { Router } from 'express'
-import { NoteController } from './note.controller'
+import { noteController } from './note.controller'
+import { auth } from '../../../middlewares/auth'
 
 const router = Router()
-const noteController = new NoteController()
+
+// Apply authentication to all routes
+router.use(auth)
 
 // Main note routes
 router.get('/', noteController.getNotes.bind(noteController))

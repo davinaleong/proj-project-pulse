@@ -7,7 +7,7 @@ import profileRoutes from './profiles/profile.routes'
 import settingRoutes from './settings/setting.routes'
 import passwordResetRoutes from './password-resets/passwordReset.routes'
 import projectRoutes from './projects'
-import taskRoutes from './tasks/task.routes'
+import taskRoutes from './tasks'
 
 const router = Router()
 

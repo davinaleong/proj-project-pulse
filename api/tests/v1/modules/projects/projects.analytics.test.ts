@@ -10,8 +10,6 @@ describe('Projects Analytics', () => {
   let adminToken: string
   let managerToken: string
   let userId: number
-  let adminId: number
-  let managerId: number
 
   beforeEach(async () => {
     await projectsTestHelpers.cleanupDatabase()
@@ -21,8 +19,6 @@ describe('Projects Analytics', () => {
     adminToken = testData.adminToken
     managerToken = testData.managerToken
     userId = testData.user.id
-    adminId = testData.admin.id
-    managerId = testData.manager.id
   })
 
   afterAll(async () => {

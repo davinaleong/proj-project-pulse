@@ -5,6 +5,11 @@ import { projectsTestHelpers, prisma } from './projects.helpers'
 
 const app = createApp()
 
+type TestProject = Awaited<
+  ReturnType<typeof projectsTestHelpers.createTestProject>
+>
+type TestUser = Awaited<ReturnType<typeof projectsTestHelpers.createTestUser>>
+
 describe('Projects Admin Operations', () => {
   let authToken: string
   let adminToken: string
@@ -12,8 +17,6 @@ describe('Projects Admin Operations', () => {
   let superAdminToken: string
   let userId: number
   let adminId: number
-  let managerId: number
-  let superAdminId: number
 
   beforeEach(async () => {
     await projectsTestHelpers.cleanupDatabase()
@@ -24,7 +27,6 @@ describe('Projects Admin Operations', () => {
     managerToken = testData.managerToken
     userId = testData.user.id
     adminId = testData.admin.id
-    managerId = testData.manager.id
 
     // Create superadmin
     const superAdmin = await projectsTestHelpers.createTestUser({
@@ -33,7 +35,6 @@ describe('Projects Admin Operations', () => {
       name: 'Super Admin',
       role: UserRole.SUPERADMIN,
     })
-    superAdminId = superAdmin.id
     superAdminToken = projectsTestHelpers.generateMockAuthToken({
       id: superAdmin.id,
       uuid: superAdmin.uuid,
@@ -147,7 +148,7 @@ describe('Projects Admin Operations', () => {
         .expect(200)
 
       expect(
-        response.body.data.projects.every((p: any) =>
+        response.body.data.projects.every((p: { title: string }) =>
           p.title.includes('User 2'),
         ),
       ).toBe(true)
@@ -190,8 +191,8 @@ describe('Projects Admin Operations', () => {
   })
 
   describe('POST /api/v1/admin/projects/:uuid/transfer - Transfer Project Ownership', () => {
-    let project: any
-    let targetUser: any
+    let project: TestProject
+    let targetUser: TestUser
 
     beforeEach(async () => {
       project = await projectsTestHelpers.createTestProject(userId, {
@@ -307,7 +308,7 @@ describe('Projects Admin Operations', () => {
   })
 
   describe('POST /api/v1/admin/projects/bulk-actions - Bulk Operations', () => {
-    let projects: any[]
+    let projects: TestProject[]
 
     beforeEach(async () => {
       projects = await projectsTestHelpers.createMultipleProjects(userId, 3, [
@@ -451,7 +452,7 @@ describe('Projects Admin Operations', () => {
   })
 
   describe('GET /api/v1/admin/projects/audit - Project Audit Trail', () => {
-    let project: any
+    let project: TestProject
 
     beforeEach(async () => {
       project = await projectsTestHelpers.createTestProject(userId, {
@@ -520,7 +521,7 @@ describe('Projects Admin Operations', () => {
 
       expect(
         response.body.data.auditTrail.every(
-          (entry: any) => entry.action === 'stage_transition',
+          (entry: { action: string }) => entry.action === 'stage_transition',
         ),
       ).toBe(true)
     })
@@ -533,7 +534,7 @@ describe('Projects Admin Operations', () => {
 
       expect(
         response.body.data.auditTrail.every(
-          (entry: any) => entry.userId === userId,
+          (entry: { userId: number }) => entry.userId === userId,
         ),
       ).toBe(true)
     })
@@ -568,7 +569,6 @@ describe('Projects Admin Operations', () => {
       await projectsTestHelpers.createTestProject(userId, {
         title: 'Stale Planning Project',
         stage: ProjectStage.PLANNING,
-        createdAt: new Date('2023-01-01'),
       })
     })
 

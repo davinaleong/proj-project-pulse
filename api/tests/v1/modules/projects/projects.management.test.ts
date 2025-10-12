@@ -29,7 +29,7 @@ describe('Projects Management Operations', () => {
   })
 
   describe('POST /api/v1/projects/:uuid/stage - Stage Transitions', () => {
-    let project
+    let project: TestProject
 
     beforeEach(async () => {
       project = await projectsTestHelpers.createTestProject(userId, {
@@ -142,7 +142,7 @@ describe('Projects Management Operations', () => {
   })
 
   describe('GET /api/v1/projects/:uuid/progress - Project Progress', () => {
-    let project: any
+    let project: TestProject
 
     beforeEach(async () => {
       project = await projectsTestHelpers.createTestProject(userId, {
@@ -223,7 +223,7 @@ describe('Projects Management Operations', () => {
   })
 
   describe('POST /api/v1/projects/:uuid/archive - Archive Project', () => {
-    let project: any
+    let project: TestProject
 
     beforeEach(async () => {
       project = await projectsTestHelpers.createTestProject(userId, {
@@ -283,7 +283,7 @@ describe('Projects Management Operations', () => {
   })
 
   describe('GET /api/v1/projects/:uuid/timeline - Project Timeline', () => {
-    let project: any
+    let project: TestProject
 
     beforeEach(async () => {
       project = await projectsTestHelpers.createTestProject(userId, {
@@ -350,7 +350,7 @@ describe('Projects Management Operations', () => {
   })
 
   describe('GET /api/v1/projects/:uuid/costs - Project Cost Analysis', () => {
-    let project: any
+    let project: TestProject
 
     beforeEach(async () => {
       project = await projectsTestHelpers.createTestProject(userId, {
@@ -434,7 +434,7 @@ describe('Projects Management Operations', () => {
   })
 
   describe('POST /api/v1/projects/:uuid/duplicate - Duplicate Project', () => {
-    let project: any
+    let project: TestProject
 
     beforeEach(async () => {
       project = await projectsTestHelpers.createTestProject(userId, {

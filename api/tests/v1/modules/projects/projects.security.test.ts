@@ -5,13 +5,16 @@ import { projectsTestHelpers } from './projects.helpers'
 
 const app = createApp()
 
+type TestProject = Awaited<
+  ReturnType<typeof projectsTestHelpers.createTestProject>
+>
+type TestUser = Awaited<ReturnType<typeof projectsTestHelpers.createTestUser>>
+
 describe('Projects Security', () => {
   let authToken: string
   let adminToken: string
   let managerToken: string
   let userId: number
-  let adminId: number
-  let managerId: number
 
   beforeEach(async () => {
     await projectsTestHelpers.cleanupDatabase()
@@ -21,8 +24,6 @@ describe('Projects Security', () => {
     adminToken = testData.adminToken
     managerToken = testData.managerToken
     userId = testData.user.id
-    adminId = testData.admin.id
-    managerId = testData.manager.id
   })
 
   afterAll(async () => {
@@ -31,7 +32,7 @@ describe('Projects Security', () => {
   })
 
   describe('Authentication & Authorization', () => {
-    let project: any
+    let project: TestProject
 
     beforeEach(async () => {
       project = await projectsTestHelpers.createTestProject(userId, {
@@ -53,7 +54,24 @@ describe('Projects Security', () => {
       ]
 
       for (const endpoint of endpoints) {
-        await request(app)[endpoint.method](endpoint.path).expect(401)
+        let req
+        switch (endpoint.method) {
+          case 'get':
+            req = request(app).get(endpoint.path)
+            break
+          case 'post':
+            req = request(app).post(endpoint.path)
+            break
+          case 'put':
+            req = request(app).put(endpoint.path)
+            break
+          case 'delete':
+            req = request(app).delete(endpoint.path)
+            break
+          default:
+            req = request(app).get(endpoint.path)
+        }
+        await req.expect(401)
       }
     })
 
@@ -116,12 +134,11 @@ describe('Projects Security', () => {
   })
 
   describe('Data Access Control', () => {
-    let userProject: any
-    let otherUserProject: any
-    let otherUser: any
+    let otherUserProject: TestProject
+    let otherUser: TestUser
 
     beforeEach(async () => {
-      userProject = await projectsTestHelpers.createTestProject(userId, {
+      await projectsTestHelpers.createTestProject(userId, {
         title: 'User Own Project',
       })
 
@@ -166,7 +183,9 @@ describe('Projects Security', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
 
-      const projectTitles = response.body.data.projects.map((p: any) => p.title)
+      const projectTitles = response.body.data.projects.map(
+        (p: { title: string }) => p.title,
+      )
       expect(projectTitles).toContain('User Own Project')
       expect(projectTitles).not.toContain('Other User Project')
     })
@@ -346,7 +365,7 @@ describe('Projects Security', () => {
   })
 
   describe('Data Leakage Prevention', () => {
-    let sensitiveProject: any
+    let sensitiveProject: TestProject
 
     beforeEach(async () => {
       sensitiveProject = await projectsTestHelpers.createTestProject(userId, {
@@ -435,7 +454,7 @@ describe('Projects Security', () => {
   })
 
   describe('Audit Logging', () => {
-    let project: any
+    let project: TestProject
 
     beforeEach(async () => {
       project = await projectsTestHelpers.createTestProject(userId, {
@@ -541,7 +560,7 @@ describe('Projects Security', () => {
     })
 
     it('should handle data retention policies', async () => {
-      const oldProject = await projectsTestHelpers.createTestProject(userId, {
+      await projectsTestHelpers.createTestProject(userId, {
         title: 'Old Project for Deletion',
         stage: ProjectStage.MAINTENANCE,
         completedAt: new Date('2020-01-01'), // Very old

@@ -16,7 +16,7 @@ declare global {
 /**
  * Database connection error with additional context
  */
-class DatabaseErrorClass extends Error {
+export class DatabaseError extends Error {
   constructor(
     message: string,
     public readonly operation: string,
@@ -26,8 +26,6 @@ class DatabaseErrorClass extends Error {
     this.name = 'DatabaseError'
   }
 }
-
-export const DatabaseError = DatabaseErrorClass
 
 /**
  * Prisma client configuration based on environment
@@ -40,14 +38,15 @@ function createPrismaClient(): PrismaClient {
   // Environment-specific configurations
   if (isDev) {
     config.log = [
-      { emit: 'event', level: 'query' },
       { emit: 'stdout', level: 'error' },
       { emit: 'stdout', level: 'info' },
       { emit: 'stdout', level: 'warn' },
     ]
   } else if (isTest) {
-    // Minimal logging in test environment
+    // Minimal logging in test environment with connection limits
     config.log = [{ emit: 'stdout', level: 'error' }]
+    // Limit connections for tests to prevent pool exhaustion
+    config.datasourceUrl = ENV.DATABASE_URL + (ENV.DATABASE_URL.includes('?') ? '&' : '?') + 'connection_limit=5&pool_timeout=10'
   } else if (isProd) {
     // Production logging
     config.log = [
@@ -57,16 +56,6 @@ function createPrismaClient(): PrismaClient {
   }
 
   const client = new PrismaClient(config)
-
-  // Development query logging
-  if (isDev) {
-    client.$on('query', (e) => {
-      console.log('🔍 Query: ' + e.query)
-      console.log('📊 Params: ' + e.params)
-      console.log('⏱️  Duration: ' + e.duration + 'ms')
-    })
-  }
-
   return client
 }
 
@@ -159,7 +148,7 @@ export async function withRetry<T>(
   maxRetries: number = 3,
   delayMs: number = 1000,
 ): Promise<T> {
-  let lastError: Error
+  let lastError: Error = new Error('No attempts made')
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -192,7 +181,12 @@ export async function withRetry<T>(
  * Transaction wrapper with error handling
  */
 export async function withTransaction<T>(
-  callback: (prisma: PrismaClient) => Promise<T>,
+  callback: (
+    prisma: Omit<
+      PrismaClient,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'
+    >,
+  ) => Promise<T>,
 ): Promise<T> {
   try {
     return await prisma.$transaction(callback)
@@ -248,5 +242,4 @@ process.on('SIGTERM', async () => {
   process.exit(0)
 })
 
-export { DatabaseError }
 export default prisma

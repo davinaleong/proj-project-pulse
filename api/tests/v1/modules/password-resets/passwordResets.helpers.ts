@@ -1,9 +1,8 @@
-import { PrismaClient, UserRole, UserStatus } from '@prisma/client'
+import { UserRole, UserStatus } from '@prisma/client'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
-
-const prisma = new PrismaClient()
+import prisma from '../../../../src/config/db'
 
 export const passwordResetTestHelpers = {
   async cleanupDatabase() {

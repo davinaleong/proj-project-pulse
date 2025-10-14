@@ -1,7 +1,6 @@
-import { PrismaClient, UserRole, UserStatus } from '@prisma/client'
+import { UserRole, UserStatus } from '@prisma/client'
 import jwt from 'jsonwebtoken'
-
-const prisma = new PrismaClient()
+import prisma from '../../../../src/config/db'
 
 export const sessionsTestHelpers = {
   async cleanupDatabase() {

@@ -6,47 +6,31 @@ process.env.JWT_SECRET =
   process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only'
 process.env.PORT = '3001'
 
-import { PrismaClient } from '@prisma/client'
 import { beforeAll, afterAll, beforeEach } from '@jest/globals'
-
-// Test database instance
-let prisma: PrismaClient
+import prisma from '../src/config/db'
 
 beforeAll(async () => {
-  // Initialize test database connection
-  prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
-  })
-
   // Connect to test database
   await prisma.$connect()
 })
 
 afterAll(async () => {
   // Clean up and disconnect
-  if (prisma) {
-    await prisma.$disconnect()
-  }
+  await prisma.$disconnect()
 })
 
 beforeEach(async () => {
   // Clean up test data before each test
-  if (prisma) {
-    // Delete in reverse order of dependencies
-    await prisma.passwordResetToken.deleteMany()
-    await prisma.setting.deleteMany()
-    await prisma.session.deleteMany()
-    await prisma.activity.deleteMany()
-    await prisma.note.deleteMany()
-    await prisma.task.deleteMany()
-    await prisma.project.deleteMany()
-    await prisma.profile.deleteMany()
-    await prisma.user.deleteMany()
-  }
+  // Delete in reverse order of dependencies
+  await prisma.passwordResetToken.deleteMany()
+  await prisma.setting.deleteMany()
+  await prisma.session.deleteMany()
+  await prisma.activity.deleteMany()
+  await prisma.note.deleteMany()
+  await prisma.task.deleteMany()
+  await prisma.project.deleteMany()
+  await prisma.profile.deleteMany()
+  await prisma.user.deleteMany()
 })
 
 // Export test utilities

@@ -1,5 +1,4 @@
 import {
-  PrismaClient,
   UserRole,
   UserStatus,
   ProjectStage,
@@ -9,8 +8,7 @@ import {
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { randomUUID } from 'crypto'
-
-const prisma = new PrismaClient()
+import prisma from '../../../src/config/db'
 
 export const e2eTestHelpers = {
   /**

@@ -1,9 +1,8 @@
 import request from 'supertest'
 import createApp from '../../../src/app'
-import { PrismaClient } from '@prisma/client'
 import jwt from 'jsonwebtoken'
+import prisma from '../../../src/config/db'
 
-const prisma = new PrismaClient()
 const app = createApp()
 
 describe('Session Integration Tests', () => {

@@ -1,14 +1,7 @@
-import {
-  PrismaClient,
-  UserRole,
-  UserStatus,
-  NoteStatus,
-  ProjectStage,
-} from '@prisma/client'
+import { UserRole, UserStatus, NoteStatus, ProjectStage } from '@prisma/client'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-
-const prisma = new PrismaClient()
+import prisma from '../../../../src/config/db'
 
 export const notesTestHelpers = {
   async cleanupDatabase() {

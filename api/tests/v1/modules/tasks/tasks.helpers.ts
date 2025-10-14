@@ -1,5 +1,4 @@
 import {
-  PrismaClient,
   UserRole,
   UserStatus,
   TaskStatus,
@@ -9,8 +8,7 @@ import {
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { Decimal } from '@prisma/client/runtime/library'
-
-export const prisma = new PrismaClient()
+import prisma from '../../../../src/config/db'
 
 export const tasksTestHelpers = {
   async cleanupDatabase() {

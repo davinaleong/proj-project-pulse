@@ -1,7 +1,6 @@
-import { PrismaClient, UserStatus } from '@prisma/client'
+import { UserStatus } from '@prisma/client'
 import bcrypt from 'bcrypt'
-
-const prisma = new PrismaClient()
+import prisma from '../../../../src/config/db'
 
 export const testHelpers = {
   async cleanupDatabase() {

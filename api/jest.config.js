@@ -10,4 +10,7 @@ module.exports = {
   coverageDirectory: 'coverage',
   coveragePathIgnorePatterns: ['/node_modules/', '/tests/', '/dist/'],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
+  // Limit concurrency to reduce database connection pressure
+  maxWorkers: 1,
+  maxConcurrency: 1,
 }

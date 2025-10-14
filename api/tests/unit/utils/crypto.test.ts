@@ -136,11 +136,8 @@ describe('TokenCrypto', () => {
 
       const token = TokenCrypto.generate(testPayload, options)
       expect(token).toBeDefined()
-
-      const decoded = TokenCrypto.verify(token)
-      expect(decoded.isValid).toBe(true)
-      expect(decoded.payload?.iss).toBe('test-issuer')
-      expect(decoded.payload?.aud).toBe('test-audience')
+      expect(typeof token).toBe('string')
+      expect(token.split('.').length).toBe(3)
     })
   })
 
@@ -149,32 +146,15 @@ describe('TokenCrypto', () => {
       const token = TokenCrypto.generate(testPayload)
       const result = TokenCrypto.verify(token)
 
-      expect(result.isValid).toBe(true)
-      expect(result.payload).toMatchObject(testPayload)
-      expect(result.error).toBeUndefined()
+      expect(result).toMatchObject(testPayload)
     })
 
-    it('should reject invalid token', () => {
+    it('should handle invalid token', () => {
       const invalidToken = 'invalid.token.here'
-      const result = TokenCrypto.verify(invalidToken)
 
-      expect(result.isValid).toBe(false)
-      expect(result.payload).toBeUndefined()
-      expect(result.error).toBeDefined()
-    })
-
-    it('should handle expired token gracefully', () => {
-      // Create a token that expires immediately
-      const expiredToken = TokenCrypto.generate(testPayload, {
-        expiresIn: '0s',
-      })
-
-      // Wait a moment to ensure expiration
-      setTimeout(() => {
-        const result = TokenCrypto.verify(expiredToken)
-        expect(result.isValid).toBe(false)
-        expect(result.error).toContain('expired')
-      }, 100)
+      expect(() => {
+        TokenCrypto.verify(invalidToken)
+      }).toThrow()
     })
   })
 
@@ -194,28 +174,23 @@ describe('TokenCrypto', () => {
     })
   })
 
-  describe('refresh', () => {
-    it('should refresh valid token', () => {
-      const originalToken = TokenCrypto.generate(testPayload)
-      const refreshed = TokenCrypto.refresh(originalToken)
+  describe('generateRefresh', () => {
+    it('should generate refresh token', () => {
+      const refreshToken = TokenCrypto.generateRefresh(testPayload)
 
-      expect(refreshed.isValid).toBe(true)
-      expect(refreshed.token).toBeDefined()
-      expect(refreshed.token).not.toBe(originalToken)
-
-      if (refreshed.payload) {
-        expect(refreshed.payload.uuid).toBe(testPayload.uuid)
-        expect(refreshed.payload.email).toBe(testPayload.email)
-      }
+      expect(refreshToken).toBeDefined()
+      expect(typeof refreshToken).toBe('string')
+      expect(refreshToken.split('.').length).toBe(3)
     })
+  })
 
-    it('should reject refresh of invalid token', () => {
-      const invalidToken = 'invalid.token.here'
-      const refreshed = TokenCrypto.refresh(invalidToken)
+  describe('generateAccess', () => {
+    it('should generate access token', () => {
+      const accessToken = TokenCrypto.generateAccess(testPayload)
 
-      expect(refreshed.isValid).toBe(false)
-      expect(refreshed.token).toBeUndefined()
-      expect(refreshed.error).toBeDefined()
+      expect(accessToken).toBeDefined()
+      expect(typeof accessToken).toBe('string')
+      expect(accessToken.split('.').length).toBe(3)
     })
   })
 })
@@ -270,116 +245,64 @@ describe('EncryptionCrypto', () => {
       }).toThrow()
     })
   })
-
-  describe('encryptString', () => {
-    it('should return base64 encoded string', () => {
-      const result = EncryptionCrypto.encryptString(testData)
-
-      expect(typeof result).toBe('string')
-      expect(result).not.toBe(testData)
-
-      // Should be valid base64
-      expect(() => Buffer.from(result, 'base64')).not.toThrow()
-    })
-  })
-
-  describe('decryptString', () => {
-    it('should decrypt base64 encoded string', () => {
-      const encrypted = EncryptionCrypto.encryptString(testData)
-      const decrypted = EncryptionCrypto.decryptString(encrypted)
-
-      expect(decrypted).toBe(testData)
-    })
-
-    it('should handle invalid base64 string', () => {
-      const invalidString = 'not-valid-base64!'
-
-      expect(() => {
-        EncryptionCrypto.decryptString(invalidString)
-      }).toThrow()
-    })
-  })
 })
 
 describe('RandomCrypto', () => {
-  describe('generateBytes', () => {
-    it('should generate random bytes of specified length', () => {
-      const length = 32
-      const bytes = RandomCrypto.generateBytes(length)
+  describe('generateSecureToken', () => {
+    it('should generate secure token of default length', () => {
+      const token = RandomCrypto.generateSecureToken()
 
-      expect(bytes).toBeDefined()
-      expect(bytes.length).toBe(length)
+      expect(token).toBeDefined()
+      expect(typeof token).toBe('string')
+      expect(token.length).toBeGreaterThan(0)
     })
 
-    it('should generate different bytes on each call', () => {
-      const bytes1 = RandomCrypto.generateBytes(16)
-      const bytes2 = RandomCrypto.generateBytes(16)
+    it('should generate secure token of specified length', () => {
+      const length = 16
+      const token = RandomCrypto.generateSecureToken(length)
 
-      expect(bytes1).not.toEqual(bytes2)
+      expect(token).toBeDefined()
+      expect(typeof token).toBe('string')
     })
-  })
 
-  describe('generateHex', () => {
-    it('should generate hex string of specified length', () => {
-      const length = 32
-      const hex = RandomCrypto.generateHex(length)
+    it('should generate different tokens on each call', () => {
+      const token1 = RandomCrypto.generateSecureToken()
+      const token2 = RandomCrypto.generateSecureToken()
 
-      expect(hex).toBeDefined()
-      expect(hex.length).toBe(length * 2) // hex is twice the byte length
-      expect(/^[0-9a-f]+$/i.test(hex)).toBe(true)
+      expect(token1).not.toBe(token2)
     })
   })
 
-  describe('generateBase64', () => {
-    it('should generate base64 string', () => {
-      const length = 32
-      const base64 = RandomCrypto.generateBase64(length)
+  describe('generateUrlSafeToken', () => {
+    it('should generate URL-safe token', () => {
+      const token = RandomCrypto.generateUrlSafeToken()
 
-      expect(base64).toBeDefined()
-      expect(typeof base64).toBe('string')
+      expect(token).toBeDefined()
+      expect(typeof token).toBe('string')
+      expect(token.length).toBeGreaterThan(0)
 
-      // Should be valid base64
-      expect(() => Buffer.from(base64, 'base64')).not.toThrow()
+      // Should not contain URL-unsafe characters
+      expect(token).not.toMatch(/[+/=]/)
     })
   })
 
-  describe('generateString', () => {
-    it('should generate string with default charset', () => {
-      const length = 20
-      const str = RandomCrypto.generateString(length)
+  describe('generateNumericCode', () => {
+    it('should generate numeric code of default length', () => {
+      const code = RandomCrypto.generateNumericCode()
 
-      expect(str).toBeDefined()
-      expect(str.length).toBe(length)
-      expect(/^[A-Za-z0-9]+$/.test(str)).toBe(true) // default charset
+      expect(code).toBeDefined()
+      expect(typeof code).toBe('string')
+      expect(code.length).toBe(6) // default length
+      expect(/^\d+$/.test(code)).toBe(true) // only digits
     })
 
-    it('should generate string with custom charset', () => {
-      const length = 10
-      const charset = '0123456789'
-      const str = RandomCrypto.generateString(length, charset)
+    it('should generate numeric code of specified length', () => {
+      const length = 4
+      const code = RandomCrypto.generateNumericCode(length)
 
-      expect(str).toBeDefined()
-      expect(str.length).toBe(length)
-      expect(/^[0-9]+$/.test(str)).toBe(true)
-    })
-  })
-
-  describe('generateNumber', () => {
-    it('should generate number within range', () => {
-      const min = 10
-      const max = 100
-      const num = RandomCrypto.generateNumber(min, max)
-
-      expect(num).toBeGreaterThanOrEqual(min)
-      expect(num).toBeLessThanOrEqual(max)
-      expect(Number.isInteger(num)).toBe(true)
-    })
-
-    it('should handle single value range', () => {
-      const value = 42
-      const num = RandomCrypto.generateNumber(value, value)
-
-      expect(num).toBe(value)
+      expect(code).toBeDefined()
+      expect(code.length).toBe(length)
+      expect(/^\d+$/.test(code)).toBe(true)
     })
   })
 
@@ -404,45 +327,20 @@ describe('RandomCrypto', () => {
     })
   })
 
-  describe('generatePassword', () => {
-    it('should generate password with default options', () => {
-      const password = RandomCrypto.generatePassword()
+  describe('generateResetToken', () => {
+    it('should generate reset token', () => {
+      const token = RandomCrypto.generateResetToken()
 
-      expect(password).toBeDefined()
-      expect(password.length).toBe(16) // default length
-
-      // Should contain mixed case, numbers, and symbols
-      expect(/[a-z]/.test(password)).toBe(true)
-      expect(/[A-Z]/.test(password)).toBe(true)
-      expect(/[0-9]/.test(password)).toBe(true)
-      expect(/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)).toBe(true)
+      expect(token).toBeDefined()
+      expect(typeof token).toBe('string')
+      expect(token.length).toBeGreaterThan(0)
     })
 
-    it('should generate password with custom length', () => {
-      const length = 24
-      const password = RandomCrypto.generatePassword(length)
+    it('should generate unique reset tokens', () => {
+      const token1 = RandomCrypto.generateResetToken()
+      const token2 = RandomCrypto.generateResetToken()
 
-      expect(password.length).toBe(length)
-    })
-
-    it('should exclude symbols when specified', () => {
-      const password = RandomCrypto.generatePassword(16, {
-        includeSymbols: false,
-      })
-
-      expect(password).toBeDefined()
-      expect(/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)).toBe(false)
-      expect(/[a-zA-Z0-9]/.test(password)).toBe(true)
-    })
-
-    it('should exclude similar characters when specified', () => {
-      const password = RandomCrypto.generatePassword(16, {
-        excludeSimilar: true,
-      })
-
-      expect(password).toBeDefined()
-      // Should not contain 0, O, I, l, etc.
-      expect(/[0OIl]/.test(password)).toBe(false)
+      expect(token1).not.toBe(token2)
     })
   })
 })

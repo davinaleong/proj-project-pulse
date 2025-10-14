@@ -16,10 +16,11 @@ export const sessionsTestHelpers = {
     role?: UserRole
     status?: UserStatus
   }) {
+    const randomId = Math.random().toString(36).substring(7)
     return prisma.user.create({
       data: {
-        uuid: overrides?.uuid || 'test-user-uuid',
-        email: overrides?.email || 'test@example.com',
+        uuid: overrides?.uuid || `test-user-uuid-${randomId}`,
+        email: overrides?.email || `test-${randomId}@example.com`,
         name: overrides?.name || 'Test User',
         password: overrides?.password || 'hashedpassword',
         role: overrides?.role || UserRole.USER,
@@ -81,7 +82,7 @@ export const sessionsTestHelpers = {
     }
     return jwt.sign(
       { uuid: user.uuid, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'test-secret',
+      process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only',
       { expiresIn: '1h' },
     )
   },

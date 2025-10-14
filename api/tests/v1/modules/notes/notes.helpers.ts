@@ -100,13 +100,13 @@ export const notesTestHelpers = {
     })
   },
 
-  generateMockAuthToken(user?: { id: number; email: string; role: string }) {
+  generateMockAuthToken(user?: { uuid: string; email: string; role: string }) {
     if (!user) {
       return 'mock-jwt-token'
     }
     return jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'test-secret',
+      { uuid: user.uuid, email: user.email, role: user.role },
+      process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only',
       { expiresIn: '1h' },
     )
   },
@@ -115,7 +115,7 @@ export const notesTestHelpers = {
     const user = await this.createTestUser()
     const project = await this.createTestProject(user.id)
     const authToken = this.generateMockAuthToken({
-      id: user.id,
+      uuid: user.uuid,
       email: user.email,
       role: user.role,
     })

@@ -151,18 +151,13 @@ export const projectsTestHelpers = {
     })
   },
 
-  generateMockAuthToken(user?: {
-    id: number
-    uuid: string
-    email: string
-    role: string
-  }) {
+  generateMockAuthToken(user?: { uuid: string; email: string; role: string }) {
     if (!user) {
       return 'mock-jwt-token'
     }
     return jwt.sign(
-      { id: user.id, uuid: user.uuid, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'test-secret',
+      { uuid: user.uuid, email: user.email, role: user.role },
+      process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only',
       { expiresIn: '1h' },
     )
   },
@@ -192,21 +187,18 @@ export const projectsTestHelpers = {
 
     // Generate auth tokens
     const authToken = this.generateMockAuthToken({
-      id: user.id,
       uuid: user.uuid,
       email: user.email,
       role: user.role,
     })
 
     const adminToken = this.generateMockAuthToken({
-      id: admin.id,
       uuid: admin.uuid,
       email: admin.email,
       role: admin.role,
     })
 
     const managerToken = this.generateMockAuthToken({
-      id: manager.id,
       uuid: manager.uuid,
       email: manager.email,
       role: manager.role,

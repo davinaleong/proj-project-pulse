@@ -16,6 +16,7 @@ export const settingsTestHelpers = {
     role?: UserRole
     status?: UserStatus
   }) {
+    const randomId = Math.random().toString(36).substring(7)
     const hashedPassword = await bcrypt.hash(
       overrides?.password || 'TestPassword123!',
       12,
@@ -23,7 +24,7 @@ export const settingsTestHelpers = {
     return prisma.user.create({
       data: {
         name: overrides?.name || 'Test User',
-        email: overrides?.email || 'test@example.com',
+        email: overrides?.email || `test-${randomId}@example.com`,
         password: hashedPassword,
         role: overrides?.role || UserRole.USER,
         status: overrides?.status || UserStatus.ACTIVE,
@@ -53,14 +54,14 @@ export const settingsTestHelpers = {
     })
   },
 
-  generateMockAuthToken(user: { id: number; email: string; role: UserRole }) {
+  generateMockAuthToken(user: { uuid: string; email: string; role: UserRole }) {
     return jwt.sign(
       {
-        id: user.id,
+        uuid: user.uuid,
         email: user.email,
         role: user.role,
       },
-      process.env.JWT_SECRET || 'test-secret',
+      process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only',
       { expiresIn: '1h' },
     )
   },
@@ -68,7 +69,7 @@ export const settingsTestHelpers = {
   async setupTestData() {
     const user = await this.createTestUser()
     const authToken = this.generateMockAuthToken({
-      id: user.id,
+      uuid: user.uuid,
       email: user.email,
       role: user.role,
     })
@@ -86,7 +87,7 @@ export const settingsTestHelpers = {
       role: UserRole.ADMIN,
     })
     const adminToken = this.generateMockAuthToken({
-      id: adminUser.id,
+      uuid: adminUser.uuid,
       email: adminUser.email,
       role: adminUser.role,
     })
@@ -104,7 +105,7 @@ export const settingsTestHelpers = {
       role: UserRole.SUPERADMIN,
     })
     const superAdminToken = this.generateMockAuthToken({
-      id: superAdminUser.id,
+      uuid: superAdminUser.uuid,
       email: superAdminUser.email,
       role: superAdminUser.role,
     })

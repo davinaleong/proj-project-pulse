@@ -17,6 +17,7 @@ export const passwordResetTestHelpers = {
     role?: UserRole
     status?: UserStatus
   }) {
+    const randomId = Math.random().toString(36).substring(7)
     const hashedPassword = await bcrypt.hash(
       overrides?.password || 'TestPassword123!',
       12,
@@ -25,7 +26,7 @@ export const passwordResetTestHelpers = {
     return prisma.user.create({
       data: {
         name: overrides?.name || 'Test User',
-        email: overrides?.email || 'test@example.com',
+        email: overrides?.email || `test-${randomId}@example.com`,
         password: hashedPassword,
         role: overrides?.role || UserRole.USER,
         status: overrides?.status || UserStatus.ACTIVE,
@@ -254,16 +255,26 @@ export const passwordResetTestHelpers = {
   },
 
   async createOrphanToken() {
+    // Create a user first, then create token, then delete the user to make it orphaned
+    const user = await this.createTestUser({
+      email: 'orphan-token-user@example.com',
+    })
+
     const token = crypto.randomBytes(32).toString('hex')
     const hashedToken = await bcrypt.hash(token, 10)
 
-    // Create token with non-existent user ID
+    // Create token with valid user ID
     const dbToken = await prisma.passwordResetToken.create({
       data: {
-        userId: 999999, // Non-existent user
+        userId: user.id,
         token: hashedToken,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       },
+    })
+
+    // Delete the user to make the token orphaned
+    await prisma.user.delete({
+      where: { id: user.id },
     })
 
     return { ...dbToken, token } // Return with original token

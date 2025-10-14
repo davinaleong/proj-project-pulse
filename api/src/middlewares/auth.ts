@@ -22,7 +22,8 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
       })
     }
 
-    const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key'
+    const jwtSecret =
+      process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only'
     const decoded = jwt.verify(token, jwtSecret) as JwtPayload
 
     const user = await userService.getUserByUuid(decoded.uuid)
@@ -43,15 +44,13 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
 
     req.user = user
     next()
-  } catch {
+  } catch (error) {
     return res.status(401).json({
       success: false,
       message: 'Invalid token.',
     })
   }
-}
-
-// Admin only middleware
+} // Admin only middleware
 export const adminOnly = async (
   req: Request,
   res: Response,

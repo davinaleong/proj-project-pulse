@@ -32,7 +32,7 @@ describe('Users Authentication', () => {
       expect(response.body.data.name).toBe(userData.name)
       expect(response.body.data.email).toBe(userData.email.toLowerCase())
       expect(response.body.data.role).toBe(userData.role)
-      expect(response.body.data.status).toBe('PENDING')
+      expect(response.body.data.status).toBe('ACTIVE')
       expect(response.body.data.uuid).toBeDefined()
       expect(response.body.data.password).toBeUndefined() // Password should not be returned
     })

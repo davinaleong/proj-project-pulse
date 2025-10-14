@@ -1,7 +1,7 @@
 import request from 'supertest'
 import { createApp } from '../../../../src/app'
 import { settingsTestHelpers } from './settings.helpers'
-import { SettingVisibility } from '@prisma/client'
+import { SettingVisibility, UserRole } from '@prisma/client'
 
 const app = createApp()
 
@@ -30,7 +30,7 @@ describe('Settings Security & Validation', () => {
     })
     otherUserId = otherUser.id
     otherUserToken = settingsTestHelpers.generateMockAuthToken({
-      id: otherUser.id,
+      uuid: otherUser.uuid,
       email: otherUser.email,
       role: otherUser.role,
     })
@@ -56,7 +56,12 @@ describe('Settings Security & Validation', () => {
     let testSettingId: number
 
     beforeAll(async () => {
-      const setting = await settingsTestHelpers.createTestSetting(userId, {
+      // Create a fresh user for this test to avoid foreign key constraint issues
+      const testUser = await settingsTestHelpers.createTestUser({
+        email: 'auth-test-user@example.com',
+      })
+
+      const setting = await settingsTestHelpers.createTestSetting(testUser.id, {
         key: 'security_test',
         value: 'test_value',
       })
@@ -105,11 +110,50 @@ describe('Settings Security & Validation', () => {
     let userSetting: number
     let adminSetting: number
     let systemSetting: number
+    let localUserId: number
+    let localAdminId: number
+    let localSuperAdminId: number
+    let localAuthToken: string
+    let localAdminToken: string
+    let localSuperAdminToken: string
 
     beforeAll(async () => {
+      // Create fresh users specifically for this test to avoid foreign key issues
+      const localUser = await settingsTestHelpers.createTestUser({
+        email: 'local-user@test.com',
+      })
+      localUserId = localUser.id
+      localAuthToken = settingsTestHelpers.generateMockAuthToken({
+        uuid: localUser.uuid,
+        email: localUser.email,
+        role: localUser.role,
+      })
+
+      const localAdmin = await settingsTestHelpers.createTestUser({
+        email: 'local-admin@test.com',
+        role: UserRole.ADMIN,
+      })
+      localAdminId = localAdmin.id
+      localAdminToken = settingsTestHelpers.generateMockAuthToken({
+        uuid: localAdmin.uuid,
+        email: localAdmin.email,
+        role: localAdmin.role,
+      })
+
+      const localSuperAdmin = await settingsTestHelpers.createTestUser({
+        email: 'local-superadmin@test.com',
+        role: UserRole.SUPERADMIN,
+      })
+      localSuperAdminId = localSuperAdmin.id
+      localSuperAdminToken = settingsTestHelpers.generateMockAuthToken({
+        uuid: localSuperAdmin.uuid,
+        email: localSuperAdmin.email,
+        role: localSuperAdmin.role,
+      })
+
       // Create settings with different visibility levels
       const userSettingObj = await settingsTestHelpers.createTestSetting(
-        userId,
+        localUserId,
         {
           key: 'user_visible',
           value: 'user_value',
@@ -119,7 +163,7 @@ describe('Settings Security & Validation', () => {
       userSetting = userSettingObj.id
 
       const adminSettingObj = await settingsTestHelpers.createTestSetting(
-        adminUserId,
+        localAdminId,
         {
           key: 'admin_visible',
           value: 'admin_value',
@@ -129,7 +173,7 @@ describe('Settings Security & Validation', () => {
       adminSetting = adminSettingObj.id
 
       const systemSettingObj = await settingsTestHelpers.createTestSetting(
-        superAdminUserId,
+        localSuperAdminId,
         {
           key: 'system_visible',
           value: 'system_value',
@@ -143,28 +187,28 @@ describe('Settings Security & Validation', () => {
       it('should access own USER settings', async () => {
         await request(app)
           .get(`/api/v1/settings/${userSetting}`)
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${localAuthToken}`)
           .expect(200)
       })
 
       it('should NOT access ADMIN settings', async () => {
         await request(app)
           .get(`/api/v1/settings/${adminSetting}`)
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${localAuthToken}`)
           .expect(403)
       })
 
       it('should NOT access SYSTEM settings', async () => {
         await request(app)
           .get(`/api/v1/settings/${systemSetting}`)
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${localAuthToken}`)
           .expect(403)
       })
 
       it('should NOT create ADMIN settings', async () => {
         await request(app)
           .post('/api/v1/settings')
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${localAuthToken}`)
           .send({
             key: 'user_trying_admin',
             value: 'should_fail',
@@ -176,7 +220,7 @@ describe('Settings Security & Validation', () => {
       it('should NOT create SYSTEM settings', async () => {
         await request(app)
           .post('/api/v1/settings')
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${localAuthToken}`)
           .send({
             key: 'user_trying_system',
             value: 'should_fail',
@@ -190,21 +234,21 @@ describe('Settings Security & Validation', () => {
       it('should access ADMIN settings', async () => {
         await request(app)
           .get(`/api/v1/settings/${adminSetting}`)
-          .set('Authorization', `Bearer ${adminToken}`)
+          .set('Authorization', `Bearer ${localAdminToken}`)
           .expect(200)
       })
 
       it('should NOT access SYSTEM settings', async () => {
         await request(app)
           .get(`/api/v1/settings/${systemSetting}`)
-          .set('Authorization', `Bearer ${adminToken}`)
+          .set('Authorization', `Bearer ${localAdminToken}`)
           .expect(403)
       })
 
       it('should create ADMIN settings', async () => {
         await request(app)
           .post('/api/v1/settings')
-          .set('Authorization', `Bearer ${adminToken}`)
+          .set('Authorization', `Bearer ${localAdminToken}`)
           .send({
             key: 'admin_created',
             value: 'admin_value',
@@ -216,7 +260,7 @@ describe('Settings Security & Validation', () => {
       it('should NOT create SYSTEM settings', async () => {
         await request(app)
           .post('/api/v1/settings')
-          .set('Authorization', `Bearer ${adminToken}`)
+          .set('Authorization', `Bearer ${localAdminToken}`)
           .send({
             key: 'admin_trying_system',
             value: 'should_fail',
@@ -228,7 +272,7 @@ describe('Settings Security & Validation', () => {
       it('should access settings statistics', async () => {
         await request(app)
           .get('/api/v1/settings/stats')
-          .set('Authorization', `Bearer ${adminToken}`)
+          .set('Authorization', `Bearer ${localAdminToken}`)
           .expect(200)
       })
     })
@@ -237,24 +281,24 @@ describe('Settings Security & Validation', () => {
       it('should access ALL settings', async () => {
         await request(app)
           .get(`/api/v1/settings/${userSetting}`)
-          .set('Authorization', `Bearer ${superAdminToken}`)
+          .set('Authorization', `Bearer ${localSuperAdminToken}`)
           .expect(200)
 
         await request(app)
           .get(`/api/v1/settings/${adminSetting}`)
-          .set('Authorization', `Bearer ${superAdminToken}`)
+          .set('Authorization', `Bearer ${localSuperAdminToken}`)
           .expect(200)
 
         await request(app)
           .get(`/api/v1/settings/${systemSetting}`)
-          .set('Authorization', `Bearer ${superAdminToken}`)
+          .set('Authorization', `Bearer ${localSuperAdminToken}`)
           .expect(200)
       })
 
       it('should create SYSTEM settings', async () => {
         await request(app)
           .post('/api/v1/settings')
-          .set('Authorization', `Bearer ${superAdminToken}`)
+          .set('Authorization', `Bearer ${localSuperAdminToken}`)
           .send({
             key: 'superadmin_system',
             value: 'system_value',
@@ -266,7 +310,7 @@ describe('Settings Security & Validation', () => {
       it('should access system settings', async () => {
         await request(app)
           .get('/api/v1/settings/system')
-          .set('Authorization', `Bearer ${superAdminToken}`)
+          .set('Authorization', `Bearer ${localSuperAdminToken}`)
           .expect(200)
       })
     })
@@ -419,14 +463,22 @@ describe('Settings Security & Validation', () => {
 
   describe('Privacy & Data Protection', () => {
     it('should not expose other users settings in listings', async () => {
+      // Create fresh users for this test to avoid foreign key constraint issues
+      const testUser1 = await settingsTestHelpers.createTestUser({
+        email: 'privacy-test-user1@example.com',
+      })
+      const testUser2 = await settingsTestHelpers.createTestUser({
+        email: 'privacy-test-user2@example.com',
+      })
+
       // Create setting for user 1
-      await settingsTestHelpers.createTestSetting(userId, {
+      await settingsTestHelpers.createTestSetting(testUser1.id, {
         key: 'user1_private',
         value: 'user1_secret',
       })
 
       // Create setting for user 2
-      await settingsTestHelpers.createTestSetting(otherUserId, {
+      await settingsTestHelpers.createTestSetting(testUser2.id, {
         key: 'user2_private',
         value: 'user2_secret',
       })
@@ -444,8 +496,13 @@ describe('Settings Security & Validation', () => {
     })
 
     it('should not allow access to other users personal settings', async () => {
+      // Create a fresh user for this test to avoid foreign key constraint issues
+      const testOtherUser = await settingsTestHelpers.createTestUser({
+        email: 'other-user-access-test@example.com',
+      })
+
       const otherUserSetting = await settingsTestHelpers.createTestSetting(
-        otherUserId,
+        testOtherUser.id,
         {
           key: 'other_user_secret',
           value: 'should_not_access',
@@ -459,8 +516,13 @@ describe('Settings Security & Validation', () => {
     })
 
     it('should prevent modification of other users settings', async () => {
+      // Create a fresh user for this test to avoid foreign key constraint issues
+      const testOtherUser = await settingsTestHelpers.createTestUser({
+        email: 'other-user-modify-test@example.com',
+      })
+
       const otherUserSetting = await settingsTestHelpers.createTestSetting(
-        otherUserId,
+        testOtherUser.id,
         {
           key: 'other_user_modify',
           value: 'original_value',

@@ -100,10 +100,18 @@ describe('Sessions Security & Edge Cases', () => {
     })
 
     it('should handle concurrent session operations', async () => {
-      const testSession = await sessionsTestHelpers.createTestSession(userId, {
-        userAgent: 'Concurrent Test Browser',
-        token: 'concurrent-test-token',
+      // Create a fresh user for this test
+      const testUser = await sessionsTestHelpers.createTestUser({
+        email: 'concurrent-test@example.com',
       })
+
+      const testSession = await sessionsTestHelpers.createTestSession(
+        testUser.id,
+        {
+          userAgent: 'Concurrent Test Browser',
+          token: 'concurrent-test-token',
+        },
+      )
 
       // Concurrent activity updates
       const activityPromises = Array(5)
@@ -236,10 +244,18 @@ describe('Sessions Security & Edge Cases', () => {
     })
 
     it('should handle concurrent session revocations', async () => {
-      const testSession = await sessionsTestHelpers.createTestSession(userId, {
-        userAgent: 'Concurrent Revoke Test',
-        token: 'concurrent-revoke-token',
+      // Create a fresh user for this test
+      const testUser = await sessionsTestHelpers.createTestUser({
+        email: 'revoke-test@example.com',
       })
+
+      const testSession = await sessionsTestHelpers.createTestSession(
+        testUser.id,
+        {
+          userAgent: 'Concurrent Revoke Test',
+          token: 'concurrent-revoke-token',
+        },
+      )
 
       // Attempt to revoke the same session concurrently
       const revokePromises = Array(3)
@@ -286,6 +302,11 @@ describe('Sessions Security & Edge Cases', () => {
 
   describe('Performance Edge Cases', () => {
     it('should handle large result sets efficiently', async () => {
+      // Create a fresh user for this test
+      const testUser = await sessionsTestHelpers.createTestUser({
+        email: 'large-results-test@example.com',
+      })
+
       // Create many sessions
       const largeBatch = []
       for (let i = 0; i < 100; i++) {
@@ -296,7 +317,11 @@ describe('Sessions Security & Edge Cases', () => {
         })
       }
 
-      await sessionsTestHelpers.createMultipleSessions(userId, 100, largeBatch)
+      await sessionsTestHelpers.createMultipleSessions(
+        testUser.id,
+        100,
+        largeBatch,
+      )
 
       const startTime = Date.now()
       const response = await request(app)
@@ -319,8 +344,13 @@ describe('Sessions Security & Edge Cases', () => {
     })
 
     it('should handle deep pagination efficiently', async () => {
+      // Create a fresh user for this test
+      const testUser = await sessionsTestHelpers.createTestUser({
+        email: 'pagination-test@example.com',
+      })
+
       // Create many sessions for pagination testing
-      await sessionsTestHelpers.createMultipleSessions(userId, 50)
+      await sessionsTestHelpers.createMultipleSessions(testUser.id, 50)
 
       const response = await request(app)
         .get('/api/v1/sessions')
@@ -379,11 +409,16 @@ describe('Sessions Security & Edge Cases', () => {
 
   describe('Session State Edge Cases', () => {
     it('should handle sessions in various states', async () => {
+      // Create a fresh user for this test
+      const testUser = await sessionsTestHelpers.createTestUser({
+        email: 'session-states-test@example.com',
+      })
+
       const now = new Date()
       const pastDate = new Date(now.getTime() - 24 * 60 * 60 * 1000) // 1 day ago
 
       const stateSessions = await sessionsTestHelpers.createMultipleSessions(
-        userId,
+        testUser.id,
         4,
         [
           {
@@ -430,8 +465,13 @@ describe('Sessions Security & Edge Cases', () => {
     })
 
     it('should handle session activity updates on revoked sessions', async () => {
+      // Create a fresh user for this test
+      const testUser = await sessionsTestHelpers.createTestUser({
+        email: 'revoked-session-test@example.com',
+      })
+
       const revokedSession = await sessionsTestHelpers.createTestSession(
-        userId,
+        testUser.id,
         {
           userAgent: 'Revoked Session',
           token: 'revoked-session-token',

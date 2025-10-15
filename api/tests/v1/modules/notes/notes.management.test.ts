@@ -5,14 +5,8 @@ import { notesTestHelpers, prisma } from './notes.helpers'
 const app = createApp()
 
 describe('Notes Management', () => {
-  let authToken: string
-  let userId: number
-
   beforeAll(async () => {
     await notesTestHelpers.cleanupDatabase()
-    const testData = await notesTestHelpers.setupTestData()
-    userId = testData.user.id
-    authToken = testData.authToken
   })
 
   afterAll(async () => {
@@ -22,17 +16,25 @@ describe('Notes Management', () => {
   describe('POST /api/v1/notes/:uuid/restore', () => {
     let deletedNoteUuid: string
     let activeNoteUuid: string
+    let localUserId: number
+    let localAuthToken: string
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+      await notesTestHelpers.cleanupDatabase()
+      // Create a dedicated user for this test scope
+      const { user, authToken: token } = await notesTestHelpers.setupTestData()
+      localUserId = user.id
+      localAuthToken = token
+
       // Create and delete a note for restoration testing
-      const deletedNote = await notesTestHelpers.createTestNote(userId, {
+      const deletedNote = await notesTestHelpers.createTestNote(localUserId, {
         title: 'Note to Restore',
         deletedAt: new Date(),
       })
       deletedNoteUuid = deletedNote.uuid
 
       // Create an active note for negative testing
-      const activeNote = await notesTestHelpers.createTestNote(userId, {
+      const activeNote = await notesTestHelpers.createTestNote(localUserId, {
         title: 'Active Note',
       })
       activeNoteUuid = activeNote.uuid
@@ -41,7 +43,7 @@ describe('Notes Management', () => {
     it('should restore deleted note successfully', async () => {
       const response = await request(app)
         .post(`/api/v1/notes/${deletedNoteUuid}/restore`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(200)
 
       expect(response.body.success).toBe(true)
@@ -58,10 +60,10 @@ describe('Notes Management', () => {
     it('should return 404 for non-deleted note', async () => {
       const response = await request(app)
         .post(`/api/v1/notes/${activeNoteUuid}/restore`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(404)
 
-      expect(response.body.error).toBe('Note not found or not deleted')
+      expect(response.body.message).toBe('Note not found or not deleted')
     })
 
     it('should return 404 for non-existent note', async () => {
@@ -69,10 +71,10 @@ describe('Notes Management', () => {
 
       const response = await request(app)
         .post(`/api/v1/notes/${fakeUuid}/restore`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(404)
 
-      expect(response.body.error).toBe('Note not found or not deleted')
+      expect(response.body.message).toBe('Note not found or not deleted')
     })
 
     it('should return 401 for unauthenticated request', async () => {
@@ -98,19 +100,19 @@ describe('Notes Management', () => {
 
       const response = await request(app)
         .post(`/api/v1/notes/${otherDeletedNote.uuid}/restore`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(404)
 
-      expect(response.body.error).toBe('Note not found or not deleted')
+      expect(response.body.message).toBe('Note not found or not deleted')
     })
 
     it('should handle malformed UUID', async () => {
       const response = await request(app)
         .post('/api/v1/notes/invalid-uuid/restore')
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(404)
 
-      expect(response.body.error).toBe('Note not found or not deleted')
+      expect(response.body.message).toBe('Note not found or not deleted')
     })
   })
 
@@ -119,7 +121,8 @@ describe('Notes Management', () => {
     let localUserId: number
     let localAuthToken: string
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+      await notesTestHelpers.cleanupDatabase()
       // Create a dedicated user for this test scope
       const { user, authToken: token } = await notesTestHelpers.setupTestData()
       localUserId = user.id
@@ -157,13 +160,19 @@ describe('Notes Management', () => {
         .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(200)
 
-      const foundNote = response.body.data.find(
+      const foundNote = response.body.data.notes.find(
         (note: { uuid: string }) => note.uuid === noteForDeletionTest,
       )
       expect(foundNote).toBeUndefined()
     })
 
     it('should restore note and make it visible again', async () => {
+      // First, delete the note
+      await request(app)
+        .delete(`/api/v1/notes/${noteForDeletionTest}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
+        .expect(200)
+
       // Restore the note
       await request(app)
         .post(`/api/v1/notes/${noteForDeletionTest}/restore`)
@@ -185,7 +194,7 @@ describe('Notes Management', () => {
         .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(200)
 
-      const foundNote = listResponse.body.data.find(
+      const foundNote = listResponse.body.data.notes.find(
         (note: { uuid: string }) => note.uuid === noteForDeletionTest,
       )
       expect(foundNote).toBeDefined()
@@ -197,11 +206,12 @@ describe('Notes Management', () => {
     let localUserId: number
     let localAuthToken: string
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+      await notesTestHelpers.cleanupDatabase()
       // Create a dedicated user for this test scope
-      const { user, authToken: token } = await notesTestHelpers.setupTestData()
-      localUserId = user.id
-      localAuthToken = token
+      const testData = await notesTestHelpers.setupTestData()
+      localUserId = testData.user.id
+      localAuthToken = testData.authToken
 
       const note = await notesTestHelpers.createTestNote(localUserId, {
         title: 'Lifecycle Test Note',
@@ -214,7 +224,7 @@ describe('Notes Management', () => {
       // 1. Verify note exists and is in DRAFT status
       let response = await request(app)
         .get(`/api/v1/notes/${lifecycleNoteUuid}`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(200)
 
       expect(response.body.data.status).toBe('DRAFT')
@@ -222,7 +232,7 @@ describe('Notes Management', () => {
       // 2. Update note to PUBLISHED
       response = await request(app)
         .put(`/api/v1/notes/${lifecycleNoteUuid}`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .send({ status: 'PUBLISHED' })
         .expect(200)
 
@@ -231,25 +241,25 @@ describe('Notes Management', () => {
       // 3. Delete the note
       await request(app)
         .delete(`/api/v1/notes/${lifecycleNoteUuid}`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(200)
 
       // 4. Verify note is not accessible
       await request(app)
         .get(`/api/v1/notes/${lifecycleNoteUuid}`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(404)
 
       // 5. Restore the note
       await request(app)
         .post(`/api/v1/notes/${lifecycleNoteUuid}/restore`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(200)
 
       // 6. Verify note is accessible again with preserved data
       response = await request(app)
         .get(`/api/v1/notes/${lifecycleNoteUuid}`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(200)
 
       expect(response.body.data.uuid).toBe(lifecycleNoteUuid)
@@ -260,11 +270,22 @@ describe('Notes Management', () => {
 
   describe('Bulk Operations', () => {
     const bulkTestNotes: string[] = []
+    let localUserId: number
+    let localAuthToken: string
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+      await notesTestHelpers.cleanupDatabase()
+      // Create a dedicated user for this test scope
+      const testData = await notesTestHelpers.setupTestData()
+      localUserId = testData.user.id
+      localAuthToken = testData.authToken
+
+      // Clear the array for each test
+      bulkTestNotes.length = 0
+
       // Create multiple notes for bulk operations testing
       for (let i = 1; i <= 5; i++) {
-        const note = await notesTestHelpers.createTestNote(userId, {
+        const note = await notesTestHelpers.createTestNote(localUserId, {
           title: `Bulk Test Note ${i}`,
           status: i % 2 === 0 ? 'PUBLISHED' : 'DRAFT',
         })
@@ -277,7 +298,7 @@ describe('Notes Management', () => {
       for (const noteUuid of bulkTestNotes.slice(0, 3)) {
         await request(app)
           .delete(`/api/v1/notes/${noteUuid}`)
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${localAuthToken}`)
           .expect(200)
       }
 
@@ -285,7 +306,7 @@ describe('Notes Management', () => {
       for (const noteUuid of bulkTestNotes.slice(0, 3)) {
         await request(app)
           .get(`/api/v1/notes/${noteUuid}`)
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${localAuthToken}`)
           .expect(404)
       }
 
@@ -293,17 +314,25 @@ describe('Notes Management', () => {
       for (const noteUuid of bulkTestNotes.slice(3)) {
         await request(app)
           .get(`/api/v1/notes/${noteUuid}`)
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${localAuthToken}`)
           .expect(200)
       }
     })
 
     it('should handle multiple note restorations', async () => {
-      // Restore multiple notes
+      // First delete the notes
+      for (const noteUuid of bulkTestNotes.slice(0, 3)) {
+        await request(app)
+          .delete(`/api/v1/notes/${noteUuid}`)
+          .set('Authorization', `Bearer ${localAuthToken}`)
+          .expect(200)
+      }
+
+      // Then restore multiple notes
       for (const noteUuid of bulkTestNotes.slice(0, 3)) {
         await request(app)
           .post(`/api/v1/notes/${noteUuid}/restore`)
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${localAuthToken}`)
           .expect(200)
       }
 
@@ -311,7 +340,7 @@ describe('Notes Management', () => {
       for (const noteUuid of bulkTestNotes.slice(0, 3)) {
         await request(app)
           .get(`/api/v1/notes/${noteUuid}`)
-          .set('Authorization', `Bearer ${authToken}`)
+          .set('Authorization', `Bearer ${localAuthToken}`)
           .expect(200)
       }
     })

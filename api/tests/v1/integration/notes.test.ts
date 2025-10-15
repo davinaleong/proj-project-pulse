@@ -2,79 +2,64 @@ import request from 'supertest'
 import { createApp } from '../../../src/app'
 import prisma from '../../../src/config/db'
 import { Application } from 'express'
+import jwt from 'jsonwebtoken'
 
 describe('Notes Integration Tests', () => {
   let app: Application
-  let authToken: string
-  let user1Id: number
-  let user2Id: number
-  let project1Id: number
-  let project2Id: number
 
   beforeAll(async () => {
     app = createApp()
-
-    // Create test users
-    const user1 = await prisma.user.create({
-      data: {
-        name: 'User One',
-        email: 'user1@example.com',
-        password: 'hashedpassword',
-        role: 'USER',
-        status: 'ACTIVE',
-      },
-    })
-    user1Id = user1.id
-
-    const user2 = await prisma.user.create({
-      data: {
-        name: 'User Two',
-        email: 'user2@example.com',
-        password: 'hashedpassword',
-        role: 'USER',
-        status: 'ACTIVE',
-      },
-    })
-    user2Id = user2.id
-
-    // Create test projects
-    const project1 = await prisma.project.create({
-      data: {
-        title: 'Project One',
-        description: 'First test project',
-        userId: user1Id,
-        stage: 'PLANNING',
-      },
-    })
-    project1Id = project1.id
-
-    const project2 = await prisma.project.create({
-      data: {
-        title: 'Project Two',
-        description: 'Second test project',
-        userId: user2Id,
-        stage: 'IMPLEMENTATION',
-      },
-    })
-    project2Id = project2.id
-
-    authToken = 'mock-jwt-token-user1'
   })
 
   afterAll(async () => {
-    // Clean up test data
-    await prisma.note.deleteMany({
-      where: { userId: { in: [user1Id, user2Id] } },
-    })
-    await prisma.project.deleteMany({
-      where: { userId: { in: [user1Id, user2Id] } },
-    })
-    await prisma.user.deleteMany({ where: { id: { in: [user1Id, user2Id] } } })
     await prisma.$disconnect()
   })
 
   describe('Full Workflow Integration', () => {
+    let authToken: string
+    let user1Id: number
+    let project1Id: number
     let noteUuid: string
+
+    beforeEach(async () => {
+      // Clean up and create fresh test data for each test
+      await prisma.note.deleteMany()
+      await prisma.project.deleteMany()
+      await prisma.user.deleteMany()
+
+      // Generate unique identifiers for this test run
+      const randomId = Math.random().toString(36).substring(2, 15)
+
+      // Create test users
+      const user1 = await prisma.user.create({
+        data: {
+          name: 'User One',
+          email: `user1-${randomId}@example.com`,
+          password: 'hashedpassword',
+          role: 'USER',
+          status: 'ACTIVE',
+        },
+      })
+      user1Id = user1.id
+
+      // Create test projects
+      const project1 = await prisma.project.create({
+        data: {
+          title: `Project One ${randomId}`,
+          description: 'First test project',
+          userId: user1Id,
+          stage: 'PLANNING',
+        },
+      })
+      project1Id = project1.id
+
+      // Generate proper JWT auth token
+      authToken = jwt.sign(
+        { uuid: user1.uuid, email: user1.email, role: user1.role },
+        process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only',
+        { expiresIn: '1h' },
+      )
+    })
 
     it('should complete full CRUD workflow', async () => {
       // 1. Create note
@@ -155,10 +140,58 @@ describe('Notes Integration Tests', () => {
   })
 
   describe('Multi-user Isolation', () => {
+    let authToken1: string
+    let authToken2: string
+    let user1Id: number
+    let user2Id: number
     let user1NoteUuid: string
     let user2NoteUuid: string
 
-    beforeAll(async () => {
+    beforeEach(async () => {
+      // Clean up and create fresh test data for each test
+      await prisma.note.deleteMany()
+      await prisma.project.deleteMany()
+      await prisma.user.deleteMany()
+
+      // Generate unique identifiers for this test run
+      const randomId = Math.random().toString(36).substring(2, 15)
+
+      // Create test users
+      const user1 = await prisma.user.create({
+        data: {
+          name: 'User One',
+          email: `user1-${randomId}@example.com`,
+          password: 'hashedpassword',
+          role: 'USER',
+          status: 'ACTIVE',
+        },
+      })
+      user1Id = user1.id
+
+      const user2 = await prisma.user.create({
+        data: {
+          name: 'User Two',
+          email: `user2-${randomId}@example.com`,
+          password: 'hashedpassword',
+          role: 'USER',
+          status: 'ACTIVE',
+        },
+      })
+      user2Id = user2.id
+
+      // Generate proper JWT auth tokens
+      authToken1 = jwt.sign(
+        { uuid: user1.uuid, email: user1.email, role: user1.role },
+        process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only',
+        { expiresIn: '1h' },
+      )
+
+      authToken2 = jwt.sign(
+        { uuid: user2.uuid, email: user2.email, role: user2.role },
+        process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only',
+        { expiresIn: '1h' },
+      )
+
       // Create notes for different users
       const user1Note = await prisma.note.create({
         data: {
@@ -183,27 +216,27 @@ describe('Notes Integration Tests', () => {
       // User 1 trying to access User 2's note
       await request(app)
         .get(`/api/v1/notes/${user2NoteUuid}`)
-        .set('Authorization', `Bearer ${authToken}`) // user1 token
+        .set('Authorization', `Bearer ${authToken1}`) // user1 token
         .expect(404)
 
       // User 1 trying to update User 2's note
       await request(app)
         .put(`/api/v1/notes/${user2NoteUuid}`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${authToken1}`)
         .send({ title: 'Hacked!' })
         .expect(404)
 
       // User 1 trying to delete User 2's note
       await request(app)
         .delete(`/api/v1/notes/${user2NoteUuid}`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${authToken1}`)
         .expect(404)
     })
 
     it('should only return notes belonging to authenticated user', async () => {
       const response = await request(app)
         .get('/api/v1/notes')
-        .set('Authorization', `Bearer ${authToken}`) // user1 token
+        .set('Authorization', `Bearer ${authToken1}`) // user1 token
         .expect(200)
 
       // Should only contain user1's notes
@@ -216,6 +249,72 @@ describe('Notes Integration Tests', () => {
   })
 
   describe('Project Association', () => {
+    let authToken: string
+    let user1Id: number
+    let user2Id: number
+    let project1Id: number
+    let project2Id: number
+
+    beforeEach(async () => {
+      // Clean up and create fresh test data for each test
+      await prisma.note.deleteMany()
+      await prisma.project.deleteMany()
+      await prisma.user.deleteMany()
+
+      // Generate unique identifiers for this test run
+      const randomId = Math.random().toString(36).substring(2, 15)
+
+      // Create test users
+      const user1 = await prisma.user.create({
+        data: {
+          name: 'User One',
+          email: `user1-${randomId}@example.com`,
+          password: 'hashedpassword',
+          role: 'USER',
+          status: 'ACTIVE',
+        },
+      })
+      user1Id = user1.id
+
+      const user2 = await prisma.user.create({
+        data: {
+          name: 'User Two',
+          email: `user2-${randomId}@example.com`,
+          password: 'hashedpassword',
+          role: 'USER',
+          status: 'ACTIVE',
+        },
+      })
+      user2Id = user2.id
+
+      // Create test projects
+      const project1 = await prisma.project.create({
+        data: {
+          title: `Project One ${randomId}`,
+          description: 'First test project',
+          userId: user1Id,
+          stage: 'PLANNING',
+        },
+      })
+      project1Id = project1.id
+
+      const project2 = await prisma.project.create({
+        data: {
+          title: `Project Two ${randomId}`,
+          description: 'Second test project',
+          userId: user2Id,
+          stage: 'IMPLEMENTATION',
+        },
+      })
+      project2Id = project2.id
+
+      // Generate proper JWT auth token for user1
+      authToken = jwt.sign(
+        { uuid: user1.uuid, email: user1.email, role: user1.role },
+        process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only',
+        { expiresIn: '1h' },
+      )
+    })
     it('should create note with valid project association', async () => {
       const response = await request(app)
         .post('/api/v1/notes')
@@ -260,7 +359,49 @@ describe('Notes Integration Tests', () => {
   })
 
   describe('Search and Filter Integration', () => {
-    beforeAll(async () => {
+    let authToken: string
+    let user1Id: number
+    let project1Id: number
+
+    beforeEach(async () => {
+      // Clean up and create fresh test data for each test
+      await prisma.note.deleteMany()
+      await prisma.project.deleteMany()
+      await prisma.user.deleteMany()
+
+      // Generate unique identifiers for this test run
+      const randomId = Math.random().toString(36).substring(2, 15)
+
+      // Create test user
+      const user1 = await prisma.user.create({
+        data: {
+          name: 'User One',
+          email: `user1-${randomId}@example.com`,
+          password: 'hashedpassword',
+          role: 'USER',
+          status: 'ACTIVE',
+        },
+      })
+      user1Id = user1.id
+
+      // Create test project
+      const project1 = await prisma.project.create({
+        data: {
+          title: `Project One ${randomId}`,
+          description: 'First test project',
+          userId: user1Id,
+          stage: 'PLANNING',
+        },
+      })
+      project1Id = project1.id
+
+      // Generate proper JWT auth token
+      authToken = jwt.sign(
+        { uuid: user1.uuid, email: user1.email, role: user1.role },
+        process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only',
+        { expiresIn: '1h' },
+      )
+
       // Create notes with different statuses and content for filtering
       await prisma.note.createMany({
         data: [

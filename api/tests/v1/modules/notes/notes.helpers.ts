@@ -17,6 +17,7 @@ export const notesTestHelpers = {
     role?: UserRole
     status?: UserStatus
   }) {
+    const randomId = Math.random().toString(36).substring(2, 15)
     const hashedPassword = await bcrypt.hash(
       overrides?.password || 'TestPassword123!',
       12,
@@ -24,7 +25,7 @@ export const notesTestHelpers = {
     return prisma.user.create({
       data: {
         name: overrides?.name || 'Test User',
-        email: overrides?.email || 'test@example.com',
+        email: overrides?.email || `test-${randomId}@example.com`,
         password: hashedPassword,
         role: overrides?.role || UserRole.USER,
         status: overrides?.status || UserStatus.ACTIVE,
@@ -112,8 +113,13 @@ export const notesTestHelpers = {
   },
 
   async setupTestData() {
-    const user = await this.createTestUser()
-    const project = await this.createTestProject(user.id)
+    const randomId = Math.random().toString(36).substring(2, 15)
+    const user = await this.createTestUser({
+      email: `setuptest-${randomId}@example.com`,
+    })
+    const project = await this.createTestProject(user.id, {
+      title: `Setup Test Project ${randomId}`,
+    })
     const authToken = this.generateMockAuthToken({
       uuid: user.uuid,
       email: user.email,

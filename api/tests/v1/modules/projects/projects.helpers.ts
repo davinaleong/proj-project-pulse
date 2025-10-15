@@ -24,10 +24,11 @@ export const projectsTestHelpers = {
     role?: UserRole
     status?: UserStatus
   }) {
+    const randomId = Math.random().toString(36).substring(2, 15)
     return prisma.user.create({
       data: {
-        uuid: overrides?.uuid || 'test-user-uuid',
-        email: overrides?.email || 'test@example.com',
+        uuid: overrides?.uuid || `test-user-${randomId}`,
+        email: overrides?.email || `test-${randomId}@example.com`,
         name: overrides?.name || 'Test User',
         password: overrides?.password || 'hashedpassword',
         role: overrides?.role || UserRole.USER,
@@ -50,10 +51,11 @@ export const projectsTestHelpers = {
       currency?: string | null
     },
   ) {
+    const randomId = Math.random().toString(36).substring(2, 15)
     return prisma.project.create({
       data: {
-        uuid: overrides?.uuid || 'test-project-uuid',
-        title: overrides?.title || 'Test Project',
+        uuid: overrides?.uuid || `test-project-${randomId}`,
+        title: overrides?.title || `Test Project ${randomId}`,
         description: overrides?.description || 'Test project description',
         stage: overrides?.stage || ProjectStage.PLANNING,
         userId,

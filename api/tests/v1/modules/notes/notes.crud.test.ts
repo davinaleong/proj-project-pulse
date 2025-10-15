@@ -1,6 +1,7 @@
 import request from 'supertest'
 import { createApp } from '../../../../src/app'
 import { notesTestHelpers, prisma } from './notes.helpers'
+import { NoteStatus } from '@prisma/client'
 
 const app = createApp()
 
@@ -10,7 +11,7 @@ describe('Notes CRUD Operations', () => {
   let projectId: number
   let noteId: string
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await notesTestHelpers.cleanupDatabase()
     const {
       user,
@@ -20,6 +21,14 @@ describe('Notes CRUD Operations', () => {
     userId = user.id
     projectId = project.id
     authToken = token
+
+    // Create a test note for GET, PUT, DELETE operations
+    const testNote = await notesTestHelpers.createTestNote(userId, {
+      title: 'Test Note',
+      description: 'Test note for CRUD operations',
+      status: NoteStatus.DRAFT,
+    })
+    noteId = testNote.uuid
   })
 
   afterAll(async () => {
@@ -259,7 +268,7 @@ describe('Notes CRUD Operations', () => {
   describe('DELETE /api/v1/notes/:uuid', () => {
     let noteToDelete: string
 
-    beforeAll(async () => {
+    beforeEach(async () => {
       // Create a note specifically for deletion testing
       const note = await notesTestHelpers.createTestNote(userId, {
         title: 'Note to Delete',

@@ -29,6 +29,7 @@ export const tasksTestHelpers = {
     role?: UserRole
     status?: UserStatus
   }) {
+    const randomId = Math.random().toString(36).substring(7)
     const hashedPassword = await bcrypt.hash(
       overrides?.password || 'TestPassword123!',
       12,
@@ -36,7 +37,7 @@ export const tasksTestHelpers = {
     return prisma.user.create({
       data: {
         name: overrides?.name || 'Test User',
-        email: overrides?.email || 'test@example.com',
+        email: overrides?.email || `test-${randomId}@example.com`,
         password: hashedPassword,
         role: overrides?.role || UserRole.USER,
         status: overrides?.status || UserStatus.ACTIVE,
@@ -139,7 +140,7 @@ export const tasksTestHelpers = {
         email: user.email,
         role: user.role,
       },
-      process.env.JWT_SECRET || 'test-secret',
+      process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only',
       { expiresIn: '1h' },
     )
   },
@@ -156,7 +157,7 @@ export const tasksTestHelpers = {
         email: user.email,
         role: user.role,
       },
-      process.env.JWT_SECRET || 'test-secret',
+      process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only',
       { expiresIn: '-1h' }, // Expired
     )
   },
@@ -188,28 +189,29 @@ export const tasksTestHelpers = {
   },
 
   async setupTestData() {
-    // Create test users
+    // Create test users with unique emails
+    const randomId = Math.random().toString(36).substring(7)
     const user = await this.createTestUser({
       name: 'Regular User',
-      email: 'user@test.com',
+      email: `user-${randomId}@test.com`,
       role: UserRole.USER,
     })
 
     const admin = await this.createTestUser({
       name: 'Admin User',
-      email: 'admin@test.com',
+      email: `admin-${randomId}@test.com`,
       role: UserRole.ADMIN,
     })
 
     const manager = await this.createTestUser({
       name: 'Manager User',
-      email: 'manager@test.com',
+      email: `manager-${randomId}@test.com`,
       role: UserRole.MANAGER,
     })
 
-    // Create test project
+    // Create test project with unique title
     const project = await this.createTestProject(user.id, {
-      title: 'Test Project for Tasks',
+      title: `Test Project for Tasks ${randomId}`,
       description: 'A project to test task functionality',
     })
 
@@ -317,3 +319,5 @@ export const tasksTestHelpers = {
     }, 0)
   },
 }
+
+export { prisma }

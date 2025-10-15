@@ -26,8 +26,9 @@ describe('Projects CRUD Operations', () => {
 
   describe('POST /api/v1/projects - Create Project', () => {
     it('should create a new project with valid data', async () => {
+      const randomId = Math.random().toString(36).substring(2)
       const projectData = {
-        title: 'New Test Project',
+        title: `New Test Project ${randomId}`,
         description: 'A comprehensive test project',
         stage: ProjectStage.PLANNING,
         billingCycle: 'MONTHLY',
@@ -63,8 +64,9 @@ describe('Projects CRUD Operations', () => {
     })
 
     it('should create a project with minimal required data', async () => {
+      const randomId = Math.random().toString(36).substring(2)
       const projectData = {
-        title: 'Minimal Project',
+        title: `Minimal Project ${randomId}`,
         description: 'Basic project with minimal data',
       }
 
@@ -85,8 +87,9 @@ describe('Projects CRUD Operations', () => {
     })
 
     it('should reject project creation without authentication', async () => {
+      const randomId = Math.random().toString(36).substring(2)
       const projectData = {
-        title: 'Unauthorized Project',
+        title: `Unauthorized Project ${randomId}`,
         description: 'This should fail',
       }
 
@@ -111,11 +114,15 @@ describe('Projects CRUD Operations', () => {
 
   describe('GET /api/v1/projects - List Projects', () => {
     beforeEach(async () => {
+      const randomId = Math.random().toString(36).substring(2)
       // Create multiple test projects
       await projectsTestHelpers.createMultipleProjects(userId, 3, [
-        { title: 'Project Alpha', stage: ProjectStage.PLANNING },
-        { title: 'Project Beta', stage: ProjectStage.IMPLEMENTATION },
-        { title: 'Project Gamma', stage: ProjectStage.DEPLOYMENT },
+        { title: `Project Alpha ${randomId}`, stage: ProjectStage.PLANNING },
+        {
+          title: `Project Beta ${randomId}`,
+          stage: ProjectStage.IMPLEMENTATION,
+        },
+        { title: `Project Gamma ${randomId}`, stage: ProjectStage.DEPLOYMENT },
       ])
     })
 
@@ -129,9 +136,9 @@ describe('Projects CRUD Operations', () => {
       expect(response.body.data.projects).toHaveLength(4) // 3 created + 1 from setup
       expect(response.body.data.projects).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ title: 'Project Alpha' }),
-          expect.objectContaining({ title: 'Project Beta' }),
-          expect.objectContaining({ title: 'Project Gamma' }),
+          expect.objectContaining({ stage: ProjectStage.PLANNING }),
+          expect.objectContaining({ stage: ProjectStage.IMPLEMENTATION }),
+          expect.objectContaining({ stage: ProjectStage.DEPLOYMENT }),
         ]),
       )
     })
@@ -172,7 +179,7 @@ describe('Projects CRUD Operations', () => {
         .expect(200)
 
       expect(response.body.data.projects).toHaveLength(1)
-      expect(response.body.data.projects[0].title).toBe('Project Alpha')
+      expect(response.body.data.projects[0].title).toContain('Project Alpha')
     })
 
     it('should reject unauthenticated requests', async () => {
@@ -186,8 +193,9 @@ describe('Projects CRUD Operations', () => {
     >
 
     beforeEach(async () => {
+      const randomId = Math.random().toString(36).substring(2)
       project = await projectsTestHelpers.createTestProject(userId, {
-        title: 'Detailed Project',
+        title: `Detailed Project ${randomId}`,
         description: 'Project for detailed testing',
         stage: ProjectStage.ANALYSIS,
       })
@@ -195,7 +203,7 @@ describe('Projects CRUD Operations', () => {
 
     it('should get project details for owner', async () => {
       const response = await request(app)
-        .get(`/api/v1/projects/${project.uuid}`)
+        .get(`/api/v1/projects/uuid/${project.uuid}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
 
@@ -203,7 +211,7 @@ describe('Projects CRUD Operations', () => {
       expect(response.body.data.project).toEqual(
         expect.objectContaining({
           uuid: project.uuid,
-          title: 'Detailed Project',
+          title: project.title,
           description: 'Project for detailed testing',
           stage: ProjectStage.ANALYSIS,
           userId,
@@ -217,7 +225,7 @@ describe('Projects CRUD Operations', () => {
       await projectsTestHelpers.createTestNote(userId, project.id)
 
       const response = await request(app)
-        .get(`/api/v1/projects/${project.uuid}`)
+        .get(`/api/v1/projects/uuid/${project.uuid}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
 
@@ -248,14 +256,14 @@ describe('Projects CRUD Operations', () => {
       )
 
       await request(app)
-        .get(`/api/v1/projects/${otherProject.uuid}`)
+        .get(`/api/v1/projects/uuid/${otherProject.uuid}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(403)
     })
 
     it('should allow admin access to any project', async () => {
       const response = await request(app)
-        .get(`/api/v1/projects/${project.uuid}`)
+        .get(`/api/v1/projects/uuid/${project.uuid}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200)
 
@@ -269,16 +277,18 @@ describe('Projects CRUD Operations', () => {
     >
 
     beforeEach(async () => {
+      const randomId = Math.random().toString(36).substring(2)
       project = await projectsTestHelpers.createTestProject(userId, {
-        title: 'Original Title',
+        title: `Original Title ${randomId}`,
         description: 'Original description',
         stage: ProjectStage.PLANNING,
       })
     })
 
     it('should update project details', async () => {
+      const randomId = Math.random().toString(36).substring(2)
       const updateData = {
-        title: 'Updated Title',
+        title: `Updated Title ${randomId}`,
         description: 'Updated description',
         stage: ProjectStage.IMPLEMENTATION,
         rate: 150.75,
@@ -286,7 +296,7 @@ describe('Projects CRUD Operations', () => {
       }
 
       const response = await request(app)
-        .put(`/api/v1/projects/${project.uuid}`)
+        .put(`/api/v1/projects/${project.id}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send(updateData)
         .expect(200)
@@ -307,7 +317,7 @@ describe('Projects CRUD Operations', () => {
     it('should handle stage transitions with timestamps', async () => {
       // Start project
       await request(app)
-        .put(`/api/v1/projects/${project.uuid}`)
+        .put(`/api/v1/projects/${project.id}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ stage: ProjectStage.IMPLEMENTATION })
         .expect(200)
@@ -319,7 +329,7 @@ describe('Projects CRUD Operations', () => {
 
       // Complete project
       await request(app)
-        .put(`/api/v1/projects/${project.uuid}`)
+        .put(`/api/v1/projects/${project.id}`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({ stage: ProjectStage.DEPLOYMENT })
         .expect(200)
@@ -340,9 +350,11 @@ describe('Projects CRUD Operations', () => {
       )
 
       await request(app)
-        .put(`/api/v1/projects/${otherProject.uuid}`)
+        .put(`/api/v1/projects/${otherProject.id}`)
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ title: 'Hacked Title' })
+        .send({
+          title: `Hacked Title ${Math.random().toString(36).substring(2)}`,
+        })
         .expect(403)
     })
 
@@ -353,9 +365,9 @@ describe('Projects CRUD Operations', () => {
       }
 
       const response = await request(app)
-        .put(`/api/v1/projects/${project.uuid}`)
+        .put(`/api/v1/projects/${project.id}`)
         .set('Authorization', `Bearer ${authToken}`)
-        .send(invalidData)
+        .send(invalidUpdateData)
         .expect(400)
 
       expect(response.body.status).toBe('error')
@@ -368,8 +380,9 @@ describe('Projects CRUD Operations', () => {
     >
 
     beforeEach(async () => {
+      const randomId = Math.random().toString(36).substring(2, 15)
       project = await projectsTestHelpers.createTestProject(userId, {
-        title: 'Project to Delete',
+        title: `Project to Delete ${randomId}`,
       })
     })
 

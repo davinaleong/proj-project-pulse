@@ -36,7 +36,6 @@ describe('Projects Admin Operations', () => {
       role: UserRole.SUPERADMIN,
     })
     superAdminToken = projectsTestHelpers.generateMockAuthToken({
-      id: superAdmin.id,
       uuid: superAdmin.uuid,
       email: superAdmin.email,
       role: superAdmin.role,

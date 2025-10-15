@@ -25,7 +25,7 @@ describe('Notes Security & Validation', () => {
     })
     otherUserId = otherUser.id
     otherUserToken = notesTestHelpers.generateMockAuthToken({
-      id: otherUser.id,
+      uuid: otherUser.uuid,
       email: otherUser.email,
       role: otherUser.role,
     })

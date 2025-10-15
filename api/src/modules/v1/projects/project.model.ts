@@ -32,10 +32,10 @@ export const updateProjectSchema = z.object({
 })
 
 export const projectQuerySchema = z.object({
-  page: z.number().int().positive().optional(),
-  limit: z.number().int().positive().max(100).optional(),
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
   stage: z.nativeEnum(ProjectStage).optional(),
-  userId: z.number().int().positive().optional(),
+  userId: z.coerce.number().int().positive().optional(),
   search: z.string().optional(),
   sortBy: z.enum(['createdAt', 'updatedAt', 'title', 'stage']).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
@@ -263,15 +263,47 @@ export const projectModel = {
 
   async update(id: number, data: UpdateProjectInput): Promise<ProjectResponse> {
     try {
+      // Get current project to compare stage transitions
+      const currentProject = await prisma.project.findUnique({
+        where: { id },
+      })
+
+      if (!currentProject) {
+        throw new ProjectError('Project not found', 404)
+      }
+
+      // Handle automatic timestamp setting for stage transitions
+      const updateData: any = { ...data }
+
+      // Set beganAt when transitioning to IMPLEMENTATION stage
+      if (
+        data.stage === 'IMPLEMENTATION' &&
+        currentProject.stage !== 'IMPLEMENTATION' &&
+        !currentProject.beganAt
+      ) {
+        updateData.beganAt = new Date()
+      }
+
+      // Set completedAt when transitioning to DEPLOYMENT stage
+      if (
+        data.stage === 'DEPLOYMENT' &&
+        currentProject.stage !== 'DEPLOYMENT' &&
+        !currentProject.completedAt
+      ) {
+        updateData.completedAt = new Date()
+      }
+
+      // Handle explicitly provided timestamps
+      if (data.beganAt) {
+        updateData.beganAt = new Date(data.beganAt)
+      }
+      if (data.completedAt) {
+        updateData.completedAt = new Date(data.completedAt)
+      }
+
       const project = await prisma.project.update({
         where: { id },
-        data: {
-          ...data,
-          beganAt: data.beganAt ? new Date(data.beganAt) : undefined,
-          completedAt: data.completedAt
-            ? new Date(data.completedAt)
-            : undefined,
-        },
+        data: updateData,
         include: {
           user: {
             select: {

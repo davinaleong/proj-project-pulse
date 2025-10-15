@@ -42,7 +42,7 @@ describe('Settings Management & Admin Features', () => {
     })
     otherUserId = otherUser.id
     otherUserToken = settingsTestHelpers.generateMockAuthToken({
-      id: otherUser.id,
+      uuid: otherUser.uuid,
       email: otherUser.email,
       role: otherUser.role,
     })

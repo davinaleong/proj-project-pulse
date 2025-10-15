@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
+import { ZodError } from 'zod'
 import { projectService } from './project.service'
 import {
   createProjectSchema,
@@ -41,6 +42,9 @@ export class ProjectController {
         201,
       )
     } catch (err) {
+      if (err instanceof ZodError) {
+        return createErrorResponse(res, 'Validation failed', err.issues, 400)
+      }
       if (err instanceof ProjectError) {
         return createErrorResponse(res, err.message, undefined, err.statusCode)
       }
@@ -70,6 +74,14 @@ export class ProjectController {
         projects,
       )
     } catch (err) {
+      if (err instanceof ZodError) {
+        return createErrorResponse(
+          res,
+          'Invalid query parameters',
+          err.issues,
+          400,
+        )
+      }
       if (err instanceof ProjectError) {
         return createErrorResponse(res, err.message, undefined, err.statusCode)
       }
@@ -176,6 +188,9 @@ export class ProjectController {
 
       return createSuccessResponse(res, 'Project updated successfully', project)
     } catch (err) {
+      if (err instanceof ZodError) {
+        return createErrorResponse(res, 'Validation failed', err.issues, 400)
+      }
       if (err instanceof ProjectError) {
         return createErrorResponse(res, err.message, undefined, err.statusCode)
       }

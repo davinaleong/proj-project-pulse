@@ -101,7 +101,7 @@ export const notesTestHelpers = {
     })
   },
 
-  generateMockAuthToken(user?: { uuid: string; email: string; role: string }) {
+  generateMockAuthToken(user?: { uuid: string; email: string; role: UserRole }) {
     if (!user) {
       return 'mock-jwt-token'
     }

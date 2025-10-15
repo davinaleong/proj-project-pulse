@@ -497,7 +497,34 @@ describe('Notes Integration Tests', () => {
   })
 
   describe('Pagination Integration', () => {
+    let authToken: string
+    let user1Id: number
+
     beforeAll(async () => {
+      // Clean up and create test user for pagination testing
+      await prisma.note.deleteMany()
+      await prisma.project.deleteMany()
+      await prisma.user.deleteMany()
+
+      const user = await prisma.user.create({
+        data: {
+          uuid: 'pagination-user-uuid',
+          name: 'Pagination Test User',
+          email: 'pagination@example.com',
+          password: 'hashedpassword',
+          role: 'USER',
+          status: 'ACTIVE',
+        },
+      })
+      user1Id = user.id
+
+      // Generate auth token
+      authToken = jwt.sign(
+        { uuid: user.uuid, email: user.email, role: user.role },
+        process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only',
+        { expiresIn: '1h' },
+      )
+
       // Create multiple notes for pagination testing
       const notes = Array.from({ length: 15 }, (_, i) => ({
         title: `Pagination Test Note ${i + 1}`,

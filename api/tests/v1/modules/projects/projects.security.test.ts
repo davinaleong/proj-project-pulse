@@ -100,7 +100,6 @@ describe('Projects Security', () => {
       })
 
       const bannedToken = projectsTestHelpers.generateMockAuthToken({
-        id: bannedUser.id,
         uuid: bannedUser.uuid,
         email: bannedUser.email,
         role: bannedUser.role,
@@ -120,7 +119,6 @@ describe('Projects Security', () => {
       })
 
       const inactiveToken = projectsTestHelpers.generateMockAuthToken({
-        id: inactiveUser.id,
         uuid: inactiveUser.uuid,
         email: inactiveUser.email,
         role: inactiveUser.role,
@@ -423,7 +421,6 @@ describe('Projects Security', () => {
       })
 
       const otherToken = projectsTestHelpers.generateMockAuthToken({
-        id: otherUser.id,
         uuid: otherUser.uuid,
         email: otherUser.email,
         role: otherUser.role,
@@ -502,7 +499,6 @@ describe('Projects Security', () => {
       })
 
       const otherToken = projectsTestHelpers.generateMockAuthToken({
-        id: otherUser.id,
         uuid: otherUser.uuid,
         email: otherUser.email,
         role: otherUser.role,

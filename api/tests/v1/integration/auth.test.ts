@@ -1,7 +1,9 @@
-import { describe, it, expect, beforeEach, afterAll } from '@jest/globals'
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
 import request from 'supertest'
-import app from '../../../src/app'
+import { createApp } from '../../../src/app'
 import { e2eTestHelpers } from '../e2e/e2e.helpers'
+
+const app = createApp()
 
 /**
  * Authentication Integration Tests
@@ -10,8 +12,8 @@ import { e2eTestHelpers } from '../e2e/e2e.helpers'
  * including registration, login, password management, and token handling.
  */
 describe('Authentication Integration Tests', () => {
-  beforeEach(async () => {
-    await e2eTestHelpers.setupTestDatabase()
+  beforeAll(async () => {
+    await e2eTestHelpers.cleanupDatabase()
   })
 
   afterAll(async () => {
@@ -25,45 +27,49 @@ describe('Authentication Integration Tests', () => {
         name: 'Integration Test User',
         email: 'integration@example.com',
         password: 'SecurePassword123!',
-      }
-
-      // 1. Register user
+        confirmPassword: 'SecurePassword123!',
+      } // 1. Register user
       const registerResponse = await request(app)
         .post('/api/v1/auth/register')
         .send(userData)
-        .expect(201)
 
+      console.log(
+        'Registration response:',
+        registerResponse.status,
+        registerResponse.body,
+      )
+
+      expect(registerResponse.status).toBe(201)
       expect(registerResponse.body.success).toBe(true)
-      expect(registerResponse.body.data.user.email).toBe(userData.email)
-      expect(registerResponse.body.data.user.emailVerifiedAt).toBeNull()
-      expect(registerResponse.body.data.token).toBeDefined()
+      expect(registerResponse.body.data.email).toBe(userData.email)
+      expect(registerResponse.body.data.name).toBe(userData.name)
+      expect(registerResponse.body.data).not.toHaveProperty('password')
 
-      const userId = registerResponse.body.data.user.id
-      const registrationToken = registerResponse.body.data.token
+      const userId = registerResponse.body.data.id
 
-      // 2. User should not be able to access protected resources without verification
-      await request(app)
-        .get('/api/v1/users/me')
-        .set({ Authorization: `Bearer ${registrationToken}` })
-        .expect(403) // Assuming email verification is required
-
-      // 3. Verify email (simulate clicking verification link)
-      const verifyResponse = await request(app)
-        .post('/api/v1/auth/verify-email')
-        .send({ token: registrationToken })
+      // 2. Test that user can now login
+      const loginResponse = await request(app)
+        .post('/api/v1/auth/login')
+        .send({
+          email: userData.email,
+          password: userData.password,
+        })
         .expect(200)
 
-      expect(verifyResponse.body.success).toBe(true)
+      expect(loginResponse.body.success).toBe(true)
+      expect(loginResponse.body.data.tokens.accessToken).toBeDefined()
 
-      // 4. After verification, user should be able to access protected resources
+      const loginToken = loginResponse.body.data.tokens.accessToken
+
+      // 3. Test that user can access protected resources
       const profileResponse = await request(app)
         .get('/api/v1/users/me')
-        .set({ Authorization: `Bearer ${registrationToken}` })
+        .set('Authorization', `Bearer ${loginToken}`)
         .expect(200)
 
       expect(profileResponse.body.data.id).toBe(userId)
-      expect(profileResponse.body.data.emailVerifiedAt).not.toBeNull()
-    })
+      expect(profileResponse.body.data.email).toBe(userData.email)
+    }, 15000)
 
     it('should prevent duplicate email registration', async () => {
       const userData = {

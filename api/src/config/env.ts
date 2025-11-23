@@ -55,18 +55,21 @@ function resolveEnvFile(): string {
 function loadEnvironment(): void {
   const envFile = resolveEnvFile()
   const envPath = path.join(rootDir, envFile)
+  const isTestEnv = process.env.NODE_ENV === 'test'
 
   if (fs.existsSync(envPath)) {
-    console.log(`✓ Loading environment variables from ${envFile}`)
-    const result = dotenv.config({ path: envPath })
+    if (!isTestEnv) {
+      console.log(`✓ Loading environment variables from ${envFile}`)
+    }
+    const result = dotenv.config({ path: envPath, debug: false })
 
-    if (result.error) {
+    if (result.error && !isTestEnv) {
       console.warn(
         `⚠ Warning: Error reading ${envFile}:`,
         result.error.message,
       )
     }
-  } else {
+  } else if (!isTestEnv) {
     console.warn(
       `⚠ Warning: Environment file ${envFile} not found. Using process.env variables only.`,
     )

@@ -41,9 +41,7 @@ describe('PasswordCrypto', () => {
     })
 
     it('should handle empty password', async () => {
-      const hash = await PasswordCrypto.hash('')
-      expect(hash).toBeDefined()
-      expect(typeof hash).toBe('string')
+      await expect(PasswordCrypto.hash('')).rejects.toThrow('Password cannot be empty')
     })
   })
 

@@ -1,7 +1,7 @@
 // Set test environment variables before importing any modules
 process.env.NODE_ENV = 'test'
 process.env.DATABASE_URL =
-  process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/test_db'
+  process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5433/project_pulse_test'
 process.env.JWT_SECRET =
   process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-only'
 process.env.PORT = '3001'
@@ -36,12 +36,13 @@ beforeEach(async () => {
 // Export test utilities
 export { prisma }
 
-// Mock console methods in tests
+// Mock console methods in tests to suppress verbose output
+const originalConsole = console
 global.console = {
-  ...console,
-  // Suppress console.log in tests unless needed
+  ...originalConsole,
+  // Suppress verbose logs in tests unless needed for debugging
   log: jest.fn(),
   info: jest.fn(),
   warn: jest.fn(),
-  error: jest.fn(),
+  error: originalConsole.error, // Keep error logs for debugging
 }

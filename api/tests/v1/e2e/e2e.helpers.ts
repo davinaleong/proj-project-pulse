@@ -110,7 +110,7 @@ export const e2eTestHelpers = {
       email: user.email,
       role: user.role,
     }
-    return jwt.sign(payload, process.env.JWT_SECRET_KEY || 'test-secret', {
+    return jwt.sign(payload, process.env.JWT_SECRET || 'test-secret', {
       expiresIn: '1h',
     })
   },

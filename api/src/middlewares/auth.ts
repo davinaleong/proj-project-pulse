@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { UserService } from '../modules/v1/users/user.service'
+import prisma from '../config/db'
 
 interface JwtPayload {
   uuid: string
@@ -40,6 +41,22 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(401).json({
         success: false,
         message: 'Account is not active.',
+      })
+    }
+
+    // Check if session is still valid (not revoked)
+    const session = await prisma.session.findFirst({
+      where: {
+        token: token,
+        userId: user.id,
+        revokedAt: null,
+      },
+    })
+
+    if (!session) {
+      return res.status(401).json({
+        success: false,
+        message: 'Session has been revoked.',
       })
     }
 

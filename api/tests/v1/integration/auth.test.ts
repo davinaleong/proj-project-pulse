@@ -343,8 +343,6 @@ describe('Authentication Integration Tests', () => {
         .get('/api/v1/sessions')
         .set({ Authorization: `Bearer ${token1}` })
         .expect(200)
-
-      console.log('Sessions response:', JSON.stringify(sessionsResponse.body, null, 2))
       expect(sessionsResponse.body.data.sessions.length).toBe(2)
 
       // Logout from one device

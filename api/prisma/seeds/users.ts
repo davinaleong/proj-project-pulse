@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, UserRole, UserStatus, Theme, Visibility } from '@prisma/client'
 
 export async function seedUsers(prisma: PrismaClient) {
   // Create a couple of users with profiles. Passwords are plain for seeds.
@@ -7,16 +7,16 @@ export async function seedUsers(prisma: PrismaClient) {
       name: 'Alice Example',
       email: 'alice@example.com',
       password: 'password',
-      role: 'ADMIN',
-      status: 'ACTIVE',
+      role: UserRole.ADMIN,
+      status: UserStatus.ACTIVE,
       profile: {
         create: {
           bio: 'Product manager and project lead.',
           avatarUrl: null,
           timezone: 'Asia/Singapore',
           language: 'en',
-          theme: 'LIGHT',
-          visibility: 'PUBLIC',
+          theme: Theme.LIGHT,
+          visibility: Visibility.PUBLIC,
         },
       },
     },
@@ -24,15 +24,15 @@ export async function seedUsers(prisma: PrismaClient) {
       name: 'Bob Developer',
       email: 'bob@example.com',
       password: 'password',
-      role: 'USER',
-      status: 'ACTIVE',
+      role: UserRole.USER,
+      status: UserStatus.ACTIVE,
       profile: {
         create: {
           bio: 'Frontend engineer focused on UX and performance.',
           timezone: 'Asia/Singapore',
           language: 'en',
-          theme: 'DARK',
-          visibility: 'PUBLIC',
+          theme: Theme.DARK,
+          visibility: Visibility.PUBLIC,
         },
       },
     },
@@ -49,7 +49,7 @@ export async function seedUsers(prisma: PrismaClient) {
         status: u.status,
         password: u.password,
       },
-      create: u as unknown,
+      create: u,
     })
     created.push(user)
   }

@@ -5,9 +5,10 @@ export async function seedSettings(prisma: PrismaClient) {
     where: { email: 'alice@example.com' },
   })
 
-  const settingsData: Array<unknown> = []
+  const settingsData: Array<any> = []
   if (alice) {
     settingsData.push({
+      uuid: 'seed-setting-dashboard-show-completed',
       key: 'dashboard:show_completed',
       value: 'false',
       type: 'boolean',
@@ -15,22 +16,17 @@ export async function seedSettings(prisma: PrismaClient) {
     })
   }
   settingsData.push({
+    uuid: 'seed-setting-system-default-currency',
     key: 'system:default_currency',
     value: 'SGD',
     type: 'string',
   })
 
   const created: unknown[] = []
-  type SettingSeed = {
-    key: string
-    value: string
-    type?: string
-    userId?: string
-  }
-  for (const s of settingsData as SettingSeed[]) {
+  for (const s of settingsData) {
     const setting = await prisma.setting.upsert({
-      where: { key: s.key },
-      update: { value: s.value, type: s.type },
+      where: { uuid: s.uuid },
+      update: { key: s.key, value: s.value, type: s.type },
       create: s,
     })
     created.push(setting)

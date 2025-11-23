@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, ProjectStage } from '@prisma/client'
 
 export async function seedProjects(prisma: PrismaClient) {
   // Create one project per seeded user where applicable.
@@ -9,35 +9,31 @@ export async function seedProjects(prisma: PrismaClient) {
     where: { email: 'bob@example.com' },
   })
 
-  const projectsData = [] as unknown[]
+  const projectsData = [] as any[]
   if (alice) {
     projectsData.push({
+      uuid: 'seed-project-website-redesign',
       title: 'Website Redesign',
       description: 'Improve UI and accessibility for the marketing site.',
-      stage: 'IMPLEMENTATION',
+      stage: ProjectStage.IMPLEMENTATION,
       userId: alice.id,
     })
   }
   if (bob) {
     projectsData.push({
+      uuid: 'seed-project-ui-component-library',
       title: 'UI Component Library',
       description: 'Shared React components for internal projects.',
-      stage: 'PLANNING',
+      stage: ProjectStage.PLANNING,
       userId: bob.id,
     })
   }
 
   const created: unknown[] = []
-  type ProjectSeed = {
-    title: string
-    description?: string
-    stage?: string
-    userId?: string
-  }
-  for (const p of projectsData as ProjectSeed[]) {
+  for (const p of projectsData) {
     const project = await prisma.project.upsert({
-      where: { title: p.title },
-      update: { description: p.description, stage: p.stage },
+      where: { uuid: p.uuid },
+      update: { title: p.title, description: p.description, stage: p.stage },
       create: p,
     })
     created.push(project)

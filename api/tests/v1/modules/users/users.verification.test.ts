@@ -144,7 +144,7 @@ describe('Users Email Verification', () => {
         .expect(200)
 
       expect(loginAfterResponse.body.success).toBe(true)
-      expect(loginAfterResponse.body.data.token).toBeDefined()
+      expect(loginAfterResponse.body.data.tokens.accessToken).toBeDefined()
     })
   })
 })

@@ -46,7 +46,7 @@ describe('E2E API Tests', () => {
         .expect(200)
 
       expect(loginResponse.body.success).toBe(true)
-      const authToken = loginResponse.body.data.token
+      const authToken = loginResponse.body.data.tokens.accessToken
       const authHeaders = { Authorization: `Bearer ${authToken}` }
 
       // 3. Create User Profile

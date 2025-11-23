@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
 import request from 'supertest'
 import { createApp } from '../../../src/app'
-import { e2eTestHelpers } from '../e2e/e2e.helpers'
+import { e2eTestHelpers, prisma } from '../e2e/e2e.helpers'
 
 const app = createApp()
 
@@ -213,10 +213,10 @@ describe('Authentication Integration Tests', () => {
         .expect(200)
 
       expect(loginResponse.body.success).toBe(true)
-      expect(loginResponse.body.data.token).toBeDefined()
+      expect(loginResponse.body.data.tokens.accessToken).toBeDefined()
       expect(loginResponse.body.data.user.id).toBe(user.id)
 
-      const token = loginResponse.body.data.token
+      const token = loginResponse.body.data.tokens.accessToken
 
       // 2. Use token to access protected resources
       const protectedResponse = await request(app)
@@ -298,6 +298,8 @@ describe('Authentication Integration Tests', () => {
     })
 
     it('should handle concurrent login sessions', async () => {
+      // Clean up any previous test data that might interfere
+      await e2eTestHelpers.cleanupDatabase()
       const { user } = await e2eTestHelpers.createAuthenticatedUser()
 
       // Login from multiple "devices" (different user agents)
@@ -308,7 +310,8 @@ describe('Authentication Integration Tests', () => {
           email: user.email,
           password: 'TestPassword123!',
         })
-        .expect(200)
+      
+      .expect(200)
 
       const device2Response = await request(app)
         .post('/api/v1/auth/login')
@@ -319,8 +322,8 @@ describe('Authentication Integration Tests', () => {
         })
         .expect(200)
 
-      const token1 = device1Response.body.data.token
-      const token2 = device2Response.body.data.token
+      const token1 = device1Response.body.data.tokens.accessToken
+      const token2 = device2Response.body.data.tokens.accessToken
 
       // Both tokens should be valid
       await request(app)
@@ -461,7 +464,7 @@ describe('Authentication Integration Tests', () => {
         .set({ Authorization: `Bearer ${token}` })
 
       if (refreshResponse.status === 200) {
-        const newToken = refreshResponse.body.data.token
+        const newToken = refreshResponse.body.data.tokens.accessToken
         expect(newToken).toBeDefined()
         expect(newToken).not.toBe(token)
 
@@ -508,8 +511,8 @@ describe('Authentication Integration Tests', () => {
         })
         .expect(200)
 
-      const token1 = session1.body.data.token
-      const token2 = session2.body.data.token
+      const token1 = session1.body.data.tokens.accessToken
+      const token2 = session2.body.data.tokens.accessToken
 
       // Both tokens should work
       await request(app)
@@ -625,10 +628,26 @@ describe('Authentication Integration Tests', () => {
           name: 'Profile Integration User',
           email: 'profile@example.com',
           password: 'Password123!',
+          confirmPassword: 'Password123!',
         })
         .expect(201)
 
-      const token = registerResponse.body.data.token
+      // Verify user and login to get token
+      const userId = registerResponse.body.data.id
+      await prisma.user.update({
+        where: { id: userId },
+        data: { status: 'ACTIVE', emailVerifiedAt: new Date() }
+      })
+
+      const loginResponse = await request(app)
+        .post('/api/v1/auth/login')
+        .send({
+          email: 'profile@example.com',
+          password: 'Password123!',
+        })
+        .expect(200)
+
+      const token = loginResponse.body.data.tokens.accessToken
 
       // User should have a default profile
       const profileResponse = await request(app)

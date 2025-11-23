@@ -30,7 +30,7 @@ describe('Users Password Reset', () => {
 
       // In development, token should be returned
       if (process.env.NODE_ENV === 'development') {
-        expect(response.body.data.token).toBeDefined()
+        expect(response.body.data.tokens.accessToken).toBeDefined()
       }
     })
 

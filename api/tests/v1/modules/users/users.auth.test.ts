@@ -92,7 +92,7 @@ describe('Users Authentication', () => {
       expect(response.body.success).toBe(true)
       expect(response.body.message).toBe('Login successful')
       expect(response.body.data.user.email).toBe(loginData.email)
-      expect(response.body.data.token).toBeDefined()
+      expect(response.body.data.tokens.accessToken).toBeDefined()
     })
 
     it('should return 401 for invalid credentials', async () => {

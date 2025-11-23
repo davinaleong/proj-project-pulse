@@ -1,7 +1,8 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
-import { PrismaClient, User } from '@prisma/client'
+import { User } from '@prisma/client'
+import prisma from '../../../config/db'
 import {
   LoginRequest,
   RegisterRequest,
@@ -16,8 +17,6 @@ import {
   RefreshTokenResponse,
   JwtPayload,
 } from './auth.types'
-
-const prisma = new PrismaClient()
 
 export class AuthService {
   private readonly JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret'

@@ -1,6 +1,6 @@
 const request = require('supertest');
-const { createApp } = require('./dist/app');
-const { e2eTestHelpers } = require('./tests/v1/e2e/e2e.helpers');
+const { createApp } = require('./dist/src/app');
+const { e2eTestHelpers } = require('./dist/tests/v1/e2e/e2e.helpers');
 
 async function debugLogin() {
   try {

@@ -31,7 +31,10 @@ export class DatabaseError extends Error {
  * Prisma client configuration based on environment
  */
 function createPrismaClient(): PrismaClient {
-  const config: ConstructorParameters<typeof PrismaClient>[0] = {
+  const config: {
+    datasourceUrl?: string
+    log?: Array<{ emit: 'stdout'; level: 'info' | 'query' | 'warn' | 'error' }>
+  } = {
     datasourceUrl: ENV.DATABASE_URL,
   }
 

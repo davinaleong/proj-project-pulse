@@ -6,6 +6,10 @@ import jwt from 'jsonwebtoken'
 
 describe('Notes Integration Tests', () => {
   let app: Application
+  let authToken: string
+  let user1Id: number
+  let project1Id: number
+  let noteUuid: string
 
   beforeAll(async () => {
     app = createApp()
@@ -16,10 +20,6 @@ describe('Notes Integration Tests', () => {
   })
 
   describe('Full Workflow Integration', () => {
-    let authToken: string
-    let user1Id: number
-    let project1Id: number
-    let noteUuid: string
 
     beforeEach(async () => {
       // Clean up and create fresh test data for each test

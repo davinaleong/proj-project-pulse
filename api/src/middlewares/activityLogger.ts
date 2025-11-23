@@ -85,7 +85,7 @@ export const activityLogger = (options: ActivityLoggerOptions = {}) => {
             duration: Date.now() - startTime,
           })
         } catch (error) {
-          logger.error('Failed to log activity:', error)
+          logger.error('Failed to log activity:', error instanceof Error ? error : new Error(String(error)))
         }
       })
     }
@@ -166,8 +166,8 @@ async function logActivity(
         modelId: activityData.modelId || '',
         context: activityData.context,
         description: activityData.description,
-        oldValues: activityData.oldValues,
-        newValues: activityData.newValues,
+        oldValues: activityData.oldValues as any,
+        newValues: activityData.newValues as any,
         ipAddress: activityData.ipAddress,
         userAgent: activityData.userAgent,
         // metadata would need to be added to the schema if needed
@@ -181,7 +181,7 @@ async function logActivity(
       modelId: activityData.modelId,
     })
   } catch (error) {
-    logger.error('Failed to save activity log:', error)
+    logger.error('Failed to save activity log:', error instanceof Error ? error : new Error(String(error)))
   }
 }
 

@@ -190,7 +190,7 @@ function getErrorResponse(error: AppError) {
 
   if (
     error.name === 'MongoError' &&
-    (error as { code: number }).code === 11000
+    (error as any).code === 11000
   ) {
     return {
       statusCode: 409,

@@ -21,6 +21,8 @@ declare global {
         updatedAt: Date
         profile?: unknown
       }
+      // Used by activity logger to store original data before updates
+      originalData?: any
     }
   }
 }

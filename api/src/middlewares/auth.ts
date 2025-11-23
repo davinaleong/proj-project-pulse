@@ -6,6 +6,7 @@ interface JwtPayload {
   uuid: string
   email: string
   role: string
+  jti?: string // JWT ID for unique session identification
 }
 
 const userService = new UserService()

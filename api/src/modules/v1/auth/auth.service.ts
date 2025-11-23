@@ -15,7 +15,7 @@ import {
   LoginResponse,
   RegisterResponse,
   RefreshTokenResponse,
-  JwtPayload,
+  JwtPayload as CustomJwtPayload,
 } from './auth.types'
 
 export class AuthService {
@@ -145,7 +145,7 @@ export class AuthService {
       const payload = jwt.verify(
         refreshToken,
         this.JWT_REFRESH_SECRET,
-      ) as JwtPayload
+      ) as CustomJwtPayload
 
       // Find user
       const user = await prisma.user.findUnique({
@@ -299,13 +299,19 @@ export class AuthService {
 
   // Helper methods
   private async generateTokens(user: User): Promise<AuthTokens> {
-    const payload: JwtPayload = {
+    const payload: CustomJwtPayload = {
       uuid: user.uuid,
       email: user.email,
       role: user.role,
     }
 
-    const accessToken = jwt.sign(payload, this.JWT_SECRET, {
+    // Add microsecond timestamp to ensure token uniqueness
+    const uniquePayload = {
+      ...payload,
+      timestamp: Date.now() + Math.random(),
+    }
+
+    const accessToken = jwt.sign(uniquePayload, this.JWT_SECRET, {
       expiresIn: this.JWT_EXPIRES_IN,
     } as jwt.SignOptions)
 

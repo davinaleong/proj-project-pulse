@@ -310,8 +310,7 @@ describe('Authentication Integration Tests', () => {
           email: user.email,
           password: 'TestPassword123!',
         })
-      
-      .expect(200)
+        .expect(200)
 
       const device2Response = await request(app)
         .post('/api/v1/auth/login')
@@ -326,23 +325,27 @@ describe('Authentication Integration Tests', () => {
       const token2 = device2Response.body.data.tokens.accessToken
 
       // Both tokens should be valid
+      console.log('Testing token 1...')
       await request(app)
         .get('/api/v1/users/me')
         .set({ Authorization: `Bearer ${token1}` })
         .expect(200)
 
+      console.log('Testing token 2...')
       await request(app)
         .get('/api/v1/users/me')
         .set({ Authorization: `Bearer ${token2}` })
         .expect(200)
+      console.log('Both tokens validated successfully')
 
       // Check active sessions
       const sessionsResponse = await request(app)
-        .get('/api/v1/sessions/me')
+        .get('/api/v1/sessions')
         .set({ Authorization: `Bearer ${token1}` })
         .expect(200)
 
-      expect(sessionsResponse.body.data.length).toBe(2)
+      console.log('Sessions response:', JSON.stringify(sessionsResponse.body, null, 2))
+      expect(sessionsResponse.body.data.sessions.length).toBe(2)
 
       // Logout from one device
       await request(app)

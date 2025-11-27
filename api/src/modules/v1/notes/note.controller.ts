@@ -98,6 +98,9 @@ export class NoteController {
       if (error instanceof ZodError) {
         return createErrorResponse(res, 'Invalid note data', error.issues, 400)
       }
+      if (error instanceof Error && error.message === 'Project not found or does not belong to user') {
+        return createErrorResponse(res, error.message, undefined, 404)
+      }
       next(error)
     }
   }
@@ -128,6 +131,9 @@ export class NoteController {
     } catch (error) {
       if (error instanceof ZodError) {
         return createErrorResponse(res, 'Invalid note data', error.issues, 400)
+      }
+      if (error instanceof Error && error.message === 'Project not found or does not belong to user') {
+        return createErrorResponse(res, error.message, undefined, 404)
       }
       next(error)
     }

@@ -72,6 +72,21 @@ export class NoteService {
 
   // Create a new note
   async createNote(userId: number, data: CreateNoteData) {
+    // Validate project exists and belongs to user if projectId is provided
+    if (data.projectId) {
+      const project = await prisma.project.findFirst({
+        where: {
+          id: data.projectId,
+          userId: userId,
+          deletedAt: null,
+        },
+      })
+
+      if (!project) {
+        throw new Error('Project not found or does not belong to user')
+      }
+    }
+
     return prisma.note.create({
       data: {
         ...data,
@@ -92,6 +107,21 @@ export class NoteService {
   async updateNote(uuid: string, userId: number, data: UpdateNoteData) {
     const note = await this.getNoteByUuid(uuid, userId)
     if (!note) return null
+
+    // Validate project exists and belongs to user if projectId is provided
+    if (data.projectId !== undefined && data.projectId !== null) {
+      const project = await prisma.project.findFirst({
+        where: {
+          id: data.projectId,
+          userId: userId,
+          deletedAt: null,
+        },
+      })
+
+      if (!project) {
+        throw new Error('Project not found or does not belong to user')
+      }
+    }
 
     return prisma.note.update({
       where: { id: note.id },

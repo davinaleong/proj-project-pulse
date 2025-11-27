@@ -61,10 +61,9 @@ describe('Notes Edge Cases & Error Handling', () => {
           title: 'Test Note',
           projectId: 999999, // Non-existent project
         })
-        .expect(500) // Foreign key constraint violation currently returns 500
+        .expect(404) // Proper validation now returns 404 for non-existent project
 
-      // The API should ideally validate this and return 400, but currently returns 500 for DB constraint violations
-      expect([400, 500].includes(response.status)).toBe(true)
+      expect(response.body.message || response.body.error).toBe('Project not found or does not belong to user')
     })
 
     it('should handle updates to already deleted notes', async () => {

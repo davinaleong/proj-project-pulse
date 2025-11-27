@@ -33,7 +33,7 @@ describe('Password Reset CRUD Operations', () => {
         .expect(200)
 
       expect(response.body.success).toBe(true)
-      expect(response.body.message).toContain('password reset link')
+      expect(response.body.message).toBe('Password reset link has been sent to your email.')
 
       // In development mode, token should be returned
       if (process.env.NODE_ENV === 'development') {

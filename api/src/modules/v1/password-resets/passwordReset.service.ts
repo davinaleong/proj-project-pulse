@@ -17,6 +17,11 @@ export class PasswordResetService {
     return crypto.randomBytes(32).toString('hex')
   }
 
+  // Hash a token for secure database storage
+  private hashToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex')
+  }
+
   // Request password reset - sends reset token
   async requestPasswordReset(email: string): Promise<{
     success: boolean
@@ -49,23 +54,24 @@ export class PasswordResetService {
 
       if (recentAttempts.length >= this.MAX_RESET_ATTEMPTS_PER_HOUR) {
         throw new Error(
-          'Too many password reset attempts. Please try again later.',
+          `Too many password reset attempts. Try again in ${this.RATE_LIMIT_WINDOW_HOURS} hour(s).`,
         )
       }
 
-      // Delete any existing active tokens for this user
-      await passwordResetModel.deleteByUserId(user.id)
+      // Note: We don't delete existing tokens to preserve rate limiting history
+      // Multiple valid tokens is acceptable for security (user can use any valid one)
 
       // Generate new token
-      const token = this.generateToken()
+      const plainToken = this.generateToken()
+      const hashedToken = this.hashToken(plainToken)
       const expiresAt = new Date(
         Date.now() + this.RESET_TOKEN_EXPIRY_HOURS * 60 * 60 * 1000,
       )
 
-      // Create password reset token
+      // Create password reset token (store hashed version)
       await passwordResetModel.create({
         userId: user.id,
-        token,
+        token: hashedToken,
         expiresAt,
       })
 
@@ -75,7 +81,7 @@ export class PasswordResetService {
       return {
         success: true,
         message: 'Password reset link has been sent to your email.',
-        token, // Remove this in production
+        token: plainToken, // Remove this in production
       }
     } catch (error) {
       throw new Error((error as Error).message)
@@ -92,7 +98,8 @@ export class PasswordResetService {
     }
   }> {
     try {
-      const resetToken = await passwordResetModel.findByToken(token)
+      const hashedToken = this.hashToken(token)
+      const resetToken = await passwordResetModel.findByToken(hashedToken)
 
       if (!resetToken) {
         return { valid: false }
@@ -130,7 +137,8 @@ export class PasswordResetService {
     message: string
   }> {
     try {
-      const resetToken = await passwordResetModel.findByToken(token)
+      const hashedToken = this.hashToken(token)
+      const resetToken = await passwordResetModel.findByToken(hashedToken)
 
       if (!resetToken) {
         throw new Error('Invalid or expired reset token')
@@ -160,7 +168,7 @@ export class PasswordResetService {
       })
 
       // Mark token as used
-      await passwordResetModel.markAsUsed(token)
+      await passwordResetModel.markAsUsed(hashedToken)
 
       // Delete any other active tokens for this user
       await passwordResetModel.deleteByUserId(resetToken.userId)

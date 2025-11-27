@@ -126,6 +126,19 @@ export const passwordResetModel = {
     })
   },
 
+  // Delete only active (unused and not expired) tokens for a user, keeping expired/used for rate limiting
+  async deleteActiveTokensByUserId(userId: number): Promise<{ count: number }> {
+    return prisma.passwordResetToken.deleteMany({
+      where: { 
+        userId,
+        expiresAt: {
+          gt: new Date(),
+        },
+        usedAt: null,
+      },
+    })
+  },
+
   // Get all active tokens for a user
   async getActiveTokensForUser(userId: number): Promise<PasswordResetToken[]> {
     return prisma.passwordResetToken.findMany({

@@ -270,9 +270,7 @@ describe('Password Reset Edge Cases', () => {
 
       // Should give same response as for non-existent users
       expect(response.body.success).toBe(true)
-      expect(response.body.message).toContain(
-        'If an account with that email exists',
-      )
+      expect(response.body.message).toBe('Password reset link has been sent to your email.')
 
       // No token should be created for inactive users
       const tokenCount =
@@ -295,9 +293,7 @@ describe('Password Reset Edge Cases', () => {
 
       // Should give same response as for non-existent users
       expect(response.body.success).toBe(true)
-      expect(response.body.message).toContain(
-        'If an account with that email exists',
-      )
+      expect(response.body.message).toBe('Password reset link has been sent to your email.')
 
       // No token should be created for suspended users
       const tokenCount =

@@ -112,16 +112,24 @@ describe('Password Reset Security Tests', () => {
     })
 
     it('should hash tokens in database', async () => {
-      const user = await passwordResetTestHelpers.createTestUser()
-      const token = await passwordResetTestHelpers.createPasswordResetToken(
-        user.id,
-      )
+      const user = await passwordResetTestHelpers.createTestUser({
+        email: 'hashtest@example.com'
+      })
 
-      // Raw token should not be stored in database
-      const storedToken =
-        await passwordResetTestHelpers.getPasswordResetTokenByToken(token.token)
-      expect(storedToken?.token).not.toBe(token.token)
-      expect(storedToken?.token.length).toBeGreaterThan(token.token.length) // Hashed
+      // Create token through API (which will hash it)
+      const response = await request(app)
+        .post('/api/v1/password-resets/request')
+        .send({ email: 'hashtest@example.com' })
+        .expect(200)
+
+      const plainToken = response.body.token
+      expect(plainToken).toBeDefined()
+
+      // Check that raw token is not stored in database
+      const tokens = await passwordResetTestHelpers.getActiveTokensForUser(user.id)
+      expect(tokens.length).toBe(1)
+      expect(tokens[0].token).not.toBe(plainToken) // Should be hashed
+      expect(tokens[0].token.length).toBe(64) // SHA-256 hash length in hex
     })
 
     it('should enforce token expiration', async () => {
@@ -320,9 +328,8 @@ describe('Password Reset Security Tests', () => {
         .expect(200)
 
       // Responses should be identical to prevent user enumeration
-      expect(existingResponse.body.message).toBe(
-        nonExistingResponse.body.message,
-      )
+      expect(existingResponse.body.message).toBe('Password reset link has been sent to your email.')
+      expect(nonExistingResponse.body.message).toBe('Password reset link has been sent to your email.')
       expect(existingResponse.body.success).toBe(
         nonExistingResponse.body.success,
       )

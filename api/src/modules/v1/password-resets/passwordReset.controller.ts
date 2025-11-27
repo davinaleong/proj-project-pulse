@@ -24,7 +24,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       success: true,
       message: result.message,
       // In production, remove the token from response
-      ...(process.env.NODE_ENV === 'development' && { token: result.token }),
+      ...((['development', 'test'].includes(process.env.NODE_ENV || '')) && { token: result.token }),
     })
   } catch (error) {
     res.status(400).json({ error: (error as Error).message })

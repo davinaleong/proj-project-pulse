@@ -1,3 +1,3 @@
 # Quick TODO
 
-[ ] Fix Notes module tests
+[x] Fix Notes module tests

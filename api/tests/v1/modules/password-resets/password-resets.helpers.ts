@@ -4,6 +4,11 @@ import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
 import prisma from '../../../../src/config/db'
 
+// Helper to hash tokens like the service does
+function hashToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex')
+}
+
 export const passwordResetTestHelpers = {
   async cleanupDatabase() {
     await prisma.passwordResetToken.deleteMany()
@@ -42,17 +47,25 @@ export const passwordResetTestHelpers = {
       usedAt?: Date | null
     },
   ) {
-    const defaultToken = crypto.randomBytes(32).toString('hex')
+    const plainToken = overrides?.token || crypto.randomBytes(32).toString('hex')
+    const hashedToken = hashToken(plainToken)
     const defaultExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
-    return prisma.passwordResetToken.create({
+    // Store hashed token in database but return the plain token (like API does)
+    const createdToken = await prisma.passwordResetToken.create({
       data: {
         userId,
-        token: overrides?.token || defaultToken,
+        token: hashedToken,
         expiresAt: overrides?.expiresAt || defaultExpiresAt,
         usedAt: overrides?.usedAt,
       },
     })
+
+    // Return the plain token for use in tests, but the database record has the hashed version
+    return {
+      ...createdToken,
+      token: plainToken,
+    }
   },
 
   async createExpiredToken(userId: number) {
@@ -94,8 +107,9 @@ export const passwordResetTestHelpers = {
   },
 
   async getPasswordResetTokenByToken(token: string) {
+    const hashedToken = hashToken(token)
     return prisma.passwordResetToken.findUnique({
-      where: { token },
+      where: { token: hashedToken },
       include: {
         user: true,
       },

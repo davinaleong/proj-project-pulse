@@ -16,6 +16,8 @@ describe('Authentication Integration Tests', () => {
     await e2eTestHelpers.cleanupDatabase()
   })
 
+
+
   afterAll(async () => {
     await e2eTestHelpers.cleanupDatabase()
     await e2eTestHelpers.disconnectDatabase()

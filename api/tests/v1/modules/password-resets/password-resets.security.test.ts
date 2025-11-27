@@ -1,6 +1,6 @@
 import request from 'supertest'
 import { createApp } from '../../../../src/app'
-import { passwordResetTestHelpers } from './passwordResets.helpers'
+import { passwordResetTestHelpers } from './password-resets.helpers'
 import { Application } from 'express'
 
 describe('Password Reset Security Tests', () => {

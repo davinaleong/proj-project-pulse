@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { createApp } from '../../../../src/app'
+import { createApp } from '../../../src/app'
 import { passwordResetTestHelpers } from '../modules/password-resets/password-resets.helpers'
 import { Application } from 'express'
 

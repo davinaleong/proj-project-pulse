@@ -7,7 +7,7 @@
  */
 
 // Export test helpers and utilities (when available)
-// export { testHelpers } from './passwordResets.helpers'
+// export { testHelpers } from './password-resets.helpers'
 
 // Re-export common types and enums for test convenience
 export { UserStatus } from '@prisma/client'
@@ -18,10 +18,10 @@ export const testSuiteInfo = {
   version: '1.0.0',
   description: 'Comprehensive test suite for the password reset module',
   testFiles: [
-    'passwordResets.crud.test.ts',
-    'passwordResets.security.test.ts',
-    'passwordResets.edge-cases.test.ts',
-    'passwordResets.integration.test.ts',
+    'password-resets.crud.test.ts',
+    'password-resets.security.test.ts',
+    'password-resets.edge-cases.test.ts',
+    // Integration test located in: tests/v1/integration/password-resets.test.ts
   ],
   helpers: [], // Add helpers when created
   coverage: {
@@ -84,20 +84,21 @@ export const testDescriptions = {
     ],
   },
 
-  'passwordResets.integration.test.ts': {
-    purpose: 'Tests full workflow and integration scenarios',
-    coverage: [
-      'Complete password reset workflow',
-      'Email integration testing',
-      'Cross-module interaction testing',
-      'End-to-end reset scenarios',
-    ],
-    keyTests: [
-      'WORKFLOW: Complete reset process',
-      'EMAIL: Email integration testing',
-      'INTEGRATION: Cross-module testing',
-      'E2E: End-to-end scenarios',
-    ],
+  // Integration tests moved to: tests/v1/integration/password-resets.test.ts
+  // 'password-resets.integration.test.ts': {
+  //   purpose: 'Tests full workflow and integration scenarios (now in integration folder)',
+  //   coverage: [
+  //     'Complete password reset workflow',
+  //     'Email integration testing',
+  //     'Cross-module interaction testing',
+  //     'End-to-end reset scenarios',
+  //   ],
+  //   keyTests: [
+  //     'WORKFLOW: Complete reset process',
+  //     'EMAIL: Email integration testing',
+  //     'INTEGRATION: Cross-module testing',
+  //     'E2E: End-to-end scenarios',
+  //   ],
   },
 }
 
@@ -110,10 +111,10 @@ export const testDescriptions = {
  * npm test -- --testPathPattern=password-resets
  *
  * # Run specific test file
- * npm test passwordResets.crud.test.ts
- * npm test passwordResets.security.test.ts
- * npm test passwordResets.edge-cases.test.ts
- * npm test passwordResets.integration.test.ts
+ * npm test password-resets.crud.test.ts
+ * npm test password-resets.security.test.ts
+ * npm test password-resets.edge-cases.test.ts
+ * # Integration test: npm test tests/v1/integration/password-resets.test.ts
  *
  * # Run with coverage
  * npm test -- --coverage --testPathPattern=password-resets

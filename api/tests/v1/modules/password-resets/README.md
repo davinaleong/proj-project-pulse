@@ -6,7 +6,7 @@ This directory contains comprehensive test suites for the Password Reset module,
 
 ### Core Files
 
-- **`passwordResets.helpers.ts`** - Shared test utilities, database setup/cleanup, and helper functions
+- **`password-resets.helpers.ts`** - Shared test utilities, database setup/cleanup, and helper functions
 - **`index.ts`** - Module exports for easy importing
 
 ### Test Suites
@@ -46,9 +46,9 @@ Tests for edge cases and error scenarios:
 - Token manipulation and attack attempts
 - System cleanup and maintenance operations
 
-#### 4. `passwordResets.integration.test.ts`
+#### 4. Integration Tests (`tests/v1/integration/password-resets.test.ts`)
 
-Tests for complete workflows and integration scenarios:
+Tests for complete workflows and integration scenarios (located in integration directory):
 
 - End-to-end password reset flow testing
 - Multi-user scenarios and proper isolation
@@ -73,13 +73,13 @@ npm test -- tests/v1/modules/password-resets
 npm test -- tests/v1/modules/password-resets/passwordResets.crud.test.ts
 
 # Security features only
-npm test -- tests/v1/modules/password-resets/passwordResets.security.test.ts
+npm test -- tests/v1/modules/password-resets/password-resets.security.test.ts
 
 # Edge cases only
-npm test -- tests/v1/modules/password-resets/passwordResets.edge-cases.test.ts
+npm test -- tests/v1/modules/password-resets/password-resets.edge-cases.test.ts
 
 # Integration tests only
-npm test -- tests/v1/modules/password-resets/passwordResets.integration.test.ts
+npm test -- tests/v1/integration/password-resets.test.ts
 ```
 
 ### Running with Coverage
@@ -90,7 +90,7 @@ npm run test:coverage -- tests/v1/modules/password-resets
 
 ## Test Data Setup
 
-All test files use the shared helpers from `passwordResets.helpers.ts` which provide:
+All test files use the shared helpers from `password-resets.helpers.ts` which provide:
 
 - **Database cleanup** - Ensures clean state between tests
 - **Test user creation** - Creates users with various configurations and statuses

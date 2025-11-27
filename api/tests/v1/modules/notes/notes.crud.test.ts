@@ -11,24 +11,39 @@ describe('Notes CRUD Operations', () => {
   let projectId: number
   let noteId: string
 
+  beforeAll(async () => {
+    await notesTestHelpers.cleanupDatabase()
+  })
+
   beforeEach(async () => {
     await notesTestHelpers.cleanupDatabase()
+  })
+
+  // Helper function to setup fresh test data for each test
+  const setupFreshTestData = async () => {
     const {
       user,
       project,
       authToken: token,
     } = await notesTestHelpers.setupTestData()
-    userId = user.id
-    projectId = project.id
-    authToken = token
 
     // Create a test note for GET, PUT, DELETE operations
-    const testNote = await notesTestHelpers.createTestNote(userId, {
+    const testNote = await notesTestHelpers.createTestNote(user.id, {
       title: 'Test Note',
       description: 'Test note for CRUD operations',
       status: NoteStatus.DRAFT,
     })
-    noteId = testNote.uuid
+
+    return {
+      userId: user.id,
+      projectId: project.id,
+      authToken: token,
+      noteId: testNote.uuid,
+    }
+  }
+
+  afterAll(async () => {
+    await notesTestHelpers.disconnectDatabase()
   })
 
   afterAll(async () => {
@@ -37,17 +52,19 @@ describe('Notes CRUD Operations', () => {
 
   describe('POST /api/v1/notes', () => {
     it('should create a new note successfully', async () => {
+      const { userId: localUserId, projectId: localProjectId, authToken: localAuthToken } = await setupFreshTestData()
+      
       const noteData = {
         title: 'Test Note',
         description: 'This is a test note',
         body: 'Note body content',
         status: 'DRAFT',
-        projectId: projectId,
+        projectId: localProjectId,
       }
 
       const response = await request(app)
         .post('/api/v1/notes')
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .send(noteData)
         .expect(201)
 
@@ -56,21 +73,21 @@ describe('Notes CRUD Operations', () => {
       expect(response.body.data.description).toBe(noteData.description)
       expect(response.body.data.body).toBe(noteData.body)
       expect(response.body.data.status).toBe(noteData.status)
-      expect(response.body.data.projectId).toBe(projectId)
-      expect(response.body.data.userId).toBe(userId)
+      expect(response.body.data.projectId).toBe(localProjectId)
+      expect(response.body.data.userId).toBe(localUserId)
       expect(response.body.data.uuid).toBeDefined()
-
-      noteId = response.body.data.uuid
     })
 
     it('should create a note with minimal data (only title)', async () => {
+      const { authToken: localAuthToken } = await setupFreshTestData()
+      
       const noteData = {
         title: 'Minimal Note',
       }
 
       const response = await request(app)
         .post('/api/v1/notes')
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .send(noteData)
         .expect(201)
 
@@ -82,6 +99,8 @@ describe('Notes CRUD Operations', () => {
     })
 
     it('should return 400 for invalid note data', async () => {
+      const { authToken: localAuthToken } = await setupFreshTestData()
+      
       const invalidData = {
         title: '', // empty title should fail
         status: 'INVALID_STATUS',
@@ -89,7 +108,7 @@ describe('Notes CRUD Operations', () => {
 
       const response = await request(app)
         .post('/api/v1/notes')
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .send(invalidData)
         .expect(400)
 
@@ -98,13 +117,15 @@ describe('Notes CRUD Operations', () => {
     })
 
     it('should return 400 for title too long', async () => {
+      const { authToken: localAuthToken } = await setupFreshTestData()
+      
       const noteData = {
         title: 'a'.repeat(256), // exceeds max length
       }
 
       const response = await request(app)
         .post('/api/v1/notes')
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .send(noteData)
         .expect(400)
 

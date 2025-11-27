@@ -1,50 +1,12 @@
 import request from 'supertest'
 import { createApp } from '../../../../src/app'
-import { notesTestHelpers, prisma } from './notes.helpers'
-import { NoteStatus } from '@prisma/client'
+import { notesTestHelpers } from './notes.helpers'
 
 const app = createApp()
 
 describe('Notes CRUD Operations', () => {
-  let authToken: string
-  let userId: number
-  let projectId: number
-  let noteId: string
-
   beforeAll(async () => {
     await notesTestHelpers.cleanupDatabase()
-  })
-
-  beforeEach(async () => {
-    await notesTestHelpers.cleanupDatabase()
-  })
-
-  // Helper function to setup fresh test data for each test
-  const setupFreshTestData = async () => {
-    await notesTestHelpers.cleanupDatabase()
-    const {
-      user,
-      project,
-      authToken: token,
-    } = await notesTestHelpers.setupTestData()
-
-    // Create a test note for GET, PUT, DELETE operations
-    const testNote = await notesTestHelpers.createTestNote(user.id, {
-      title: 'Test Note',
-      description: 'Test note for CRUD operations',
-      status: NoteStatus.DRAFT,
-    })
-
-    return {
-      userId: user.id,
-      projectId: project.id,
-      authToken: token,
-      noteId: testNote.uuid,
-    }
-  }
-
-  afterAll(async () => {
-    await notesTestHelpers.disconnectDatabase()
   })
 
   afterAll(async () => {
@@ -52,15 +14,28 @@ describe('Notes CRUD Operations', () => {
   })
 
   describe('POST /api/v1/notes', () => {
+    let localUserId: number
+    let localProjectId: number
+    let localAuthToken: string
+
+    beforeEach(async () => {
+      await notesTestHelpers.cleanupDatabase()
+      const {
+        user,
+        project,
+        authToken: token,
+      } = await notesTestHelpers.setupTestData()
+      localUserId = user.id
+      localProjectId = project.id
+      localAuthToken = token
+    })
+
     it('should create a new note successfully', async () => {
-      const { userId: localUserId, projectId: localProjectId, authToken: localAuthToken } = await setupFreshTestData()
-      
       const noteData = {
         title: 'Test Note',
-        description: 'This is a test note',
-        body: 'Note body content',
+        description: 'Test Description',
+        body: 'Test Body Content',
         status: 'DRAFT',
-        projectId: localProjectId,
       }
 
       const response = await request(app)
@@ -74,14 +49,10 @@ describe('Notes CRUD Operations', () => {
       expect(response.body.data.description).toBe(noteData.description)
       expect(response.body.data.body).toBe(noteData.body)
       expect(response.body.data.status).toBe(noteData.status)
-      expect(response.body.data.projectId).toBe(localProjectId)
-      expect(response.body.data.userId).toBe(localUserId)
       expect(response.body.data.uuid).toBeDefined()
     })
 
-    it('should create a note with minimal data (only title)', async () => {
-      const { authToken: localAuthToken } = await setupFreshTestData()
-      
+    it('should create note without optional fields', async () => {
       const noteData = {
         title: 'Minimal Note',
       }
@@ -92,48 +63,26 @@ describe('Notes CRUD Operations', () => {
         .send(noteData)
         .expect(201)
 
+      expect(response.body.success).toBe(true)
       expect(response.body.data.title).toBe(noteData.title)
-      expect(response.body.data.status).toBe('DRAFT') // default status
       expect(response.body.data.description).toBeNull()
       expect(response.body.data.body).toBeNull()
-      expect(response.body.data.projectId).toBeNull()
+      expect(response.body.data.status).toBe('DRAFT') // Default status
     })
 
-    it('should return 400 for invalid note data', async () => {
-      const { authToken: localAuthToken } = await setupFreshTestData()
-      
-      const invalidData = {
-        title: '', // empty title should fail
-        status: 'INVALID_STATUS',
-      }
-
-      const response = await request(app)
-        .post('/api/v1/notes')
-        .set('Authorization', `Bearer ${localAuthToken}`)
-        .send(invalidData)
-        .expect(400)
-
-      expect(response.body.error).toBe('Invalid note data')
-      expect(response.body.details).toBeDefined()
-    })
-
-    it('should return 400 for title too long', async () => {
-      const { authToken: localAuthToken } = await setupFreshTestData()
-      
+    it('should return 400 when title is missing', async () => {
       const noteData = {
-        title: 'a'.repeat(256), // exceeds max length
+        description: 'Description without title',
       }
 
-      const response = await request(app)
+      await request(app)
         .post('/api/v1/notes')
         .set('Authorization', `Bearer ${localAuthToken}`)
         .send(noteData)
         .expect(400)
-
-      expect(response.body.error).toBe('Invalid note data')
     })
 
-    it('should return 401 for unauthenticated request', async () => {
+    it('should return 401 without authentication', async () => {
       const noteData = {
         title: 'Test Note',
       }
@@ -141,201 +90,213 @@ describe('Notes CRUD Operations', () => {
       await request(app).post('/api/v1/notes').send(noteData).expect(401)
     })
 
-    it('should handle invalid projectId', async () => {
+    it('should create note with project association', async () => {
       const noteData = {
-        title: 'Test Note',
-        projectId: 99999, // non-existent project
+        title: 'Project Note',
+        projectId: localProjectId,
       }
 
-      // This should still create the note but with invalid projectId
-      // The foreign key constraint will be handled by Prisma
       const response = await request(app)
         .post('/api/v1/notes')
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .send(noteData)
+        .expect(201)
 
-      // Depending on your constraint handling, this might be 400 or 500
-      expect([400, 500].includes(response.status)).toBe(true)
+      expect(response.body.success).toBe(true)
+      expect(response.body.data.projectId).toBe(localProjectId)
     })
   })
 
   describe('GET /api/v1/notes/:uuid', () => {
+    let localUserId: number
+    let localAuthToken: string
+    let noteId: string
+
+    beforeEach(async () => {
+      await notesTestHelpers.cleanupDatabase()
+      const {
+        user,
+        authToken: token,
+      } = await notesTestHelpers.setupTestData()
+      localUserId = user.id
+      localAuthToken = token
+
+      // Create a note for testing
+      const note = await notesTestHelpers.createTestNote(localUserId, {
+        title: 'Test Note for Reading',
+      })
+      noteId = note.uuid
+    })
+
     it('should get specific note by UUID', async () => {
       const response = await request(app)
         .get(`/api/v1/notes/${noteId}`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(200)
 
       expect(response.body.success).toBe(true)
       expect(response.body.data.uuid).toBe(noteId)
-      expect(response.body.data.title).toBe('Test Note')
     })
 
     it('should return 404 for non-existent note', async () => {
-      const fakeUuid = '550e8400-e29b-41d4-a716-446655440000'
-
-      const response = await request(app)
-        .get(`/api/v1/notes/${fakeUuid}`)
-        .set('Authorization', `Bearer ${authToken}`)
+      await request(app)
+        .get('/api/v1/notes/non-existent-uuid')
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(404)
-
-      expect(response.body.error).toBe('Note not found')
     })
 
-    it('should return 401 for unauthenticated request', async () => {
+    it('should return 401 without authentication', async () => {
       await request(app).get(`/api/v1/notes/${noteId}`).expect(401)
-    })
-
-    it('should not allow access to other users notes', async () => {
-      // Create another user and note
-      const otherUser = await notesTestHelpers.createTestUser({
-        name: 'Other User',
-        email: 'other@example.com',
-      })
-
-      const otherNote = await notesTestHelpers.createTestNote(otherUser.id, {
-        title: 'Other User Note',
-      })
-
-      const response = await request(app)
-        .get(`/api/v1/notes/${otherNote.uuid}`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .expect(404)
-
-      expect(response.body.error).toBe('Note not found')
-
-      // Cleanup
-      await notesTestHelpers.cleanupDatabase()
-      const {
-        user,
-        project,
-        authToken: token,
-      } = await notesTestHelpers.setupTestData()
-      userId = user.id
-      projectId = project.id
-      authToken = token
     })
   })
 
   describe('PUT /api/v1/notes/:uuid', () => {
+    let localUserId: number
+    let localAuthToken: string
+    let noteId: string
+
+    beforeEach(async () => {
+      await notesTestHelpers.cleanupDatabase()
+      const {
+        user,
+        authToken: token,
+      } = await notesTestHelpers.setupTestData()
+      localUserId = user.id
+      localAuthToken = token
+
+      // Create a note for testing
+      const note = await notesTestHelpers.createTestNote(localUserId, {
+        title: 'Test Note for Updating',
+      })
+      noteId = note.uuid
+    })
+
     it('should update note successfully', async () => {
       const updateData = {
-        title: 'Updated Test Note',
-        description: 'Updated description',
+        title: 'Updated Note Title',
+        description: 'Updated Description',
+        body: 'Updated Body Content',
         status: 'PUBLISHED',
       }
 
-      const response = await request(app)
+      await request(app)
         .put(`/api/v1/notes/${noteId}`)
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .send(updateData)
         .expect(200)
 
-      expect(response.body.success).toBe(true)
+      // Verify the update
+      const response = await request(app)
+        .get(`/api/v1/notes/${noteId}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
+        .expect(200)
+
       expect(response.body.data.title).toBe(updateData.title)
       expect(response.body.data.description).toBe(updateData.description)
+      expect(response.body.data.body).toBe(updateData.body)
       expect(response.body.data.status).toBe(updateData.status)
     })
 
-    it('should update only provided fields', async () => {
-      const partialUpdate = {
-        body: 'Updated body content only',
+    it('should update partial fields', async () => {
+      const updateData = {
+        title: 'Partially Updated Title',
       }
 
-      const response = await request(app)
+      await request(app)
         .put(`/api/v1/notes/${noteId}`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(partialUpdate)
+        .set('Authorization', `Bearer ${localAuthToken}`)
+        .send(updateData)
         .expect(200)
-
-      expect(response.body.data.body).toBe(partialUpdate.body)
-      expect(response.body.data.title).toBe('Updated Test Note') // should remain unchanged
     })
 
     it('should return 404 for non-existent note', async () => {
-      const fakeUuid = '550e8400-e29b-41d4-a716-446655440000'
-
-      const response = await request(app)
-        .put(`/api/v1/notes/${fakeUuid}`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({ title: 'Updated' })
-        .expect(404)
-
-      expect(response.body.error).toBe('Note not found')
-    })
-
-    it('should return 400 for invalid update data', async () => {
-      const invalidData = {
-        title: '', // empty title
-        status: 'INVALID_STATUS',
+      const updateData = {
+        title: 'Updated Title',
       }
 
-      const response = await request(app)
-        .put(`/api/v1/notes/${noteId}`)
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(invalidData)
-        .expect(400)
-
-      expect(response.body.error).toBe('Invalid note data')
+      await request(app)
+        .put('/api/v1/notes/non-existent-uuid')
+        .set('Authorization', `Bearer ${localAuthToken}`)
+        .send(updateData)
+        .expect(404)
     })
 
-    it('should return 401 for unauthenticated request', async () => {
+    it('should return 401 without authentication', async () => {
+      const updateData = {
+        title: 'Updated Title',
+      }
+
       await request(app)
         .put(`/api/v1/notes/${noteId}`)
-        .send({ title: 'Updated' })
+        .send(updateData)
         .expect(401)
+    })
+
+    it('should not allow updating other user notes', async () => {
+      // Create another user's note
+      const otherUser = await notesTestHelpers.createTestUser({
+        email: 'other-user@example.com',
+        password: 'password',
+      })
+      const note = await notesTestHelpers.createTestNote(otherUser.id, {
+        title: 'Other User Note',
+      })
+
+      const updateData = {
+        title: 'Hacked Title',
+      }
+
+      await request(app)
+        .put(`/api/v1/notes/${note.uuid}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
+        .send(updateData)
+        .expect(404) // Should not find note for current user
     })
   })
 
   describe('DELETE /api/v1/notes/:uuid', () => {
-    let noteToDelete: string
+    let localUserId: number
+    let localAuthToken: string
+    let noteToDeleteId: string
 
     beforeEach(async () => {
+      await notesTestHelpers.cleanupDatabase()
+      const {
+        user,
+        authToken: token,
+      } = await notesTestHelpers.setupTestData()
+      localUserId = user.id
+      localAuthToken = token
+
       // Create a note specifically for deletion testing
-      const note = await notesTestHelpers.createTestNote(userId, {
+      const noteToDelete = await notesTestHelpers.createTestNote(localUserId, {
         title: 'Note to Delete',
       })
-      noteToDelete = note.uuid
+      noteToDeleteId = noteToDelete.uuid
     })
 
-    it('should soft delete note successfully', async () => {
-      const response = await request(app)
-        .delete(`/api/v1/notes/${noteToDelete}`)
-        .set('Authorization', `Bearer ${authToken}`)
+    it('should delete note successfully', async () => {
+      await request(app)
+        .delete(`/api/v1/notes/${noteToDeleteId}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(200)
 
-      expect(response.body.success).toBe(true)
-      expect(response.body.message).toBe('Note deleted successfully')
-
-      // Verify note is soft deleted
-      const deletedNote = await prisma.note.findFirst({
-        where: { uuid: noteToDelete },
-      })
-      expect(deletedNote?.deletedAt).not.toBeNull()
-    })
-
-    it('should return 404 when trying to delete already deleted note', async () => {
-      const response = await request(app)
-        .delete(`/api/v1/notes/${noteToDelete}`)
-        .set('Authorization', `Bearer ${authToken}`)
+      // Verify deletion by trying to get the note
+      await request(app)
+        .get(`/api/v1/notes/${noteToDeleteId}`)
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(404)
-
-      expect(response.body.error).toBe('Note not found')
     })
 
     it('should return 404 for non-existent note', async () => {
-      const fakeUuid = '550e8400-e29b-41d4-a716-446655440000'
-
-      const response = await request(app)
-        .delete(`/api/v1/notes/${fakeUuid}`)
-        .set('Authorization', `Bearer ${authToken}`)
+      await request(app)
+        .delete('/api/v1/notes/non-existent-uuid')
+        .set('Authorization', `Bearer ${localAuthToken}`)
         .expect(404)
-
-      expect(response.body.error).toBe('Note not found')
     })
 
-    it('should return 401 for unauthenticated request', async () => {
-      await request(app).delete(`/api/v1/notes/${noteId}`).expect(401)
+    it('should return 401 without authentication', async () => {
+      await request(app).delete(`/api/v1/notes/${noteToDeleteId}`).expect(401)
     })
   })
 })

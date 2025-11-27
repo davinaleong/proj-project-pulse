@@ -42,11 +42,11 @@ Documenting the test suites and complete inventory of all test groups.
 - **Location**: `tests/v1/modules/auth/`
 - **Command**: `npm test -- tests/v1/modules/auth/`
 - **Files**:
-  - [ ] `auth.login.test.ts` - Login functionality
-  - [ ] `auth.password.test.ts` - Password operations
-  - [ ] `auth.register.test.ts` - Registration process
-  - [ ] `auth.tokens.test.ts` - Token management
-  - [ ] `auth.verification.test.ts` - Account verification
+  - [x] `auth.login.test.ts` - Login functionality
+  - [x] `auth.password.test.ts` - Password operations
+  - [x] `auth.register.test.ts` - Registration process
+  - [x] `auth.tokens.test.ts` - Token management
+  - [x] `auth.verification.test.ts` - Account verification
 
 #### Notes Module
 - **Location**: `tests/v1/modules/notes/`

@@ -144,7 +144,7 @@ describe('Auth Tokens', () => {
         .expect(401)
 
       expect(response.body.success).toBe(false)
-      expect(response.body.message).toBe('No access token provided')
+      expect(response.body.message).toBe('Access denied. No token provided.')
     })
   })
 })

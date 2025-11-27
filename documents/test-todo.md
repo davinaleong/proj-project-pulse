@@ -52,10 +52,11 @@ Documenting the test suites and complete inventory of all test groups.
 - **Location**: `tests/v1/modules/notes/`
 - **Command**: `npm test -- tests/v1/modules/notes/`
 - **Files**:
-  - [ ] `notes.crud.test.ts` - Create, Read, Update, Delete operations
-  - [ ] `notes.edge-cases.test.ts` - Edge case handling
-  - [ ] `notes.search.test.ts` - Search functionality
-  - [ ] `notes.security.test.ts` - Security validations
+  - [~] `notes.crud.test.ts` - Create, Read, Update, Delete operations (needs local test data pattern)
+  - [~] `notes.edge-cases.test.ts` - Edge case handling (needs local test data pattern) 
+  - [~] `notes.search.test.ts` - Search functionality (11/18 passing, needs response format fixes)
+  - [~] `notes.security.test.ts` - Security validations (needs generateMockAuthToken fix)
+  - [x] `notes.management.test.ts` - Note management operations (11/11 passing)
 
 #### Password Resets Module
 - **Location**: `tests/v1/modules/password-resets/`

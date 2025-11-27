@@ -55,7 +55,7 @@ describe('Notes Search & Filtering', () => {
         .expect(200)
 
       expect(
-        response.body.data.every((note: any) => note.status === 'PUBLISHED'),
+        response.body.data.notes.every((note: any) => note.status === 'PUBLISHED'),
       ).toBe(true)
     })
 
@@ -66,7 +66,7 @@ describe('Notes Search & Filtering', () => {
         .expect(200)
 
       expect(
-        response.body.data.every((note: any) => note.projectId === projectId),
+        response.body.data.notes.every((note: any) => note.projectId === projectId),
       ).toBe(true)
     })
 
@@ -104,8 +104,8 @@ describe('Notes Search & Filtering', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
 
-      expect(response.body.data.length).toBeGreaterThan(0)
-      const foundNote = response.body.data.find((note: any) =>
+      expect(response.body.data.notes.length).toBeGreaterThan(0)
+      const foundNote = response.body.data.notes.find((note: any) =>
         note.description?.toLowerCase().includes('description'),
       )
       expect(foundNote).toBeDefined()
@@ -130,8 +130,8 @@ describe('Notes Search & Filtering', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
 
-      expect(response.body.data).toEqual([])
-      expect(response.body.pagination.total).toBe(0)
+      expect(response.body.data.notes).toEqual([])
+      expect(response.body.data.pagination.total).toBe(0)
     })
 
     it('should combine multiple filters', async () => {
@@ -141,7 +141,7 @@ describe('Notes Search & Filtering', () => {
         .expect(200)
 
       expect(
-        response.body.data.every(
+        response.body.data.notes.every(
           (note: any) =>
             note.status === 'PUBLISHED' && note.projectId === projectId,
         ),
@@ -175,9 +175,9 @@ describe('Notes Search & Filtering', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
 
-      expect(response.body.pagination.page).toBe(1)
-      expect(response.body.pagination.limit).toBe(2)
-      expect(response.body.data.length).toBeLessThanOrEqual(2)
+      expect(response.body.data.pagination.page).toBe(1)
+      expect(response.body.data.pagination.limit).toBe(2)
+      expect(response.body.data.notes.length).toBeLessThanOrEqual(2)
     })
 
     it('should handle pagination with filters', async () => {
@@ -186,9 +186,9 @@ describe('Notes Search & Filtering', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
 
-      expect(response.body.pagination.page).toBe(1)
-      expect(response.body.pagination.limit).toBe(1)
-      expect(response.body.data.length).toBeLessThanOrEqual(1)
+      expect(response.body.data.pagination.page).toBe(1)
+      expect(response.body.data.pagination.limit).toBe(1)
+      expect(response.body.data.notes.length).toBeLessThanOrEqual(1)
 
       if (response.body.data.length > 0) {
         expect(response.body.data[0].status).toBe('DRAFT')
@@ -216,8 +216,8 @@ describe('Notes Search & Filtering', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
 
-      if (response.body.data.length > 1) {
-        const titles = response.body.data.map((note: any) => note.title)
+      if (response.body.data.notes.length > 1) {
+        const titles = response.body.data.notes.map((note: any) => note.title)
         const sortedTitles = [...titles].sort()
         expect(titles).toEqual(sortedTitles)
       }
@@ -264,11 +264,11 @@ describe('Notes Search & Filtering', () => {
 
       // All returned notes should belong to the authenticated user
       expect(
-        response.body.data.every((note: any) => note.userId === userId),
+        response.body.data.notes.every((note: any) => note.userId === userId),
       ).toBe(true)
 
       // Should not find the other user's note
-      const otherUserNote = response.body.data.find(
+      const otherUserNote = response.body.data.notes.find(
         (note: any) => note.title === 'Other User Note',
       )
       expect(otherUserNote).toBeUndefined()

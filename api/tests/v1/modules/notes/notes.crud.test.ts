@@ -21,6 +21,7 @@ describe('Notes CRUD Operations', () => {
 
   // Helper function to setup fresh test data for each test
   const setupFreshTestData = async () => {
+    await notesTestHelpers.cleanupDatabase()
     const {
       user,
       project,

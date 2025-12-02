@@ -1,35 +1,40 @@
-import searchClient from "./searchClient";
-import openAiClient, { deployment_name } from "./openAiClient";
-import env from "./env";
+// Frontend-only search with mock responses
+import config from "./env";
 
-export async function askQuestion(query: string) {
-  // 1. Retrieve relevant chunks from Azure AI Search
-  const results = await searchClient.search(query, {
-    top: 5,
-    queryType: "semantic",
-    semanticSearchOptions: {
-      configurationName: env.AZURE_SEMANTIC_CONFIG_NAME
-    },
-  });
+// Mock project knowledge base
+const mockKnowledgeBase = {
+  "tech stack": "This project uses Next.js 16 with React 19, TypeScript, and Tailwind CSS for a modern development experience.",
+  "database": "The full-stack version includes Prisma ORM with PostgreSQL for robust data management.",
+  "deployment": "This frontend-only version can be deployed to Vercel, Netlify, GitHub Pages, or any static hosting service.",
+  "testing": "The project includes Jest for unit testing and comprehensive test suites for API endpoints.",
+  "components": "We have a custom component library including Button, Flex, InteractiveTextarea, and ChatArea components.",
+  "architecture": "Built with Next.js App Router, TypeScript interfaces, and a modular component architecture.",
+  "styling": "Uses Tailwind CSS with custom primary (teal) and secondary (slate) color palettes."
+};
 
-  const docs = [];
-  for await (const r of results.results) docs.push(r.document);
-
-  // 2. Feed into GPT with grounding - following Microsoft Foundry pattern
-  const completion = await openAiClient.chat.completions.create({
-    messages: [
-      { role: "system", content: "You are a helpful Project Pulse AI assistant. Use the provided context to answer questions about projects, tech stacks, and development processes." },
-      {
-        role: "user",
-        content: `Use ONLY this dataset when answering:\n${JSON.stringify(
-          docs,
-          null,
-          2
-        )}\n\nUser question: ${query}`
-      }
-    ],
-    model: deployment_name,
-  });
-
-  return completion.choices[0].message?.content || "I couldn't generate a response. Please try again.";
+export async function askQuestion(query: string): Promise<string> {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, config.RESPONSE_DELAY_MS));
+  
+  // Simple keyword matching for mock responses
+  const lowercaseQuery = query.toLowerCase();
+  
+  // Check for specific topics
+  for (const [keyword, response] of Object.entries(mockKnowledgeBase)) {
+    if (lowercaseQuery.includes(keyword)) {
+      return `📋 **${keyword.charAt(0).toUpperCase() + keyword.slice(1)} Info:** ${response}`;
+    }
+  }
+  
+  // Default responses for common patterns
+  if (lowercaseQuery.includes('hello') || lowercaseQuery.includes('hi')) {
+    return "👋 Hello! I'm Project Pulse AI. I can help you learn about this project's tech stack, components, deployment options, and more. What would you like to know?";
+  }
+  
+  if (lowercaseQuery.includes('help')) {
+    return "🤖 I can help you with:\n\n• **Tech Stack** - Next.js, React, TypeScript\n• **Components** - Custom UI library\n• **Deployment** - Static hosting options\n• **Architecture** - Project structure\n\nJust ask me anything about the project!";
+  }
+  
+  // Generic helpful response
+  return `💭 I understand you're asking about "${query}". This is a demo version with mock responses. In the full version, I would search our knowledge base and provide detailed, contextual answers about the Project Pulse system.`;
 }

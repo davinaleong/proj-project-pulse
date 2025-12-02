@@ -1,44 +1,30 @@
-interface EnvConfig {
-  // Azure Search
-  AZURE_SEARCH_ENDPOINT: string;
-  AZURE_SEARCH_API_KEY: string;
-  AZURE_SEARCH_INDEX_NAME: string;
-  AZURE_SEMANTIC_CONFIG_NAME: string;
-  
-  // Azure OpenAI
-  AZURE_OPENAI_ENDPOINT: string;
-  AZURE_OPENAI_API_KEY: string;
-  AZURE_OPENAI_MODEL: string;
-  
-  // Application
+// Frontend-only configuration - no environment variables needed
+interface AppConfig {
+  // Application settings
   NODE_ENV: string;
+  APP_NAME: string;
+  VERSION: string;
+  
+  // Mock AI settings
+  MOCK_AI_ENABLED: boolean;
+  RESPONSE_DELAY_MS: number;
+  MAX_RESPONSE_LENGTH: number;
 }
 
-function getEnvVar(name: string, defaultValue?: string): string {
-  const value = process.env[name];
-  if (!value && !defaultValue) {
-    throw new Error(`Required environment variable ${name} is not set`);
-  }
-  return value || defaultValue!;
-}
-
-function loadEnvConfig(): EnvConfig {
+// Static configuration for frontend-only app
+function loadAppConfig(): AppConfig {
   return {
-    // Azure Search
-    AZURE_SEARCH_ENDPOINT: getEnvVar('AZURE_SEARCH_ENDPOINT'),
-    AZURE_SEARCH_API_KEY: getEnvVar('AZURE_SEARCH_API_KEY'),
-    AZURE_SEARCH_INDEX_NAME: getEnvVar('AZURE_SEARCH_INDEX_NAME', 'index-project-pulse'),
-    AZURE_SEMANTIC_CONFIG_NAME: getEnvVar('AZURE_SEMANTIC_CONFIG_NAME', 'default'),
-    
-    // Azure OpenAI
-    AZURE_OPENAI_ENDPOINT: getEnvVar('AZURE_OPENAI_ENDPOINT'),
-    AZURE_OPENAI_API_KEY: getEnvVar('AZURE_OPENAI_API_KEY'),
-    AZURE_OPENAI_MODEL: getEnvVar('AZURE_OPENAI_MODEL', 'gpt-4o-mini'),
-    
     // Application
-    NODE_ENV: getEnvVar('NODE_ENV', 'development'),
+    NODE_ENV: 'production', // Always production for static export
+    APP_NAME: 'Project Pulse AI',
+    VERSION: '1.0.0',
+    
+    // Mock AI configuration
+    MOCK_AI_ENABLED: true,
+    RESPONSE_DELAY_MS: 1500, // Simulate API response time
+    MAX_RESPONSE_LENGTH: 500, // Limit response length
   };
 }
 
-export const env = loadEnvConfig();
-export default env;
+export const config = loadAppConfig();
+export default config;

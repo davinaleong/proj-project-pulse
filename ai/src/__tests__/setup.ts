@@ -1,23 +1,21 @@
-// Jest setup file
+// Jest setup file for frontend-only app
 import { jest } from '@jest/globals';
 
-// Mock environment variables for testing
-process.env.AZURE_SEARCH_ENDPOINT = 'https://test-search.search.windows.net';
-process.env.AZURE_SEARCH_API_KEY = 'test-key';
-process.env.AZURE_SEARCH_INDEX_NAME = 'test-index';
-process.env.AZURE_SEMANTIC_CONFIG_NAME = 'test-config';
-process.env.AZURE_OPENAI_ENDPOINT = 'https://test-openai.openai.azure.com/';
-process.env.AZURE_OPENAI_API_KEY = 'test-openai-key';
-process.env.AZURE_OPENAI_MODEL = 'gpt-4o-mini';
+// Frontend-only test environment - no Azure dependencies
 process.env.NODE_ENV = 'test';
 
-// Mock Azure Search SDK
-jest.mock('@azure/search-documents', () => ({
-  SearchClient: jest.fn(),
-  AzureKeyCredential: jest.fn(),
-}));
+// Mock global fetch for any remaining API calls
+if (typeof global.fetch === 'undefined') {
+  global.fetch = jest.fn(() =>
+    Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve({ message: 'Mock response' }),
+    })
+  ) as jest.Mock;
+}
 
-// Mock OpenAI SDK
+// Mock any remaining external dependencies (no longer needed)
+// All services are now mocked internally for frontend-only operation
 jest.mock('openai', () => ({
   __esModule: true,
   default: jest.fn(),

@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:search": "npx tsx src/app/scripts/test-search.ts",
+    "test:search:interactive": "npx tsx src/app/scripts/test-search.ts --interactive",
+    "test:search:single": "npx tsx src/app/scripts/test-search.ts --single"
   },
   "dependencies": {
     "@azure/search-documents": "^12.2.0",
@@ -16,13 +22,17 @@
     "react-dom": "19.2.0"
   },
   "devDependencies": {
+    "@jest/globals": "^30.2.0",
     "@tailwindcss/postcss": "^4",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.6",
+    "jest": "^30.2.0",
     "tailwindcss": "^4",
+    "ts-jest": "^29.4.6",
     "typescript": "^5"
   }
 }

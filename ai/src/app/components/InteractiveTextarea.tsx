@@ -7,7 +7,9 @@ type InteractiveTextareaProps = {
   placeholder?: string;
   maxLength?: number;
   rows?: number;
+  value?: string;
   onChangeText?: (value: string) => void;
+  onKeyPress?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
 };
 
 export default function InteractiveTextarea({
@@ -15,13 +17,18 @@ export default function InteractiveTextarea({
   placeholder = "Type something...",
   maxLength = 500,
   rows = 5,
+  value: externalValue,
   onChangeText,
+  onKeyPress,
 }: InteractiveTextareaProps) {
-  const [value, setValue] = useState("");
+  const [internalValue, setInternalValue] = useState("");
+  const value = externalValue !== undefined ? externalValue : internalValue;
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value;
-    setValue(newValue);
+    if (externalValue === undefined) {
+      setInternalValue(newValue);
+    }
     if (onChangeText) onChangeText(newValue);
   };
 
@@ -38,6 +45,7 @@ export default function InteractiveTextarea({
         name="input-interactive-textarea"
         value={value}
         onChange={handleChange}
+        onKeyPress={onKeyPress}
         placeholder={placeholder}
         rows={rows}
         maxLength={maxLength}

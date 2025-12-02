@@ -1,6 +1,7 @@
+"use client"
+
 import Link from 'next/link';
 import Header from './components/Header'
-import StaticButton from './components/StaticButton'
 
 export default function Home() {
   return (
@@ -18,7 +19,6 @@ export default function Home() {
         </ul>
       </nav>
 
-      <StaticButton href="#" label="Test"/>
     </div>
   );
 }

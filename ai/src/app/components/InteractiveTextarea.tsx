@@ -41,7 +41,7 @@ export default function InteractiveTextarea({
         placeholder={placeholder}
         rows={rows}
         maxLength={maxLength}
-        className="block w-full p-3 rounded-sm border border-gray-300 bg-white resize-y outline-none focus:ring-2 focus:ring-ppai-teal-500 focus:border-ppai-teal-500"
+        className="block w-full min-h-[2ch] p-2 rounded-sm bg-white resize-y outline-none focus:ring-2 focus:ring-ppai-teal-500 focus:border-ppai-teal-500"
       />
 
       <div className="text-xs flex justify-between text-gray-500">

@@ -3,7 +3,6 @@ interface AiChatBubbleProps {
   className?: string
 }
 
-
 export default function AiChatBubble({
     children,
     className = ""

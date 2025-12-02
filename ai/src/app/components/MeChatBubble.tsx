@@ -3,7 +3,6 @@ interface MeChatBubbleProps {
   className?: string
 }
 
-
 export default function MeChatBubble({
     children,
     className = ""

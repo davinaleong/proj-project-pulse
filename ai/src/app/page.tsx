@@ -1,10 +1,11 @@
 import Link from 'next/link';
+import Header from './components/Header'
 
 export default function Home() {
   return (
-    <div>
-      <h1>Project Pulse AI</h1>
-
+    <div className="font-sans bg-ppai-slate-50 text-ppai-slate-900 min-h-screen p-4">
+      <Header />
+      
       <nav>
         <ul>
           <li>

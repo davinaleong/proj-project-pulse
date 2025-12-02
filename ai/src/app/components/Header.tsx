@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 
-import Flex from "./Flex";
+import Nav from "./Nav";
 import StaticButton from "./StaticButton";
 
 import Logo from './../assets/images/logo.svg';
@@ -16,11 +16,11 @@ export default function Header() {
           </h1>
         </Link>
 
-        <Flex justifyContent="center">
+        <Nav justifyContent="center">
           <StaticButton href="/">Home</StaticButton>
           <StaticButton href="/chatbot">Chatbot</StaticButton>
           <StaticButton href="/dashboard">Dashboard</StaticButton>
-        </Flex>
+        </Nav>
       </header>
     )
 }

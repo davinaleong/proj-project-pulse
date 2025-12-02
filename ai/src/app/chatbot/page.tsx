@@ -21,7 +21,7 @@ export default function Chatbot() {
        </ChatArea>
        <InteractiveTextarea
         label="Notes about Project Pulse AI"
-        placeholder="Write your thoughts here..."
+        placeholder="What would you like to know about your projects?"
         rows={1}
         maxLength={300}
         onChangeText={(val) => {

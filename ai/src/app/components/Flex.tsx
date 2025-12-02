@@ -1,12 +1,12 @@
 interface FlexProps {
   children: React.ReactNode;
-  alignItems?: 'start' | 'center' | 'end' | 'stretch' | 'baseline';
+  justifyContent?: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly';
 }
 
-export default function Flex({ children, alignItems = 'start' }: FlexProps) {
-    const alignClass = `items-${alignItems}`;
+export default function Flex({ children, justifyContent = 'start' }: FlexProps) {
+    const justifyClass = `justify-${justifyContent}`;
     
     return (
-        <div className={`flex gap-2 flex-wrap ${alignClass}`}>{children}</div>
+        <div className={`flex gap-2 flex-wrap ${justifyClass}`}>{children}</div>
     )
 }

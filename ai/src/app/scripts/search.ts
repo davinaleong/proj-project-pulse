@@ -1,12 +1,15 @@
 import searchClient from "./searchClient";
 import openAiClient from "./openAiClient";
+import env from "./env";
 
 export async function askQuestion(query: string) {
   // 1. Retrieve relevant chunks
   const results = await searchClient.search(query, {
     top: 5,
     queryType: "semantic",
-    semanticConfiguration: "default"
+    semanticSearchOptions: {
+      configurationName: env.AZURE_SEMANTIC_CONFIG_NAME
+    },
   });
 
   const docs = [];
@@ -14,7 +17,7 @@ export async function askQuestion(query: string) {
 
   // 2. Feed into GPT with grounding
   const completion = await openAiClient.chat.completions.create({
-    model: "gpt-4o-mini", // or your Azure model
+    model: env.AZURE_OPENAI_MODEL,
     messages: [
       { role: "system", content: "You are a helpful assistant." },
       {

@@ -1,9 +1,9 @@
 import searchClient from "./searchClient";
-import openAiClient from "./openAiClient";
+import openAiClient, { deployment_name } from "./openAiClient";
 import env from "./env";
 
 export async function askQuestion(query: string) {
-  // 1. Retrieve relevant chunks
+  // 1. Retrieve relevant chunks from Azure AI Search
   const results = await searchClient.search(query, {
     top: 5,
     queryType: "semantic",
@@ -15,11 +15,10 @@ export async function askQuestion(query: string) {
   const docs = [];
   for await (const r of results.results) docs.push(r.document);
 
-  // 2. Feed into GPT with grounding
+  // 2. Feed into GPT with grounding - following Microsoft Foundry pattern
   const completion = await openAiClient.chat.completions.create({
-    model: env.AZURE_OPENAI_MODEL,
     messages: [
-      { role: "system", content: "You are a helpful assistant." },
+      { role: "system", content: "You are a helpful Project Pulse AI assistant. Use the provided context to answer questions about projects, tech stacks, and development processes." },
       {
         role: "user",
         content: `Use ONLY this dataset when answering:\n${JSON.stringify(
@@ -28,8 +27,9 @@ export async function askQuestion(query: string) {
           2
         )}\n\nUser question: ${query}`
       }
-    ]
+    ],
+    model: deployment_name,
   });
 
-  return completion.choices[0].message.content;
+  return completion.choices[0].message?.content || "I couldn't generate a response. Please try again.";
 }

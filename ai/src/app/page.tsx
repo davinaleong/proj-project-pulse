@@ -14,7 +14,7 @@ export default function Home() {
         </div>
 
         <footer className="text-center flow">
-          <p className="text-sm">Project Pulse AI &copy; Davina Leong, 2025. Powered by <Link href="https://azure.microsoft.com/en-us/services/cognitive-search/" target="_blank">Azure AI Search</Link> and <Link href="https://azure.microsoft.com/en-us/products/ai-foundry/models/openai" target="_blank">Open AI</Link>.</p>
+          <p className="text-sm">Project Pulse AI &copy; Davina Leong, 2025. Powered by <Link href="https://azure.microsoft.com/en-us/services/cognitive-search/" target="_blank">Azure AI Search</Link> and <Link href="https://azure.microsoft.com/en-us/products/ai-foundry/models/openai" target="_blank">Azure Open AI</Link>.</p>
         </footer>
       </Container>
     </div>

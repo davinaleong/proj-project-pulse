@@ -1,14 +1,14 @@
 import Link from "next/link";
 
 interface StaticButtonProps {
-    label: string;
-    href?: string;
+  children: React.ReactNode;
+  href?: string;
   textColor?: string;
   bgColor?: string;
 }
 
 export default function StaticButton({
-  label,
+  children,
   href = "#",
   textColor = "text-white",
   bgColor = "bg-gray-800",
@@ -17,13 +17,13 @@ export default function StaticButton({
         <Link
             href={href}
             className={`
-            inline-block px-4 py-2 rounded-sm 
+            inline-flex gap-2 items-center px-4 py-2 rounded-sm 
             font-medium
             ${textColor} ${bgColor}
             hover:opacity-50
             `}
         >
-            {label}
+            {children}
         </Link>
     )
 }

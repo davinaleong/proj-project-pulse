@@ -1,6 +1,7 @@
 "use client"
 
 import Main from './../components/Main'
+import MeChatBubble from "./../components/MeChatBubble"
 import InteractiveTextarea from "./../components/InteractiveTextarea"
 import Button from "./../components/Button"
 
@@ -8,8 +9,16 @@ const handleSend = () => console.log("Send Clicked")
 
 export default function Chatbot() {
   return (
-    <Main className="grid gap-1 grid-rows-[1fr_auto] grid-cols-[1fr_auto] items-start">
-       <div className="col-span-2">Chat Bubbles</div>
+    <Main className="grid gap-4 grid-rows-[1fr_auto] grid-cols-[1fr_auto] items-start">
+       <div className="h-full col-span-2 flex flex-col justify-end gap-2">
+        <div className="max-w-[60ch] p-2 rounded-sm text-slate-900 bg-white self-start">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vulputate, nibh quis feugiat varius, augue libero pellentesque justo, non tempor lorem lacus vel risus. Curabitur viverra lacus vel tincidunt posuere. Integer ut ultricies neque, non hendrerit tortor.
+        </div>
+
+        <MeChatBubble>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse vulputate, nibh quis feugiat varius, augue libero pellentesque justo, non tempor lorem lacus vel risus. Curabitur viverra lacus vel tincidunt posuere. Integer ut ultricies neque, non hendrerit tortor.
+        </MeChatBubble>
+       </div>
        <InteractiveTextarea
         label="Notes about Project Pulse AI"
         placeholder="Write your thoughts here..."

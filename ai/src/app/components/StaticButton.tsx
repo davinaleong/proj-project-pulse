@@ -17,7 +17,7 @@ export default function StaticButton({
         <Link
             href={href}
             className={`
-            inline-flex gap-2 items-center px-4 py-2 rounded-sm 
+            button inline-flex gap-2 items-center px-4 py-2 rounded-sm 
             font-medium
             ${textColor} ${bgColor}
             hover:opacity-50

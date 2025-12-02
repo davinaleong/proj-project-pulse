@@ -73,40 +73,44 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.button {
+  cursor: pointer;
+}
+
 .flow > * + * {
   margin-top: theme('spacing.4');
 }
 
-a {
+.anchor {
   color: var(--color-ppai-teal-600);
   text-decoration: none;
   transition: color 0.2s ease-in-out;
 }
 
-a:hover {
+.anchor:hover {
   color: var(--color-ppai-teal-700);
   text-decoration: underline;
 }
 
-a:focus {
+.anchor:focus {
   outline: 2px solid var(--color-ppai-teal-500);
   outline-offset: 2px;
 }
 
-a:visited {
+.anchor:visited {
   color: var(--color-ppai-slate-600);
 }
 
 @media (prefers-color-scheme: dark) {
-  a {
+  .anchor {
     color: var(--color-ppai-teal-400);
   }
   
-  a:hover {
+  .anchor:hover {
     color: var(--color-ppai-teal-300);
   }
   
-  a:visited {
+  .anchor:visited {
     color: var(--color-ppai-slate-400);
   }
 }

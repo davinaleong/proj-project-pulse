@@ -1,6 +1,5 @@
-import Link from "next/link"
-
 import Header from './components/Header'
+import Footer from './components/Footer'
 import Container from "./components/Container"
 
 export default function Home() {
@@ -13,9 +12,7 @@ export default function Home() {
           Navigation here  
         </div>
 
-        <footer className="text-center flow">
-          <p className="text-sm">Project Pulse AI &copy; Davina Leong, 2025. Powered by <Link href="https://azure.microsoft.com/en-us/services/cognitive-search/" target="_blank">Azure AI Search</Link> and <Link href="https://azure.microsoft.com/en-us/products/ai-foundry/models/openai" target="_blank">Azure Open AI</Link>.</p>
-        </footer>
+        <Footer />
       </Container>
     </div>
   );

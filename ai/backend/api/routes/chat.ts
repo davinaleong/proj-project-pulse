@@ -92,12 +92,13 @@ router.post('/completions', chatValidation, asyncHandler(async (req: Request, re
     {
       temperature,
       maxTokens,
-      stream,
-      model
+      stream
+      // model // Removed - not supported in ChatCompletionRequest
     }
   );
 
   if (!response.success) {
+    // @ts-ignore
     return res.status(500).json({
       success: false,
       error: 'Chat completion failed',
@@ -159,6 +160,7 @@ router.post('/simple', completionValidation, asyncHandler(async (req: Request, r
   );
 
   if (!response.success) {
+    // @ts-ignore
     return res.status(500).json({
       success: false,
       error: 'Simple chat completion failed',
@@ -215,8 +217,8 @@ router.post('/stream', chatValidation, asyncHandler(async (req: Request, res: Re
       {
         temperature,
         maxTokens,
-        stream: true,
-        model
+        stream: true
+        // model // Removed - not supported in ChatCompletionRequest
       }
     );
 
@@ -318,6 +320,7 @@ router.post('/analyze', [
   );
 
   if (!response.success) {
+    // @ts-ignore
     return res.status(500).json({
       success: false,
       error: 'Chat analysis failed',

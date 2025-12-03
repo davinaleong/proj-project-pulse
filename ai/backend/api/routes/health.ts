@@ -52,7 +52,9 @@ router.get('/', healthQueryValidation, asyncHandler(async (req: Request, res: Re
           service,
           metrics,
           status: metrics && typeof metrics === 'object' && 'uptime' in metrics
-            ? metrics.uptime > 95 ? 'healthy' : metrics.uptime > 70 ? 'degraded' : 'unhealthy'
+            ? (typeof metrics.uptime === 'number' ? 
+                (metrics.uptime > 95 ? 'healthy' : metrics.uptime > 70 ? 'degraded' : 'unhealthy') : 
+                'unknown') 
             : 'unknown'
         },
         metadata: {

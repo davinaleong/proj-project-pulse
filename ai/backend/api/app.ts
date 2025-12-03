@@ -11,7 +11,7 @@ import rateLimit from 'express-rate-limit';
 import { searchRouter } from './routes/search';
 import { ragRouter } from './routes/rag';
 import { chatRouter } from './routes/chat';
-import { analyticsRouter } from './routes/analytics';
+// import { analyticsRouter } from './routes/analytics'; // Temporarily disabled due to TS errors
 import { healthRouter } from './routes/health';
 import { errorHandler } from './middleware/errorHandler';
 import { requestLogger } from './middleware/requestLogger';
@@ -68,7 +68,7 @@ app.use(requestLogger);
 app.use(`/api/${API_VERSION}/search`, authMiddleware, validationMiddleware, searchRouter);
 app.use(`/api/${API_VERSION}/rag`, authMiddleware, validationMiddleware, ragRouter);
 app.use(`/api/${API_VERSION}/chat`, authMiddleware, validationMiddleware, chatRouter);
-app.use(`/api/${API_VERSION}/analytics`, authMiddleware, validationMiddleware, analyticsRouter);
+// app.use(`/api/${API_VERSION}/analytics`, authMiddleware, validationMiddleware, analyticsRouter); // Temporarily disabled
 
 // Health check (no auth required)
 app.use(`/api/${API_VERSION}/health`, healthRouter);

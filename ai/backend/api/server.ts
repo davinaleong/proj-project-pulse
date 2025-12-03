@@ -3,9 +3,13 @@
  * Main server entry point with proper initialization and shutdown handling
  */
 
+import dotenv from 'dotenv';
 import express from 'express';
 import { createServer } from 'http';
 import app from './app';
+
+// Load environment variables
+dotenv.config();
 import { aiServiceOrchestrator } from '../orchestrator/aiOrchestrator';
 
 const PORT = process.env.PORT || 3001;

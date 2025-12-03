@@ -31,7 +31,7 @@ async function startServer(): Promise<void> {
     console.log(`📊 AI Services Status: ${healthStatus.overall}`);
     
     // Start HTTP server
-    server.listen(PORT, HOST, () => {
+    server.listen(PORT, Number(HOST), () => {
       console.log(`✅ AI Backend Server running on http://${HOST}:${PORT}`);
       console.log(`📚 API Documentation: http://${HOST}:${PORT}/api/v1`);
       console.log(`🏥 Health Check: http://${HOST}:${PORT}/api/v1/health`);

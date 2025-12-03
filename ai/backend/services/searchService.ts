@@ -1,19 +1,18 @@
 /**
  * Azure AI Search Service Client
  * 
- * Implements API key authentication:
- * - Uses API key authentication to Azure AI Search
- * - Implements retry logic with exponential backoff
- * - Comprehensive error handling and logging
- * - Type-safe search operations
- * - Performance optimizations
+ * Updated to match actual search index schema:
+ * - id: string (key, searchable, filterable, sortable, facetable)  
+ * - title: string (searchable, retrievable)
+ * - content: string (searchable, retrievable, standard.lucene analyzer)
+ * - Semantic search configuration available
+ * - No vector/embedding fields in current schema
  */
 
 import { 
   SearchClient, 
   SearchIndexClient,
   SearchDocumentsResult, 
-  VectorQuery, 
   SearchOptions,
   SearchResult,
   AzureKeyCredential
@@ -23,17 +22,12 @@ import { azureConfig } from '../config/environment';
 
 /**
  * Document interface for Project Pulse search index
- * Customize this based on your actual search index schema
+ * Based on actual Azure Search index schema
  */
 export interface ProjectDocument {
-  id: string;
-  title: string;
-  content: string;
-  description?: string;
-  category?: string;
-  tags?: string[];
-  lastModified?: string;
-  embedding?: number[]; // Vector field for semantic search
+  id: string;          // Key field, searchable, filterable, sortable, facetable
+  title: string;       // Searchable, retrievable
+  content: string;     // Searchable, retrievable, uses standard.lucene analyzer
   '@search.score'?: number;
   '@search.reranker_score'?: number;
 }
@@ -50,8 +44,6 @@ export interface SearchRequest {
   select?: string[];
   facets?: string[];
   enableSemanticSearch?: boolean;
-  enableVectorSearch?: boolean;
-  vectorQuery?: number[];
 }
 
 /**
@@ -101,33 +93,55 @@ export class AzureSearchService {
   }
 
   /**
-   * Performs a comprehensive search with semantic and vector capabilities
-   * @param request Search request parameters
-   * @returns Enhanced search results
+   * Performs text-based search with optional semantic ranking
+   * @param query Search query string or SearchRequest object
+   * @param top Number of results to return (1-100)
+   * @param enableSemantic Whether to use semantic search capabilities
+   * @returns Search results with relevance scoring
    */
-  async search(request: SearchRequest): Promise<SearchResponse> {
-    const startTime = Date.now();
-    
+  async search(
+    query: string | SearchRequest,
+    top: number = 10,
+    enableSemantic: boolean = true
+  ): Promise<SearchResponse<ProjectDocument>> {
     try {
-      console.log(`🔍 Executing search query: "${request.query}"`);
+      // Handle SearchRequest object or string query
+      if (typeof query === 'object') {
+        return this.advancedSearch(query);
+      }
       
-      const searchOptions = this.buildSearchOptions(request);
+      console.log(`🔍 Executing ${enableSemantic ? 'semantic' : 'basic'} search: "${query}"`);
       
-      const results: SearchDocumentsResult<ProjectDocument> = await this.executeWithRetry(
-        () => this.searchClient.search(request.query, searchOptions)
+      const searchOptions: SearchOptions<ProjectDocument> = {
+        top: Math.min(Math.max(top, 1), 100),
+        select: ['id', 'title', 'content'] as any,
+        includeTotalCount: true
+      };
+
+      // Enable semantic search if available and requested
+      if (enableSemantic && this.config.semanticConfigName) {
+        (searchOptions as any).queryType = 'semantic';
+        (searchOptions as any).semanticSearchOptions = {
+          configurationName: this.config.semanticConfigName,
+          captions: { captionType: 'extractive' },
+          answers: { answerType: 'extractive', count: 3 }
+        };
+      }
+
+      const results = await this.executeWithRetry(
+        () => this.searchClient.search(query, searchOptions)
       );
 
-      const executionTime = Date.now() - startTime;
+      const searchResults = await this.collectResults(results);
       
-      console.log(`✅ Search completed in ${executionTime}ms, found ${results.count || 'unknown'} results`);
-
+      console.log(`✅ Search completed: ${searchResults.length} results found`);
+      
       return {
-        results: await this.collectResults(results),
+        results: searchResults,
         count: results.count,
-        facets: results.facets,
-        semanticAnswers: results.answers,
-        coverage: results.coverage,
-        executionTime
+        semanticAnswers: (results as any).semanticPartialResponseType ? [] : undefined,
+        coverage: 100,
+        executionTime: performance.now()
       };
       
     } catch (error) {
@@ -137,40 +151,51 @@ export class AzureSearchService {
   }
 
   /**
-   * Performs semantic search with AI-powered ranking and captions
+   * Performs advanced semantic search with enhanced understanding
    * @param query Natural language query
    * @param top Number of results to return
-   * @returns Semantic search results with captions and answers
+   * @returns Semantically ranked search results
    */
-  async semanticSearch(query: string, top: number = 5): Promise<SearchResponse> {
+  async semanticSearch(
+    query: string,
+    top: number = 10
+  ): Promise<SearchResponse<ProjectDocument>> {
     try {
       console.log(`🧠 Executing semantic search: "${query}"`);
       
+      if (!this.config.semanticConfigName) {
+        console.warn('⚠️ Semantic configuration not available, falling back to basic search');
+        return this.search(query, top, false);
+      }
+
       const searchOptions: SearchOptions<ProjectDocument> = {
-        top,
-        queryType: 'semantic',
-        semanticSearchOptions: {
-          configurationName: this.config.semanticConfigName,
-          captions: {
-            captionType: 'extractive',
-            highlight: true
-          },
-          answers: {
-            answerType: 'extractive'
-          }
-        },
-        select: ['id', 'title', 'content', 'description', 'category', 'tags']
+        top: Math.min(Math.max(top, 1), 100),
+        select: ['id', 'title', 'content'] as any,
+        includeTotalCount: true
+      };
+
+      // Enable semantic search
+      (searchOptions as any).queryType = 'semantic';
+      (searchOptions as any).semanticSearchOptions = {
+        configurationName: this.config.semanticConfigName,
+        captions: { captionType: 'extractive' },
+        answers: { answerType: 'extractive', count: 3 }
       };
 
       const results = await this.executeWithRetry(
         () => this.searchClient.search(query, searchOptions)
       );
 
+      const searchResults = await this.collectResults(results);
+      
+      console.log(`✅ Semantic search completed: ${searchResults.length} results found`);
+      
       return {
-        results: await this.collectResults(results),
+        results: searchResults,
         count: results.count,
-        semanticAnswers: results.answers,
-        coverage: results.coverage
+        semanticAnswers: (results as any).answers || [],
+        coverage: 100,
+        executionTime: performance.now()
       };
       
     } catch (error) {
@@ -180,218 +205,201 @@ export class AzureSearchService {
   }
 
   /**
-   * Performs vector similarity search using embeddings
-   * @param vectorQuery Embedding vector for similarity search
-   * @param k Number of nearest neighbors to return
-   * @returns Vector search results
+   * Performs advanced search with full customization
+   * @param request Comprehensive search request
+   * @returns Detailed search response
    */
-  async vectorSearch(vectorQuery: number[], k: number = 5): Promise<SearchResponse> {
+  async advancedSearch(request: SearchRequest): Promise<SearchResponse<ProjectDocument>> {
     try {
-      console.log(`🎯 Executing vector search with ${vectorQuery.length}-dimensional vector`);
-      
-      const vector: VectorQuery<ProjectDocument> = {
-        vector: vectorQuery,
-        kNearestNeighborsCount: k,
-        fields: ['embedding'], // Adjust based on your vector field name
-        kind: 'vector',
-        exhaustive: true
-      };
-
-      const searchOptions: SearchOptions<ProjectDocument> = {
-        top: k,
-        vectorSearchOptions: {
-          queries: [vector],
-          filterMode: 'postFilter'
-        },
-        select: ['id', 'title', 'content', 'description', 'category']
-      };
-
-      const results = await this.executeWithRetry(
-        () => this.searchClient.search('*', searchOptions)
-      );
-
-      return {
-        results: await this.collectResults(results),
-        count: results.count
-      };
-      
-    } catch (error) {
-      console.error('❌ Vector search failed:', error);
-      throw this.enhanceError(error, 'vector search');
-    }
-  }
-
-  /**
-   * Performs hybrid search combining keyword, semantic, and vector search
-   * @param query Text query
-   * @param vectorQuery Optional embedding vector
-   * @param top Number of results
-   * @returns Hybrid search results
-   */
-  async hybridSearch(query: string, vectorQuery?: number[], top: number = 5): Promise<SearchResponse> {
-    try {
-      console.log(`🔄 Executing hybrid search: "${query}"`);
+      console.log(`🔧 Executing advanced search: "${request.query}"`);
       
       const searchOptions: SearchOptions<ProjectDocument> = {
-        top,
-        queryType: 'semantic',
-        semanticSearchOptions: {
+        top: request.top || 10,
+        skip: request.skip || 0,
+        filter: request.filters,
+        orderBy: request.orderBy,
+        select: (request.select || ['id', 'title', 'content']) as any,
+        facets: request.facets,
+        includeTotalCount: true
+      };
+
+      // Enable semantic search if requested and available
+      if (request.enableSemanticSearch && this.config.semanticConfigName) {
+        (searchOptions as any).queryType = 'semantic';
+        (searchOptions as any).semanticSearchOptions = {
           configurationName: this.config.semanticConfigName,
-          captions: { captionType: 'extractive' }
-        },
-        select: ['id', 'title', 'content', 'description', 'category', 'tags']
-      };
-
-      // Add vector search if embedding provided
-      if (vectorQuery && vectorQuery.length > 0) {
-        const vector: VectorQuery<ProjectDocument> = {
-          vector: vectorQuery,
-          kNearestNeighborsCount: top,
-          fields: ['embedding'],
-          kind: 'vector',
-          exhaustive: true
-        };
-
-        searchOptions.vectorSearchOptions = {
-          queries: [vector],
-          filterMode: 'postFilter'
+          captions: { captionType: 'extractive' },
+          answers: { answerType: 'extractive', count: 3 }
         };
       }
 
       const results = await this.executeWithRetry(
-        () => this.searchClient.search(query, searchOptions)
+        () => this.searchClient.search(request.query, searchOptions)
       );
+
+      const searchResults = await this.collectResults(results);
+      
+      console.log(`✅ Advanced search completed: ${searchResults.length} results found`);
+      
+      return {
+        results: searchResults,
+        count: results.count,
+        facets: (results as any).facets,
+        semanticAnswers: (results as any).answers || [],
+        coverage: 100,
+        executionTime: performance.now()
+      };
+      
+    } catch (error) {
+      console.error('❌ Advanced search failed:', error);
+      throw this.enhanceError(error, 'advanced search');
+    }
+  }
+
+  /**
+   * Hybrid search method for RAG compatibility
+   * @param query Search query
+   * @param vectorQuery Vector query (ignored in current schema)
+   * @param maxResults Maximum results to return
+   * @returns Search results
+   */
+  async hybridSearch(
+    query: string,
+    vectorQuery?: number[],
+    maxResults: number = 10
+  ): Promise<SearchResponse<ProjectDocument>> {
+    // Since we don't have vector fields, just perform semantic search
+    console.log(`🔀 Hybrid search requested, performing semantic search instead`);
+    if (vectorQuery) {
+      console.warn('Vector query provided but no embedding field available');
+    }
+    return this.semanticSearch(query, maxResults);
+  }
+
+  /**
+   * Get search suggestions for autocomplete
+   * @param query Partial search query
+   * @param maxSuggestions Maximum number of suggestions
+   * @returns Array of suggested queries
+   */
+  async getSuggestions(query: string, maxSuggestions: number = 5): Promise<string[]> {
+    try {
+      console.log(`💡 Getting suggestions for: "${query}"`);
+      
+      // Since we don't have a suggester configured in the schema,
+      // provide basic suggestions based on common search patterns
+      const staticSuggestions = [
+        'project management best practices',
+        'team collaboration tools',
+        'task tracking methods', 
+        'productivity improvement',
+        'workflow optimization',
+        'project planning',
+        'team communication',
+        'deadline management',
+        'resource allocation',
+        'performance metrics'
+      ];
+
+      const filtered = staticSuggestions
+        .filter(suggestion => 
+          !query || suggestion.toLowerCase().includes(query.toLowerCase())
+        )
+        .slice(0, maxSuggestions);
+
+      console.log(`✅ Generated ${filtered.length} suggestions`);
+      return filtered;
+      
+    } catch (error) {
+      console.error('❌ Suggestions failed:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get search service status and health (alias for healthCheck)
+   * @returns Service health information
+   */
+  async healthCheck(): Promise<{
+    status: 'healthy' | 'degraded' | 'unhealthy';
+    indexName: string;
+    documentCount?: number;
+    lastChecked: string;
+  }> {
+    return this.getServiceStatus();
+  }
+
+  /**
+   * Get search service status and health
+   * @returns Service health information
+   */
+  async getServiceStatus(): Promise<{
+    status: 'healthy' | 'degraded' | 'unhealthy';
+    indexName: string;
+    documentCount?: number;
+    lastChecked: string;
+  }> {
+    try {
+      // Try a simple search to test connectivity
+      const testResult = await this.searchClient.search('*', { top: 1 });
+      const count = testResult.count;
 
       return {
-        results: await this.collectResults(results),
-        count: results.count,
-        semanticAnswers: results.answers
+        status: 'healthy',
+        indexName: this.config.indexName,
+        documentCount: count,
+        lastChecked: new Date().toISOString()
       };
       
     } catch (error) {
-      console.error('❌ Hybrid search failed:', error);
-      throw this.enhanceError(error, 'hybrid search');
+      console.error('❌ Service health check failed:', error);
+      return {
+        status: 'unhealthy',
+        indexName: this.config.indexName,
+        lastChecked: new Date().toISOString()
+      };
     }
   }
 
   /**
-   * Gets a specific document by ID
-   * @param documentId The document ID to retrieve
-   * @returns The document or null if not found
+   * Utility method to collect all results from paginated response
+   * @param results Search documents result
+   * @returns Array of search results
    */
-  async getDocument(documentId: string): Promise<ProjectDocument | null> {
-    try {
-      console.log(`📄 Retrieving document: ${documentId}`);
-      
-      const document = await this.executeWithRetry(
-        // @ts-ignore
-        () => this.searchClient.getDocument<ProjectDocument>(documentId)
-      );
-
-      // @ts-ignore
-      return document;
-      
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('404')) {
-        console.log(`📄 Document not found: ${documentId}`);
-        return null;
-      }
-      
-      console.error('❌ Failed to retrieve document:', error);
-      throw this.enhanceError(error, 'document retrieval');
-    }
-  }
-
-  /**
-   * Builds search options from request parameters
-   */
-  private buildSearchOptions(request: SearchRequest): SearchOptions<ProjectDocument> {
-    const options: SearchOptions<ProjectDocument> = {
-      top: request.top || 10,
-      skip: request.skip || 0,
-      includeTotalCount: true
-    };
-
-    if (request.select && request.select.length > 0) {
-      // @ts-ignore
-      options.select = request.select;
-    }
-
-    if (request.filters) {
-      options.filter = request.filters;
-    }
-
-    if (request.orderBy && request.orderBy.length > 0) {
-      options.orderBy = request.orderBy;
-    }
-
-    if (request.facets && request.facets.length > 0) {
-      options.facets = request.facets;
-    }
-
-    if (request.enableSemanticSearch) {
-      // @ts-ignore
-      options.queryType = 'semantic';
-      // @ts-ignore
-      options.semanticSearchOptions = {
-        configurationName: this.config.semanticConfigName
-      };
-    }
-
-    if (request.enableVectorSearch && request.vectorQuery) {
-      const vector: VectorQuery<ProjectDocument> = {
-        vector: request.vectorQuery,
-        kNearestNeighborsCount: request.top || 10,
-        fields: ['embedding'],
-        kind: 'vector'
-      };
-
-      options.vectorSearchOptions = {
-        queries: [vector],
-        filterMode: 'postFilter'
-      };
-    }
-
-    return options;
-  }
-
-  /**
-   * Collects all results from the search response
-   */
-  private async collectResults(results: SearchDocumentsResult<ProjectDocument>): Promise<SearchResult<ProjectDocument>[]> {
-    const collectedResults: SearchResult<ProjectDocument>[] = [];
+  private async collectResults(
+    results: SearchDocumentsResult<ProjectDocument>
+  ): Promise<SearchResult<ProjectDocument>[]> {
+    const searchResults: SearchResult<ProjectDocument>[] = [];
     
     for await (const result of results.results) {
-      collectedResults.push(result);
+      searchResults.push(result);
     }
     
-    return collectedResults;
+    return searchResults;
   }
 
   /**
-   * Executes operations with retry logic and exponential backoff
+   * Execute search operation with retry logic
+   * @param operation Search operation to execute
+   * @returns Operation result
    */
-  private async executeWithRetry<T>(operation: () => Promise<T>): Promise<T> {
-    const { maxRetries, retryDelayMs, maxRetryDelayMs } = azureConfig.app.retryOptions;
+  private async executeWithRetry<T>(
+    operation: () => Promise<T>,
+    maxRetries: number = 3
+  ): Promise<T> {
+    let lastError: Error | null = null;
     
-    let lastError: Error;
-    
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await operation();
-        
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error('Unknown error');
+        lastError = error as Error;
+        console.warn(`⚠️ Search attempt ${attempt} failed:`, error);
         
-        if (attempt === maxRetries) {
-          break;
-        }
-
-        // Calculate exponential backoff delay
-        const delay = Math.min(retryDelayMs * Math.pow(2, attempt), maxRetryDelayMs);
+        if (attempt === maxRetries) break;
         
-        console.warn(`⚠️ Attempt ${attempt + 1} failed, retrying in ${delay}ms:`, lastError.message);
-        
+        // Exponential backoff
+        const delay = Math.pow(2, attempt) * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
@@ -400,40 +408,21 @@ export class AzureSearchService {
   }
 
   /**
-   * Enhances error messages with context
+   * Enhance error with additional context
+   * @param error Original error
+   * @param operation Operation that failed
+   * @returns Enhanced error
    */
-  private enhanceError(error: unknown, operation: string): Error {
-    const originalMessage = error instanceof Error ? error.message : 'Unknown error';
+  private enhanceError(error: any, operation: string): Error {
+    const message = error?.message || 'Unknown error';
+    const enhancedMessage = `${operation} failed: ${message}`;
     
-    return new Error(
-      `Azure Search ${operation} failed: ${originalMessage}. ` +
-      `Please check your Azure Search configuration and credentials.`
-    );
-  }
-
-  /**
-   * Health check for the search service
-   * @returns Service health status
-   */
-  async healthCheck(): Promise<{ status: 'healthy' | 'unhealthy'; message: string }> {
-    try {
-      // Try to get the index statistics
-      const index = await this.indexClient.getIndex(this.config.indexName);
-      
-      return {
-        status: 'healthy',
-        message: `Connected to index "${index.name}" successfully`
-      };
-      
-    } catch (error) {
-      return {
-        status: 'unhealthy',
-        message: `Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-      };
-    }
+    const enhancedError = new Error(enhancedMessage);
+    enhancedError.stack = error?.stack;
+    
+    return enhancedError;
   }
 }
 
 // Export singleton instance
 export const azureSearchService = new AzureSearchService();
-export default azureSearchService;

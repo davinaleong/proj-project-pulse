@@ -228,21 +228,7 @@ Always maintain a professional, helpful tone and focus on practical, actionable 
         const doc = result.document;
         context += `Source ${index + 1}:\n`;
         context += `Title: ${doc.title || 'Untitled'}\n`;
-        
-        if (doc.description) {
-          context += `Description: ${doc.description}\n`;
-        }
-        
         context += `Content: ${doc.content || ''}\n`;
-        
-        if (doc.category) {
-          context += `Category: ${doc.category}\n`;
-        }
-        
-        if (doc.tags && doc.tags.length > 0) {
-          context += `Tags: ${doc.tags.join(', ')}\n`;
-        }
-        
         context += `Relevance Score: ${result.score?.toFixed(2) || 'N/A'}\n\n`;
       });
     } else {
@@ -388,7 +374,7 @@ Always maintain a professional, helpful tone and focus on practical, actionable 
     status: 'healthy' | 'unhealthy'; 
     message: string;
     services: {
-      search: 'healthy' | 'unhealthy';
+      search: 'healthy' | 'degraded' | 'unhealthy';
       openai: 'healthy' | 'unhealthy';
     };
   }> {

@@ -3,8 +3,6 @@
  * Comprehensive type definitions for all AI API endpoints
  */
 
-import { Request } from 'express';
-
 // Base API Response
 export interface APIResponse<T = any> {
   success: boolean;
@@ -33,11 +31,6 @@ export interface SearchResult {
   title: string;
   content: string;
   score: number;
-  category?: string;
-  tags?: string[];
-  projectId?: string;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface SearchResponse {
@@ -64,7 +57,6 @@ export interface RAGSource {
   title: string;
   content: string;
   score: number;
-  url?: string;
 }
 
 export interface RAGResponse {
@@ -167,7 +159,7 @@ export interface RequestContext {
   };
 }
 
-// Import Express types
+// Import Express Request type at top
 import { Request } from 'express';
 
 // Middleware Types

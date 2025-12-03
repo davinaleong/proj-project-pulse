@@ -142,7 +142,7 @@ export const nextjsUtils = {
   handleAIResponse: async (response: Response) => {
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.message || `AI Backend Error: ${response.statusText}`);
+      throw new Error((error as any)?.message || `AI Backend Error: ${response.statusText}`);
     }
     return response.json();
   },

@@ -104,17 +104,12 @@ router.post('/', searchValidation, asyncHandler(async (req: Request, res: Respon
     } as APIResponse<null>);
   }
 
-  // Map Azure search results to our API format  
+  // Map Azure search results to our API format (based on actual schema)
   const mappedResults: SearchResult[] = (response.data?.results || []).map((result: any) => ({
     id: result.document?.id || result.id || Math.random().toString(36),
     title: result.document?.title || result.title || 'Untitled',
     content: result.document?.content || result.content || '',
-    score: result.score || 0,
-    category: result.document?.category || result.category,
-    tags: result.document?.tags || result.tags,
-    projectId: result.document?.projectId || result.projectId,
-    createdAt: result.document?.createdAt || result.createdAt,
-    updatedAt: result.document?.updatedAt || result.updatedAt
+    score: result.score || result['@search.score'] || 0
   }));
 
   const searchResponse: SearchResponse = {
@@ -216,17 +211,12 @@ router.post('/semantic', [
     } as APIResponse<null>);
   }
 
-  // Map Azure search results to our API format  
+  // Map Azure search results to our API format (based on actual schema)
   const mappedResults: SearchResult[] = (response.data?.results || []).map((result: any) => ({
     id: result.document?.id || result.id || Math.random().toString(36),
     title: result.document?.title || result.title || 'Untitled',
     content: result.document?.content || result.content || '',
-    score: result.score || 0,
-    category: result.document?.category || result.category,
-    tags: result.document?.tags || result.tags,
-    projectId: result.document?.projectId || result.projectId,
-    createdAt: result.document?.createdAt || result.createdAt,
-    updatedAt: result.document?.updatedAt || result.updatedAt
+    score: result.score || result['@search.score'] || 0
   }));
 
   return res.json({

@@ -42,6 +42,7 @@ async function startServer(): Promise<void> {
     // Log available endpoints
     console.log('🛣️  Available Endpoints:');
     console.log(`   GET  /api/v1/health          - Service health status`);
+    console.log(`   POST /api/v1/auth/token      - Obtain JWT token`);
     console.log(`   POST /api/v1/search          - AI-powered search`);
     console.log(`   POST /api/v1/rag/ask         - RAG question answering`);
     console.log(`   POST /api/v1/chat/completions - Chat completions`);

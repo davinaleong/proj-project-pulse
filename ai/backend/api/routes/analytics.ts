@@ -1,0 +1,404 @@
+/**
+ * Analytics API Routes
+ * Handles advanced analytics and project insights
+ */
+
+import { Router, Request, Response } from 'express';
+import { body, query, validationResult } from 'express-validator';
+import { aiServiceOrchestrator } from '../../orchestrator/aiOrchestrator';
+import { APIResponse, AnalyticsRequest, AnalyticsResponse } from '../types/api';
+import { asyncHandler } from '../utils/asyncHandler';
+
+const router = Router();
+
+// Validation rules
+const analyticsValidation = [
+  body('question')
+    .isString()
+    .isLength({ min: 1, max: 1000 })
+    .withMessage('Question must be a string between 1 and 1000 characters'),
+  
+  body('dateRange')
+    .optional()
+    .isObject()
+    .withMessage('Date range must be an object'),
+  
+  body('dateRange.start')
+    .optional()
+    .isISO8601()
+    .withMessage('Start date must be a valid ISO 8601 date'),
+  
+  body('dateRange.end')
+    .optional()
+    .isISO8601()
+    .withMessage('End date must be a valid ISO 8601 date'),
+  
+  body('projectIds')
+    .optional()
+    .isArray()
+    .withMessage('Project IDs must be an array'),
+  
+  body('projectIds.*')
+    .optional()
+    .isString()
+    .isLength({ min: 1, max: 50 })
+    .withMessage('Each project ID must be a string between 1 and 50 characters'),
+  
+  body('userIds')
+    .optional()
+    .isArray()
+    .withMessage('User IDs must be an array'),
+  
+  body('userIds.*')
+    .optional()
+    .isString()
+    .isLength({ min: 1, max: 50 })
+    .withMessage('Each user ID must be a string between 1 and 50 characters'),
+  
+  body('analysisType')
+    .optional()
+    .isIn(['trend', 'performance', 'prediction', 'comparison', 'summary'])
+    .withMessage('Analysis type must be trend, performance, prediction, comparison, or summary'),
+  
+  body('includeVisualizations')
+    .optional()
+    .isBoolean()
+    .withMessage('Include visualizations must be a boolean')
+];
+
+const metricsValidation = [
+  body('projectIds')
+    .isArray({ min: 1, max: 10 })
+    .withMessage('Project IDs must be an array with 1-10 items'),
+  
+  body('projectIds.*')
+    .isString()
+    .isLength({ min: 1, max: 50 })
+    .withMessage('Each project ID must be a string between 1 and 50 characters'),
+  
+  body('dateRange')
+    .optional()
+    .isObject()
+    .withMessage('Date range must be an object')
+];
+
+const predictionValidation = [
+  body('projectId')
+    .isString()
+    .isLength({ min: 1, max: 50 })
+    .withMessage('Project ID must be a string between 1 and 50 characters'),
+  
+  body('predictionHorizon')
+    .optional()
+    .isInt({ min: 1, max: 365 })
+    .withMessage('Prediction horizon must be between 1 and 365 days')
+];
+
+/**
+ * POST /api/v1/analytics/analyze
+ * General analytics analysis
+ */
+router.post('/analyze', analyticsValidation, asyncHandler(async (req: Request, res: Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      error: 'Validation failed',
+      details: errors.array()
+    } as APIResponse<null>);
+  }
+
+  const analyticsRequest: AnalyticsRequest = req.body;
+
+  // Validate date range if provided
+  if (analyticsRequest.dateRange) {
+    const startDate = new Date(analyticsRequest.dateRange.start);
+    const endDate = new Date(analyticsRequest.dateRange.end);
+    
+    if (startDate >= endDate) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid date range',
+        message: 'Start date must be before end date'
+      } as APIResponse<null>);
+    }
+  }
+
+  const response = await aiServiceOrchestrator.analyzeProjects(analyticsRequest);
+
+  if (!response.success) {
+    return res.status(500).json({
+      success: false,
+      error: 'Analytics analysis failed',
+      message: response.error,
+      requestId: response.metadata.requestId
+    } as APIResponse<null>);
+  }
+
+  const analyticsResponse: AnalyticsResponse = {
+    insights: response.data?.insights || [],
+    summary: response.data?.summary || '',
+    confidence: response.data?.metadata?.confidence || 0,
+    dataPointsAnalyzed: response.data?.metadata?.dataPointsAnalyzed || 0,
+    recommendations: response.data?.insights?.flatMap(i => i.recommendations || []) || []
+  };
+
+  res.json({
+    success: true,
+    data: analyticsResponse,
+    metadata: {
+      processingTime: response.metadata.processingTime,
+      analysisTime: response.data?.metadata?.analysisTime,
+      timestamp: new Date().toISOString(),
+      requestId: response.metadata.requestId
+    }
+  } as APIResponse<AnalyticsResponse>);
+}));
+
+/**
+ * POST /api/v1/analytics/metrics
+ * Generate project performance metrics
+ */
+router.post('/metrics', metricsValidation, asyncHandler(async (req: Request, res: Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      error: 'Validation failed',
+      details: errors.array()
+    } as APIResponse<null>);
+  }
+
+  const { projectIds, dateRange } = req.body;
+
+  // For demonstration, we'll use the analytics service to generate metrics
+  const analyticsRequest: AnalyticsRequest = {
+    question: `Generate performance metrics for projects: ${projectIds.join(', ')}`,
+    projectIds,
+    dateRange,
+    analysisType: 'performance',
+    includeVisualizations: true
+  };
+
+  const response = await aiServiceOrchestrator.analyzeProjects(analyticsRequest);
+
+  if (!response.success) {
+    return res.status(500).json({
+      success: false,
+      error: 'Metrics generation failed',
+      message: response.error,
+      requestId: response.metadata.requestId
+    } as APIResponse<null>);
+  }
+
+  // Transform insights into metrics format
+  const metrics = projectIds.map((projectId: string) => ({
+    projectId,
+    projectName: `Project ${projectId}`,
+    completionRate: Math.random() * 100, // Mock data - replace with real calculations
+    taskCompletionVelocity: Math.random() * 5,
+    teamEfficiency: Math.random(),
+    riskScore: Math.random(),
+    estimatedCompletionDate: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000),
+    blockers: ['Resource allocation', 'Technical dependencies'],
+    strengths: ['Strong team collaboration', 'Clear requirements'],
+    recommendations: ['Allocate additional resources', 'Address technical debt']
+  }));
+
+  res.json({
+    success: true,
+    data: {
+      metrics,
+      summary: response.data?.summary || '',
+      generatedAt: new Date().toISOString()
+    },
+    metadata: {
+      processingTime: response.metadata.processingTime,
+      timestamp: new Date().toISOString(),
+      requestId: response.metadata.requestId
+    }
+  } as APIResponse<any>);
+}));
+
+/**
+ * POST /api/v1/analytics/predict
+ * Predict project outcomes
+ */
+router.post('/predict', predictionValidation, asyncHandler(async (req: Request, res: Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      error: 'Validation failed',
+      details: errors.array()
+    } as APIResponse<null>);
+  }
+
+  const { projectId, predictionHorizon = 30 } = req.body;
+
+  const analyticsRequest: AnalyticsRequest = {
+    question: `Predict outcomes for project ${projectId} over the next ${predictionHorizon} days`,
+    projectIds: [projectId],
+    analysisType: 'prediction'
+  };
+
+  const response = await aiServiceOrchestrator.analyzeProjects(analyticsRequest);
+
+  if (!response.success) {
+    return res.status(500).json({
+      success: false,
+      error: 'Prediction failed',
+      message: response.error,
+      requestId: response.metadata.requestId
+    } as APIResponse<null>);
+  }
+
+  // Mock prediction data - replace with real AI predictions
+  const futureDate = new Date();
+  futureDate.setDate(futureDate.getDate() + Math.floor(Math.random() * predictionHorizon));
+
+  const prediction = {
+    projectId,
+    prediction: {
+      completionDate: futureDate,
+      completionProbability: Math.random(),
+      riskLevel: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as 'low' | 'medium' | 'high',
+      keyRisks: ['Resource constraints', 'Technical complexity', 'Scope creep'],
+      recommendations: ['Add buffer time', 'Monitor progress weekly', 'Review scope regularly']
+    },
+    confidence: Math.random(),
+    predictionHorizon,
+    analysis: response.data?.summary || ''
+  };
+
+  res.json({
+    success: true,
+    data: prediction,
+    metadata: {
+      processingTime: response.metadata.processingTime,
+      timestamp: new Date().toISOString(),
+      requestId: response.metadata.requestId
+    }
+  } as APIResponse<any>);
+}));
+
+/**
+ * POST /api/v1/analytics/report
+ * Generate automated reports
+ */
+router.post('/report', [
+  body('reportType')
+    .isIn(['weekly', 'monthly', 'quarterly', 'project-summary'])
+    .withMessage('Report type must be weekly, monthly, quarterly, or project-summary'),
+  
+  body('projectIds')
+    .optional()
+    .isArray()
+    .withMessage('Project IDs must be an array'),
+  
+  body('timeframe')
+    .optional()
+    .isObject()
+    .withMessage('Timeframe must be an object')
+], asyncHandler(async (req: Request, res: Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      error: 'Validation failed',
+      details: errors.array()
+    } as APIResponse<null>);
+  }
+
+  const { reportType, projectIds, timeframe } = req.body;
+
+  const analyticsRequest: AnalyticsRequest = {
+    question: `Generate ${reportType} report${projectIds ? ` for projects: ${projectIds.join(', ')}` : ''}`,
+    projectIds,
+    dateRange: timeframe,
+    analysisType: 'summary',
+    includeVisualizations: true
+  };
+
+  const response = await aiServiceOrchestrator.analyzeProjects(analyticsRequest);
+
+  if (!response.success) {
+    return res.status(500).json({
+      success: false,
+      error: 'Report generation failed',
+      message: response.error,
+      requestId: response.metadata.requestId
+    } as APIResponse<null>);
+  }
+
+  const report = {
+    title: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report`,
+    content: response.data?.summary || '',
+    insights: response.data?.insights || [],
+    recommendations: response.data?.insights?.flatMap(i => i.recommendations || []) || [],
+    metadata: {
+      generatedAt: new Date().toISOString(),
+      reportType,
+      timeframe,
+      projectsAnalyzed: projectIds?.length || 'all'
+    }
+  };
+
+  res.json({
+    success: true,
+    data: report,
+    metadata: {
+      processingTime: response.metadata.processingTime,
+      timestamp: new Date().toISOString(),
+      requestId: response.metadata.requestId
+    }
+  } as APIResponse<any>);
+}));
+
+/**
+ * GET /api/v1/analytics/trends
+ * Get trending analytics queries
+ */
+router.get('/trends', asyncHandler(async (req: Request, res: Response) => {
+  // Mock trending queries - in production, this would come from analytics data
+  const trends = [
+    {
+      query: 'project completion rates this quarter',
+      frequency: 45,
+      category: 'performance'
+    },
+    {
+      query: 'team productivity metrics',
+      frequency: 38,
+      category: 'team'
+    },
+    {
+      query: 'risk assessment for upcoming projects',
+      frequency: 32,
+      category: 'prediction'
+    },
+    {
+      query: 'resource allocation optimization',
+      frequency: 28,
+      category: 'optimization'
+    },
+    {
+      query: 'deadline prediction accuracy',
+      frequency: 25,
+      category: 'prediction'
+    }
+  ];
+
+  res.json({
+    success: true,
+    data: {
+      trends,
+      lastUpdated: new Date().toISOString()
+    },
+    metadata: {
+      timestamp: new Date().toISOString()
+    }
+  } as APIResponse<any>);
+}));
+
+export { router as analyticsRouter };

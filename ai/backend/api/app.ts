@@ -36,6 +36,7 @@ app.use(helmet({
 
 // CORS configuration
 import { azureConfig } from '../config/environment';
+import { authRouter } from './routes/auth';
 
 app.use(cors({
   origin: azureConfig.server.corsOrigins,
@@ -65,6 +66,9 @@ app.use(`/api/${API_VERSION}`, limiter);
 
 // Request logging
 app.use(requestLogger);
+
+// Authentication routes (no auth required)
+app.use(`/api/${API_VERSION}/auth`, authRouter);
 
 // API routes with authentication and validation
 app.use(`/api/${API_VERSION}/search`, authMiddleware, validationMiddleware, searchRouter);

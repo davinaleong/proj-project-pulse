@@ -111,6 +111,10 @@ HOST=0.0.0.0
 JWT_SECRET=your-super-secret-jwt-key-change-in-production
 VALID_API_KEYS=dev-key-123,test-key-456
 
+# Note: Use these API keys to get JWT tokens:
+# - dev-key-123 (for development)
+# - test-key-456 (for testing)
+
 # ============================================
 # Azure Configuration (API Key Authentication)
 # ============================================
@@ -149,19 +153,28 @@ npm run dev
 
 #### Using cURL (Command Line)
 ```bash
-# Test server health (no authentication required)
+# 1. Get JWT token using API key
+curl -X POST http://localhost:3001/api/v1/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "apiKey": "dev-key-123",
+    "clientId": "my-app",
+    "scopes": ["read", "search", "chat"]
+  }'
+
+# 2. Test server health (no authentication required)
 curl http://localhost:3001/api/v1/health
 
-# Search for information (requires JWT token)
+# 3. Search for information (requires JWT token from step 1)
 curl -X POST http://localhost:3001/api/v1/search \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <your-jwt-token>" \
+  -H "Authorization: Bearer <jwt-token-from-step-1>" \
   -d '{"query": "project management best practices", "maxResults": 5}'
 
-# Ask a RAG question (requires JWT token)
+# 4. Ask a RAG question (requires JWT token)
 curl -X POST http://localhost:3001/api/v1/rag/ask \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <your-jwt-token>" \
+  -H "Authorization: Bearer <jwt-token-from-step-1>" \
   -d '{"question": "How can I improve team productivity?", "maxSearchResults": 5}'
 ```
 
@@ -188,12 +201,27 @@ const chatResponse = await aiServiceOrchestrator.createChatCompletion([
 
 #### Using Fetch API (Client-side)
 ```javascript
-// Search example
+// 1. Get JWT token first
+const tokenResponse = await fetch('http://localhost:3001/api/v1/auth/token', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    apiKey: 'dev-key-123',
+    clientId: 'my-web-app',
+    scopes: ['read', 'search', 'chat', 'rag']
+  })
+});
+const tokenData = await tokenResponse.json();
+const jwtToken = tokenData.data.access_token;
+
+// 2. Search example with JWT token
 const searchResponse = await fetch('http://localhost:3001/api/v1/search', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer <your-token>'
+    'Authorization': `Bearer ${jwtToken}`
   },
   body: JSON.stringify({
     query: 'project management best practices',
@@ -203,12 +231,12 @@ const searchResponse = await fetch('http://localhost:3001/api/v1/search', {
 });
 const searchData = await searchResponse.json();
 
-// RAG example
+// 3. RAG example with JWT token
 const ragResponse = await fetch('http://localhost:3001/api/v1/rag/ask', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': 'Bearer <your-token>'
+    'Authorization': `Bearer ${jwtToken}`
   },
   body: JSON.stringify({
     question: 'How can I improve team productivity?',
@@ -370,23 +398,69 @@ curl https://your-domain.com/api/v1/health
 ### Base URL
 **All endpoints**: `http://localhost:3001/api/v1`
 
-### Authentication
-**Required for most endpoints**: Include `Authorization: Bearer <token>` header
-**Not required**: Health check endpoints
+### Authentication Workflow
+1. **Get JWT Token**: Use API key to get JWT token from `/auth/token`
+2. **Use JWT Token**: Include `Authorization: Bearer <jwt-token>` header for protected endpoints
+3. **No Auth Required**: Health check and auth info endpoints
+
+### 🔐 Authentication Endpoints (No Auth Required)
+
+#### Get JWT Token
+```bash
+# POST /api/v1/auth/token
+curl -X POST http://localhost:3001/api/v1/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "apiKey": "dev-key-123",
+    "clientId": "my-application",
+    "scopes": ["read", "search", "chat", "rag"],
+    "expiresIn": "1h"
+  }'
+```
+
+#### Verify JWT Token
+```bash
+# POST /api/v1/auth/verify
+curl -X POST http://localhost:3001/api/v1/auth/verify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }'
+```
+
+#### Authentication Info
+```bash
+# GET /api/v1/auth/info
+curl http://localhost:3001/api/v1/auth/info
+```
+
+**Response Format (Token)**:
+```json
+{
+  "success": true,
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "token_type": "Bearer",
+    "expires_in": 3600,
+    "issued_at": "2024-12-04T10:30:00.000Z",
+    "scope": ["read", "search", "chat", "rag"]
+  }
+}
+```
 
 ### 🔍 Search Endpoints
 
 #### Main Search
 ```bash
-# POST /api/v1/search
+# POST /api/v1/search (requires JWT token)
 curl -X POST http://localhost:3001/api/v1/search \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <your-token>" \
+  -H "Authorization: Bearer <jwt-token-from-auth-endpoint>" \
   -d '{
     "query": "project management best practices",
     "maxResults": 10,
     "searchType": "semantic",
-    "filters": "category eq 'productivity'"
+    "filters": "category eq '\''productivity'\''" 
   }'
 ```
 
@@ -394,7 +468,7 @@ curl -X POST http://localhost:3001/api/v1/search \
 ```bash
 # GET /api/v1/search?q=project%20management&max=5&type=semantic
 curl "http://localhost:3001/api/v1/search?q=project%20management&max=5&type=semantic" \
-  -H "Authorization: Bearer <your-token>"
+  -H "Authorization: Bearer <jwt-token-from-auth-endpoint>"
 ```
 
 #### Semantic Search
@@ -572,6 +646,9 @@ curl -X POST http://localhost:3001/api/v1/health/reset-metrics \
 ```bash
 # GET /api/v1 - API documentation and available endpoints
 curl http://localhost:3001/api/v1
+
+# GET /api/v1/auth/info - Authentication configuration
+curl http://localhost:3001/api/v1/auth/info
 ```
 
 ### ⚠️ Temporarily Disabled

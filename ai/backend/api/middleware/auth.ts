@@ -79,10 +79,10 @@ export function authMiddleware(
     // No valid authentication method found
     throw createAPIError('Authentication required. Use shared secret or JWT token.', 401, 'AUTH_REQUIRED');
     
-  } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) {
+  } catch (error: any) {
+    if (error.name === 'JsonWebTokenError') {
       next(createAPIError('Invalid JWT token', 401, 'INVALID_TOKEN'));
-    } else if (error instanceof jwt.TokenExpiredError) {
+    } else if (error.name === 'TokenExpiredError') {
       next(createAPIError('JWT token expired', 401, 'TOKEN_EXPIRED'));
     } else {
       next(error);

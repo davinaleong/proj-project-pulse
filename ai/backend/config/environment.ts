@@ -8,6 +8,10 @@
  * - Includes comprehensive logging
  */
 
+// Load environment variables first
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { DefaultAzureCredential, ChainedTokenCredential, AzureCliCredential, ManagedIdentityCredential } from '@azure/identity';
 
 export interface AzureConfig {

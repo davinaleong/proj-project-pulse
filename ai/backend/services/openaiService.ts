@@ -14,7 +14,6 @@
 
 import { AzureOpenAI } from 'openai';
 import { getBearerTokenProvider } from '@azure/identity';
-import '@azure/openai/types'; // Required for Azure-specific types
 import type { 
   ChatCompletion, 
   ChatCompletionCreateParamsNonStreaming,

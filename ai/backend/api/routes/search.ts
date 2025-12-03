@@ -6,7 +6,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { body, query, validationResult } from 'express-validator';
 import { aiServiceOrchestrator } from '../../orchestrator/aiOrchestrator';
-import { APIResponse, SearchRequest, SearchResponse } from '../types/api';
+import { APIResponse, SearchRequest, SearchResponse, SearchResult } from '../types/api';
 import { asyncHandler } from '../utils/asyncHandler';
 
 const router = Router();
@@ -104,10 +104,23 @@ router.post('/', searchValidation, asyncHandler(async (req: Request, res: Respon
     } as APIResponse<null>);
   }
 
+  // Map Azure search results to our API format  
+  const mappedResults: SearchResult[] = (response.data?.results || []).map((result: any) => ({
+    id: result.document?.id || result.id || Math.random().toString(36),
+    title: result.document?.title || result.title || 'Untitled',
+    content: result.document?.content || result.content || '',
+    score: result.score || 0,
+    category: result.document?.category || result.category,
+    tags: result.document?.tags || result.tags,
+    projectId: result.document?.projectId || result.projectId,
+    createdAt: result.document?.createdAt || result.createdAt,
+    updatedAt: result.document?.updatedAt || result.updatedAt
+  }));
+
   const searchResponse: SearchResponse = {
-    results: response.data?.results || [],
-    totalCount: response.data?.results?.length || 0,
-    facets: response.data?.facets,
+    results: mappedResults,
+    totalCount: mappedResults.length,
+    facets: response.data?.facets || {},
     searchId: response.metadata.requestId
   };
 
@@ -203,11 +216,24 @@ router.post('/semantic', [
     } as APIResponse<null>);
   }
 
+  // Map Azure search results to our API format  
+  const mappedResults: SearchResult[] = (response.data?.results || []).map((result: any) => ({
+    id: result.document?.id || result.id || Math.random().toString(36),
+    title: result.document?.title || result.title || 'Untitled',
+    content: result.document?.content || result.content || '',
+    score: result.score || 0,
+    category: result.document?.category || result.category,
+    tags: result.document?.tags || result.tags,
+    projectId: result.document?.projectId || result.projectId,
+    createdAt: result.document?.createdAt || result.createdAt,
+    updatedAt: result.document?.updatedAt || result.updatedAt
+  }));
+
   return res.json({
     success: true,
     data: {
-      results: response.data?.results || [],
-      totalCount: response.data?.results?.length || 0,
+      results: mappedResults,
+      totalCount: mappedResults.length,
       searchId: response.metadata.requestId
     },
     metadata: {

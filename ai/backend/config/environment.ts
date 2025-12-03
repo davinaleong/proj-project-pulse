@@ -41,6 +41,7 @@ export interface AzureConfig {
   // Security Configuration
   security: {
     jwtSecret: string;
+    sharedSecret: string;  // For Next.js same-repo authentication
     validApiKeys: string[];
     rateLimitWindowMs: number;
     rateLimitMaxRequests: number;
@@ -110,6 +111,7 @@ export function loadAzureConfig(): AzureConfig {
       
       security: {
         jwtSecret: getRequiredEnvVar('JWT_SECRET'),
+        sharedSecret: getRequiredEnvVar('SHARED_SECRET'),  // For Next.js integration
         validApiKeys: (process.env.VALID_API_KEYS || '').split(',').filter(key => key.trim()),
         rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),
         rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100')

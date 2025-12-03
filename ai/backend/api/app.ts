@@ -36,13 +36,13 @@ app.use(helmet({
 
 // CORS configuration
 import { azureConfig } from '../config/environment';
-import { authRouter } from './routes/auth';
+import simpleAuthRouter from './routes/simple-auth';
 
 app.use(cors({
   origin: azureConfig.server.corsOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Shared-Secret']
 }));
 
 // General middleware
@@ -68,7 +68,7 @@ app.use(`/api/${API_VERSION}`, limiter);
 app.use(requestLogger);
 
 // Authentication routes (no auth required)
-app.use(`/api/${API_VERSION}/auth`, authRouter);
+app.use(`/api/${API_VERSION}/auth`, simpleAuthRouter);
 
 // API routes with authentication and validation
 app.use(`/api/${API_VERSION}/search`, authMiddleware, validationMiddleware, searchRouter);

@@ -175,7 +175,9 @@ export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     email?: string;
-    roles?: string[];
+    client_id?: string;
+    scope?: string;
+    source?: 'shared-secret' | 'jwt-token';
   };
   context?: RequestContext;
 }

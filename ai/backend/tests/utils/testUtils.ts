@@ -82,7 +82,7 @@ export function wait(ms: number): Promise<void> {
  */
 export function generateTestJWT(payload: any = { id: 'test-user', source: 'test' }): string {
   // Use the same secret as the application
-  const testSecret = 'your-super-secret-jwt-key-here';
+  const testSecret = process.env.JWT_SECRET || 'test-jwt-secret';
   return jwt.sign(payload, testSecret, { expiresIn: '1h' });
 }
 

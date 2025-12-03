@@ -16,9 +16,25 @@ describe('RAG Service', () => {
       search: jest.fn().mockResolvedValue({
         results: [
           {
-            id: '1',
-            title: 'Project Management Basics',
-            content: 'Project management is the practice of initiating, planning, executing, controlling, and closing the work of a team to achieve specific goals.',
+            document: {
+              id: '1',
+              title: 'Project Management Basics',
+              content: 'Project management is the practice of initiating, planning, executing, controlling, and closing the work of a team to achieve specific goals.'
+            },
+            score: 0.85
+          }
+        ],
+        totalResults: 1,
+        facets: {}
+      }),
+      semanticSearch: jest.fn().mockResolvedValue({
+        results: [
+          {
+            document: {
+              id: '1',
+              title: 'Project Management Basics',
+              content: 'Project management is the practice of initiating, planning, executing, controlling, and closing the work of a team to achieve specific goals.'
+            },
             score: 0.85
           }
         ],
@@ -48,7 +64,7 @@ describe('RAG Service', () => {
       })
     };
 
-    ragService = new IntelligentRAGService(mockSearchService, mockOpenAIService);
+    ragService = new IntelligentRAGService(mockSearchService as any, mockOpenAIService as any);
   });
 
   afterEach(() => {
@@ -78,12 +94,17 @@ describe('RAG Service', () => {
           totalResults: 0,
           facets: {}
         }),
+        semanticSearch: jest.fn().mockResolvedValue({
+          results: [],
+          totalResults: 0,
+          facets: {}
+        }),
         healthCheck: jest.fn().mockResolvedValue({ status: 'healthy' })
       };
 
       const ragServiceWithEmptySearch = new IntelligentRAGService(
-        emptySearchService,
-        mockOpenAIService
+        emptySearchService as any,
+        mockOpenAIService as any
       );
 
       const query: RAGQuery = { question: 'Non-existent topic' };
@@ -103,7 +124,7 @@ describe('RAG Service', () => {
         { role: 'user', content: 'What are its benefits?' }
       ];
 
-      const result = await ragService.askConversationalQuestion(messages, { question: 'What are the benefits?', maxSearchResults: 5 });
+      const result = await ragService.askConversationalQuestion('What are the benefits?', messages, { maxSearchResults: 5 });
 
       expect(result.answer).toBeDefined();
       expect(result.sources).toBeInstanceOf(Array);
@@ -122,7 +143,7 @@ describe('RAG Service', () => {
 
   describe('error handling', () => {
     it('should handle search service errors', async () => {
-      mockSearchService.search.mockRejectedValue(new Error('Search service unavailable'));
+      mockSearchService.semanticSearch.mockRejectedValue(new Error('Search service unavailable'));
 
       const query: RAGQuery = { question: 'Test question' };
 
@@ -130,9 +151,9 @@ describe('RAG Service', () => {
     });
 
     it('should validate required parameters', async () => {
-      const invalidQuery = { question: '' } as RAGQuery;
+      const invalidQuery = {} as RAGQuery;
 
-      await expect(ragService.askQuestion(invalidQuery)).rejects.toThrow();
+      await expect(ragService.askQuestion(invalidQuery)).rejects.toThrow('Required parameter missing: question');
     });
   });
 });

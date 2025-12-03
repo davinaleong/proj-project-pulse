@@ -151,8 +151,11 @@ describe('OpenAI Service', () => {
       // Test streaming
       let content = '';
       for await (const chunk of result) {
-        if (chunk.choices[0].delta.content) {
-          content += chunk.choices[0].delta.content;
+        if (chunk && typeof chunk === 'object' && 'choices' in (chunk as object)) {
+          const choices = (chunk as any).choices;
+          if (choices && Array.isArray(choices) && choices[0]?.delta?.content) {
+            content += choices[0].delta.content;
+          }
         }
       }
       

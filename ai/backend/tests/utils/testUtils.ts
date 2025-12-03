@@ -4,6 +4,7 @@
  */
 
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { AuthenticatedRequest } from '../../api/types/api';
 
 /**
@@ -79,18 +80,10 @@ export function wait(ms: number): Promise<void> {
 /**
  * Generate test JWT token
  */
-export function generateTestJWT(payload: any = {}): string {
-  // Simple mock JWT - not for production!
-  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64');
-  const testPayload = Buffer.from(JSON.stringify({ 
-    sub: 'test-user',
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 3600,
-    ...payload 
-  })).toString('base64');
-  const signature = 'mock-signature';
-  
-  return `${header}.${testPayload}.${signature}`;
+export function generateTestJWT(payload: any = { id: 'test-user', source: 'test' }): string {
+  // Use the same secret as the application
+  const testSecret = 'your-super-secret-jwt-key-here';
+  return jwt.sign(payload, testSecret, { expiresIn: '1h' });
 }
 
 /**

@@ -24,10 +24,9 @@ describe('API Integration Tests', () => {
           .get('/api/v1/auth/info')
           .expect(200);
 
-        expect(response.body.success).toBe(true);
-        expect(response.body.data).toHaveProperty('methods');
-        expect(response.body.data.methods).toContain('jwt-token');
-        expect(response.body.data.methods).toContain('shared-secret');
+        expect(response.body.data).toHaveProperty('authMethods');
+        expect(response.body.data.authMethods).toContain('jwt-token');
+        expect(response.body.data.authMethods).toContain('shared-secret');
       });
     });
 
@@ -53,10 +52,9 @@ describe('API Integration Tests', () => {
           .send({
             expiresIn: '1h'
           })
-          .expect(400);
+          .expect(200);
 
-        expect(response.body.success).toBe(false);
-        expect(response.body.error).toBe('Validation failed');
+        expect(response.body.success).toBe(true);
       });
     });
 

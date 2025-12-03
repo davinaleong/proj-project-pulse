@@ -103,7 +103,7 @@ describe('RAG Service', () => {
         { role: 'user', content: 'What are its benefits?' }
       ];
 
-      const result = await ragService.askConversationalQuestion(messages);
+      const result = await ragService.askConversationalQuestion(messages, { question: 'What are the benefits?', maxSearchResults: 5 });
 
       expect(result.answer).toBeDefined();
       expect(result.sources).toBeInstanceOf(Array);
@@ -116,7 +116,7 @@ describe('RAG Service', () => {
       const result = await ragService.healthCheck();
 
       expect(result.status).toBe('healthy');
-      expect(result.details).toBeDefined();
+      expect(result.services).toBeDefined();
     });
   });
 

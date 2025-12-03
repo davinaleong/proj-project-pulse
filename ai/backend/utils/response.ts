@@ -38,7 +38,7 @@ export function formatResponse<T>(
     response.data = data;
   }
 
-  if (message) {
+  if (message !== undefined) {
     response.message = message;
   }
 
@@ -59,7 +59,7 @@ export function formatErrorResponse(
     error: {
       message,
       status,
-      ...(code && { code }),
+      ...(code !== undefined && { code }),
       ...(details && { details })
     },
     timestamp: new Date().toISOString()

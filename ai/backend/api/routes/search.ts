@@ -78,7 +78,7 @@ router.post('/', searchValidation, asyncHandler(async (req: Request, res: Respon
       response = await aiServiceOrchestrator.search({
         query,
         top: maxResults,
-        filters,
+        ...(filters && { filters }),
         enableSemanticSearch: true
       });
       break;
@@ -87,7 +87,7 @@ router.post('/', searchValidation, asyncHandler(async (req: Request, res: Respon
       response = await aiServiceOrchestrator.search({
         query,
         top: maxResults,
-        filters
+        ...(filters && { filters })
       });
       break;
   }

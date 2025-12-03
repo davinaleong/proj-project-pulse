@@ -11,8 +11,8 @@
  * - Load balancing and failover
  */
 
-import { azureSearchService, SearchOptions, SearchResponse } from '../services/searchService';
-import { azureOpenAIService, ChatCompletionOptions, ChatMessage, ChatCompletionResponse } from '../services/openaiService';
+import { azureSearchService, SearchRequest, SearchResponse } from '../services/searchService';
+import { azureOpenAIService, ChatCompletionRequest, ChatMessage, ChatCompletionResponse } from '../services/openaiService';
 import { intelligentRAGService, RAGQuery, RAGResponse } from '../services/ragService';
 import { advancedAnalyticsService, AnalyticsQuery, AnalyticsResponse } from '../services/analyticsService';
 import { azureConfig } from '../config/environment';
@@ -111,12 +111,12 @@ export class AIServiceOrchestrator {
 
   /**
    * Performs intelligent search across multiple search strategies
-   * @param query Search query or SearchOptions
+   * @param query Search query or SearchRequest
    * @param options Optional request configuration
    * @returns Search results with metadata
    */
   async search(
-    query: string | SearchOptions, 
+    query: string | SearchRequest, 
     options?: AIRequest['options']
   ): Promise<AIResponse<SearchResponse>> {
     const requestId = this.generateRequestId();
@@ -125,12 +125,12 @@ export class AIServiceOrchestrator {
     try {
       console.log(`🔍 Processing search request ${requestId}`);
       
-      const searchOptions = typeof query === 'string' 
+      const searchRequest = typeof query === 'string' 
         ? { query, top: 10, enableSemanticSearch: true }
         : query;
 
       const result = await this.executeWithRetry(
-        () => azureSearchService.search(searchOptions),
+        () => azureSearchService.search(searchRequest),
         'search',
         options?.retries || this.config.maxRetries
       );
@@ -222,7 +222,7 @@ export class AIServiceOrchestrator {
    */
   async createChatCompletion(
     messages: ChatMessage[],
-    completionOptions?: Partial<ChatCompletionOptions>,
+    completionOptions?: Partial<ChatCompletionRequest>,
     options?: AIRequest['options']
   ): Promise<AIResponse<ChatCompletionResponse>> {
     const requestId = this.generateRequestId();

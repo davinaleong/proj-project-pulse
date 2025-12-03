@@ -1,19 +1,16 @@
 /**
  * Azure OpenAI Service Client
  * 
- * Implements Azure best practices:
- * - Uses DefaultAzureCredential for keyless authentication
+ * Implements API key authentication:
+ * - Uses API key for Azure OpenAI authentication
  * - Implements retry logic with exponential backoff
  * - Comprehensive error handling and logging
  * - Type-safe chat completions
  * - Performance monitoring and optimization
  * - Content filtering and safety
- * 
- * Reference: https://learn.microsoft.com/en-us/azure/ai-foundry/openai/use-your-data-quickstart?pivots=programming-language-typescript
  */
 
 import { AzureOpenAI } from 'openai';
-import { getBearerTokenProvider } from '@azure/identity';
 import type { 
   ChatCompletion, 
   ChatCompletionCreateParamsNonStreaming,
@@ -22,7 +19,7 @@ import type {
   ChatCompletionChunk
 } from 'openai/resources/chat/completions';
 
-import { azureConfig, azureCredential } from '../config/environment';
+import { azureConfig } from '../config/environment';
 
 /**
  * Chat message interface
@@ -107,19 +104,15 @@ export class AzureOpenAIService {
   
   constructor() {
     try {
-      // Create token provider for keyless authentication
-      const scope = 'https://cognitiveservices.azure.com/.default';
-      const azureADTokenProvider = getBearerTokenProvider(azureCredential, scope);
-
-      // Initialize OpenAI client with Azure configuration
+      // Initialize OpenAI client with API key authentication
       this.client = new AzureOpenAI({
         endpoint: this.config.endpoint,
-        azureADTokenProvider,
+        apiKey: this.config.apiKey,
         apiVersion: this.config.apiVersion,
         deployment: this.config.deploymentName
       });
 
-      console.log('✅ Azure OpenAI Service initialized with managed identity');
+      console.log('✅ Azure OpenAI Service initialized with API key');
       console.log(`🤖 Model deployment: ${this.config.deploymentName}`);
       
     } catch (error) {

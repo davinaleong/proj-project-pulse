@@ -43,9 +43,11 @@ export function authMiddleware(
       throw createAPIError('No token provided', 401, 'MISSING_TOKEN');
     }
 
+    // Import config
+    const { azureConfig } = require('../../config/environment');
+    
     // Verify JWT token
-    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
-    const decoded = jwt.verify(token, jwtSecret) as JWTPayload;
+    const decoded = jwt.verify(token, azureConfig.security.jwtSecret) as JWTPayload;
     
     // Set user context
     authReq.user = {
@@ -82,8 +84,8 @@ export function optionalAuthMiddleware(
       const token = authHeader.substring(7);
       
       if (token) {
-        const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
-        const decoded = jwt.verify(token, jwtSecret) as JWTPayload;
+        const { azureConfig } = require('../../config/environment');
+        const decoded = jwt.verify(token, azureConfig.security.jwtSecret) as JWTPayload;
         
         authReq.user = {
           id: decoded.sub,

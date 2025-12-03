@@ -11,9 +11,10 @@ import app from './app';
 // Load environment variables
 dotenv.config();
 import { aiServiceOrchestrator } from '../orchestrator/aiOrchestrator';
+import { azureConfig } from '../config/environment';
 
-const PORT = process.env.PORT || 3001;
-const HOST = process.env.HOST || '0.0.0.0';
+const PORT = azureConfig.server.port;
+const HOST = azureConfig.server.host;
 
 // Create HTTP server
 const server = createServer(app);
@@ -31,7 +32,7 @@ async function startServer(): Promise<void> {
     console.log(`📊 AI Services Status: ${healthStatus.overall}`);
     
     // Start HTTP server
-    server.listen(PORT, Number(HOST), () => {
+    server.listen(PORT, HOST, () => {
       console.log(`✅ AI Backend Server running on http://${HOST}:${PORT}`);
       console.log(`📚 API Documentation: http://${HOST}:${PORT}/api/v1`);
       console.log(`🏥 Health Check: http://${HOST}:${PORT}/api/v1/health`);

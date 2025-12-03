@@ -35,8 +35,10 @@ app.use(helmet({
 }));
 
 // CORS configuration
+import { azureConfig } from '../config/environment';
+
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+  origin: azureConfig.server.corsOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -49,11 +51,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: azureConfig.security.rateLimitWindowMs,
+  max: azureConfig.security.rateLimitMaxRequests,
   message: {
     error: 'Too many requests from this IP, please try again later.',
-    retryAfter: '15 minutes'
+    retryAfter: `${azureConfig.security.rateLimitWindowMs / 60000} minutes`
   },
   standardHeaders: true,
   legacyHeaders: false,

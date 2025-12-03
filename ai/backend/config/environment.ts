@@ -1,39 +1,56 @@
 /**
  * Environment Configuration for Azure Services
  * 
- * Following Azure security best practices:
- * - Uses DefaultAzureCredential for keyless authentication
- * - Implements proper error handling and validation
- * - Supports multiple authentication methods
- * - Includes comprehensive logging
+ * Using API key authentication for simplicity:
+ * - Direct API key authentication to Azure services
+ * - Comprehensive error handling and validation
+ * - Environment variable configuration
+ * - Development-focused setup
  */
 
 // Load environment variables first
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { DefaultAzureCredential, ChainedTokenCredential, AzureCliCredential, ManagedIdentityCredential } from '@azure/identity';
-
 export interface AzureConfig {
   // Azure AI Search Configuration
   search: {
     endpoint: string;
     indexName: string;
-    semanticConfigName: string;
+    apiKey: string;
     apiVersion: string;
+    semanticConfigName: string;
   };
   
   // Azure OpenAI Configuration
   openai: {
     endpoint: string;
     deploymentName: string;
+    apiKey: string;
     apiVersion: string;
+  };
+  
+  // Server Configuration
+  server: {
+    port: number;
+    host: string;
+    environment: string;
+    corsOrigins: string[];
+  };
+  
+  // Security Configuration
+  security: {
+    jwtSecret: string;
+    validApiKeys: string[];
+    rateLimitWindowMs: number;
+    rateLimitMaxRequests: number;
   };
   
   // Application Configuration
   app: {
-    environment: string;
     logLevel: string;
+    requestTimeout: number;
+    healthCheckTimeout: number;
     retryOptions: {
       maxRetries: number;
       retryDelayMs: number;
@@ -63,29 +80,8 @@ function getRequiredEnvVar(varName: string, defaultValue?: string): string {
 }
 
 /**
- * Creates Azure credential chain following best practices:
- * 1. Managed Identity (for Azure-hosted services)
- * 2. Azure CLI (for local development)
- * 3. DefaultAzureCredential (fallback)
- */
-export function createAzureCredential() {
-  try {
-    // Create a credential chain for different environments
-    return new ChainedTokenCredential(
-      new ManagedIdentityCredential(), // For Azure-hosted services
-      new AzureCliCredential(),       // For local development
-      new DefaultAzureCredential()    // Fallback
-    );
-  } catch (error) {
-    console.error('Failed to create Azure credential:', error);
-    // Fallback to DefaultAzureCredential
-    return new DefaultAzureCredential();
-  }
-}
-
-/**
- * Loads and validates Azure configuration from environment variables
- * @returns Validated Azure configuration object
+ * Loads and validates configuration from environment variables
+ * @returns Validated configuration object
  */
 export function loadAzureConfig(): AzureConfig {
   try {
@@ -93,19 +89,36 @@ export function loadAzureConfig(): AzureConfig {
       search: {
         endpoint: getRequiredEnvVar('AZURE_SEARCH_ENDPOINT'),
         indexName: getRequiredEnvVar('AZURE_SEARCH_INDEX_NAME', 'project-pulse-index'),
-        semanticConfigName: getRequiredEnvVar('AZURE_SEMANTIC_CONFIG_NAME', 'default'),
-        apiVersion: getRequiredEnvVar('AZURE_SEARCH_API_VERSION', '2024-07-01')
+        apiKey: getRequiredEnvVar('AZURE_SEARCH_API_KEY'),
+        apiVersion: getRequiredEnvVar('AZURE_SEARCH_API_VERSION', '2024-07-01'),
+        semanticConfigName: getRequiredEnvVar('AZURE_SEMANTIC_CONFIG_NAME', 'default')
       },
       
       openai: {
         endpoint: getRequiredEnvVar('AZURE_OPENAI_ENDPOINT'),
-        deploymentName: getRequiredEnvVar('AZURE_OPENAI_DEPLOYMENT_NAME', 'gpt-4o-mini'),
-        apiVersion: getRequiredEnvVar('AZURE_OPENAI_API_VERSION', '2024-08-01-preview')
+        deploymentName: getRequiredEnvVar('AZURE_OPENAI_DEPLOYMENT_NAME'),
+        apiKey: getRequiredEnvVar('AZURE_OPENAI_API_KEY'),
+        apiVersion: getRequiredEnvVar('AZURE_OPENAI_API_VERSION', '2024-02-01')
+      },
+      
+      server: {
+        port: parseInt(process.env.PORT || '3001'),
+        host: process.env.HOST || '0.0.0.0',
+        environment: process.env.NODE_ENV || 'development',
+        corsOrigins: (process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:5173').split(',')
+      },
+      
+      security: {
+        jwtSecret: getRequiredEnvVar('JWT_SECRET'),
+        validApiKeys: (process.env.VALID_API_KEYS || '').split(',').filter(key => key.trim()),
+        rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),
+        rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100')
       },
       
       app: {
-        environment: process.env.NODE_ENV || 'development',
         logLevel: process.env.LOG_LEVEL || 'info',
+        requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || '30000'),
+        healthCheckTimeout: parseInt(process.env.HEALTH_CHECK_TIMEOUT || '5000'),
         retryOptions: {
           maxRetries: parseInt(process.env.MAX_RETRIES || '3'),
           retryDelayMs: parseInt(process.env.RETRY_DELAY_MS || '1000'),
@@ -118,15 +131,27 @@ export function loadAzureConfig(): AzureConfig {
     validateEndpoint(config.search.endpoint, 'Azure Search');
     validateEndpoint(config.openai.endpoint, 'Azure OpenAI');
 
-    console.log('✅ Azure configuration loaded successfully');
+    // Validate API keys are provided
+    if (!config.search.apiKey) {
+      throw new Error('Azure Search API key is required');
+    }
+    if (!config.openai.apiKey) {
+      throw new Error('Azure OpenAI API key is required');
+    }
+    if (config.security.validApiKeys.length === 0) {
+      console.warn('⚠️ No valid API keys configured - API will be open');
+    }
+
+    console.log('✅ Configuration loaded successfully');
     console.log(`📍 Search Endpoint: ${config.search.endpoint}`);
     console.log(`📍 OpenAI Endpoint: ${config.openai.endpoint}`);
-    console.log(`🏷️ Environment: ${config.app.environment}`);
+    console.log(`🏷️ Environment: ${config.server.environment}`);
+    console.log(`🚪 Server: ${config.server.host}:${config.server.port}`);
 
     return config;
     
   } catch (error) {
-    console.error('❌ Failed to load Azure configuration:', error);
+    console.error('❌ Failed to load configuration:', error);
     throw new Error(`Configuration Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -159,6 +184,5 @@ function validateEndpoint(endpoint: string, serviceName: string): void {
 
 // Export singleton instance
 export const azureConfig = loadAzureConfig();
-export const azureCredential = createAzureCredential();
 
 export default azureConfig;

@@ -1,14 +1,12 @@
 /**
  * Azure AI Search Service Client
  * 
- * Implements Azure best practices:
- * - Uses managed identity authentication (DefaultAzureCredential)
+ * Implements API key authentication:
+ * - Uses API key authentication to Azure AI Search
  * - Implements retry logic with exponential backoff
  * - Comprehensive error handling and logging
  * - Type-safe search operations
  * - Performance optimizations
- * 
- * Reference: https://learn.microsoft.com/en-us/azure/search/search-get-started-vector?pivots=typescript
  */
 
 import { 
@@ -21,7 +19,7 @@ import {
   AzureKeyCredential
 } from '@azure/search-documents';
 
-import { azureConfig, azureCredential } from '../config/environment';
+import { azureConfig } from '../config/environment';
 
 /**
  * Document interface for Project Pulse search index
@@ -79,20 +77,22 @@ export class AzureSearchService {
   
   constructor() {
     try {
-      // Initialize search client with DefaultAzureCredential (recommended)
+      // Initialize search client with API key authentication
+      const credential = new AzureKeyCredential(this.config.apiKey);
+      
       this.searchClient = new SearchClient<ProjectDocument>(
         this.config.endpoint,
         this.config.indexName,
-        azureCredential
+        credential
       );
 
       // Initialize index management client
       this.indexClient = new SearchIndexClient(
         this.config.endpoint,
-        azureCredential
+        credential
       );
 
-      console.log('✅ Azure Search Service initialized with managed identity');
+      console.log('✅ Azure Search Service initialized with API key');
       
     } catch (error) {
       console.error('❌ Failed to initialize Azure Search Service:', error);

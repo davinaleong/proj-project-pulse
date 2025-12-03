@@ -23,13 +23,13 @@ ai/backend/
 ## 🔧 Services
 
 ### 1. Environment Configuration (`config/environment.ts`)
-- **Purpose**: Centralized Azure configuration with security-first approach
+- **Purpose**: Centralized configuration with API key authentication
 - **Features**:
-  - DefaultAzureCredential with managed identity support
+  - Direct API key authentication to Azure services
   - Environment variable validation and type safety
-  - Credential chaining for development and production
-  - Comprehensive error handling and logging
-- **Security**: Uses managed identity for production, Azure CLI for development
+  - Comprehensive server, security, and CORS configuration
+  - Rate limiting and JWT security settings
+- **Security**: Uses API keys for Azure services, JWT tokens for API authentication
 
 ### 2. Azure AI Search Service (`services/searchService.ts`)
 - **Purpose**: Comprehensive Azure AI Search integration
@@ -39,7 +39,7 @@ ai/backend/
   - Hybrid search combining multiple techniques
   - Performance monitoring and retry logic
   - Health checks and error handling
-- **Best Practices**: Follows Azure SDK patterns, implements exponential backoff
+- **Authentication**: Uses API key authentication with AzureKeyCredential
 
 ### 3. Azure OpenAI Service (`services/openaiService.ts`)
 - **Purpose**: Azure OpenAI integration for chat completions
@@ -49,7 +49,7 @@ ai/backend/
   - Token usage tracking and optimization
   - RAG-enabled chat with data sources
   - Comprehensive error handling
-- **Best Practices**: Uses getBearerTokenProvider for authentication, implements proper streaming
+- **Authentication**: Uses API key authentication for simplified setup
 
 ### 4. Intelligent RAG Service (`services/ragService.ts`)
 - **Purpose**: Advanced RAG implementation combining search and generation
@@ -86,33 +86,51 @@ ai/backend/
 ### Prerequisites
 ```bash
 # Required Azure services
-- Azure AI Search instance
-- Azure OpenAI instance with deployed models
-- Azure subscription with appropriate permissions
+- Azure AI Search instance with API key
+- Azure OpenAI instance with deployed models and API key
+- No special Azure permissions required (uses API keys)
 
-# Required Node.js packages
-npm install @azure/search-documents @azure/identity openai
+# Required Node.js packages (already included in package.json)
+npm install @azure/search-documents openai
 ```
 
 ### Environment Variables
-Create a `.env` file in your project root:
+Create a `.env` file in the ai/backend directory based on `.env.example`:
 
 ```env
-# Azure AI Search Configuration
+# ============================================
+# Server Configuration
+# ============================================
+NODE_ENV=development
+PORT=3001
+HOST=0.0.0.0
+
+# ============================================
+# Security Configuration
+# ============================================
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+VALID_API_KEYS=dev-key-123,test-key-456
+
+# ============================================
+# Azure Configuration (API Key Authentication)
+# ============================================
+# Azure AI Search
 AZURE_SEARCH_ENDPOINT=https://your-search-service.search.windows.net
-AZURE_SEARCH_ADMIN_KEY=your-search-admin-key  # Optional: prefer managed identity
-AZURE_SEARCH_INDEX_NAME=project-pulse-index
+AZURE_SEARCH_INDEX_NAME=your-index-name
+AZURE_SEARCH_API_KEY=your-search-admin-key
 
-# Azure OpenAI Configuration
-AZURE_OPENAI_ENDPOINT=https://your-openai-service.openai.azure.com
-AZURE_OPENAI_API_KEY=your-openai-api-key  # Optional: prefer managed identity
-AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4
-AZURE_OPENAI_API_VERSION=2024-02-15-preview
+# Azure OpenAI
+AZURE_OPENAI_ENDPOINT=https://your-openai-resource.openai.azure.com/
+AZURE_OPENAI_DEPLOYMENT_NAME=your-deployment-name
+AZURE_OPENAI_API_VERSION=2024-02-01
+AZURE_OPENAI_API_KEY=your-azure-openai-key
 
-# Optional: Specify Azure credentials (for development)
-AZURE_CLIENT_ID=your-client-id
-AZURE_CLIENT_SECRET=your-client-secret
-AZURE_TENANT_ID=your-tenant-id
+# ============================================
+# Optional Configuration
+# ============================================
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
 ```
 
 ### Starting the Server
@@ -124,26 +142,26 @@ npm install
 # Start development server
 npm run dev
 
-# Server runs on http://localhost:3001
+# Server runs on http://0.0.0.0:3001 (accessible from any interface)
 ```
 
 ### Basic Usage Examples
 
 #### Using cURL (Command Line)
 ```bash
-# Test server health
+# Test server health (no authentication required)
 curl http://localhost:3001/api/v1/health
 
-# Search for information
+# Search for information (requires JWT token)
 curl -X POST http://localhost:3001/api/v1/search \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <your-token>" \
+  -H "Authorization: Bearer <your-jwt-token>" \
   -d '{"query": "project management best practices", "maxResults": 5}'
 
-# Ask a RAG question
+# Ask a RAG question (requires JWT token)
 curl -X POST http://localhost:3001/api/v1/rag/ask \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <your-token>" \
+  -H "Authorization: Bearer <your-jwt-token>" \
   -d '{"question": "How can I improve team productivity?", "maxSearchResults": 5}'
 ```
 
@@ -204,10 +222,11 @@ const ragData = await ragResponse.json();
 ## 🔒 Security Best Practices
 
 ### Authentication
-- **Production**: Uses DefaultAzureCredential with managed identity
-- **Development**: Falls back to Azure CLI credentials
-- **Never**: Hard-code API keys in source code
-- **Always**: Use environment variables or Azure Key Vault
+- **API Keys**: Uses direct API key authentication for Azure services
+- **JWT Tokens**: Secures API endpoints with JWT authentication
+- **Environment Variables**: All sensitive data stored in .env files
+- **Never**: Hard-code API keys or secrets in source code
+- **Always**: Use strong JWT secrets and rotate API keys regularly
 
 ### Authorization
 - Implement proper RBAC for Azure resources
@@ -320,28 +339,31 @@ const customOrchestrator = new AIServiceOrchestrator({
 
 ### Deployment Steps
 ```bash
-# 1. Deploy Azure resources using ARM/Bicep templates
-az deployment group create --resource-group rg-project-pulse --template-file deploy/azure-resources.bicep
+# 1. Deploy Azure resources
+# Create Azure AI Search service and get API key
+# Create Azure OpenAI service and get API key
 
-# 2. Configure managed identity
-az webapp identity assign --name project-pulse-api --resource-group rg-project-pulse
+# 2. Configure environment variables in your hosting service
+# Set all required environment variables from .env.example
 
-# 3. Grant permissions to Azure AI services
-az role assignment create --assignee <managed-identity-principal-id> --role "Search Service Contributor"
-az role assignment create --assignee <managed-identity-principal-id> --role "Cognitive Services OpenAI User"
+# 3. Build and deploy application
+npm run build
+# Deploy dist folder to your hosting service
 
-# 4. Deploy application code
-az webapp deploy --resource-group rg-project-pulse --name project-pulse-api --src-path ./dist
+# 4. Verify deployment
+curl https://your-domain.com/api/v1/health
 ```
 
 ### Production Checklist
-- [ ] Managed identity configured and permissions assigned
-- [ ] Environment variables set in App Service configuration
-- [ ] Health check endpoints configured
-- [ ] Application Insights monitoring enabled
-- [ ] Rate limiting and throttling configured
-- [ ] Security headers and CORS policies set
-- [ ] Backup and disaster recovery plan implemented
+- [ ] Strong JWT secret configured (not default)
+- [ ] Azure API keys securely stored and rotated
+- [ ] Environment variables properly configured
+- [ ] CORS origins restricted to your domains
+- [ ] Rate limiting configured appropriately
+- [ ] Health check endpoints working
+- [ ] HTTPS enforced for all endpoints
+- [ ] Monitoring and logging enabled
+- [ ] API keys not exposed in logs or errors
 
 ## 📚 API Documentation
 

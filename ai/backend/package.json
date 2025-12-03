@@ -1,7 +1,7 @@
 {
-  "name": "ai-backend-api",
+  "name": "project-pulse-ai-backend",
   "version": "1.0.0",
-  "description": "AI Backend API with Azure AI Search and OpenAI integration",
+  "description": "Project Pulse AI Backend API with Azure AI Search and OpenAI integration",
   "main": "dist/server.js",
   "scripts": {
     "start": "node dist/server.js",

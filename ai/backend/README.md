@@ -115,10 +115,42 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 ```
 
-### Basic Usage
+### Starting the Server
 
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Server runs on http://localhost:3001
+```
+
+### Basic Usage Examples
+
+#### Using cURL (Command Line)
+```bash
+# Test server health
+curl http://localhost:3001/api/v1/health
+
+# Search for information
+curl -X POST http://localhost:3001/api/v1/search \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{"query": "project management best practices", "maxResults": 5}'
+
+# Ask a RAG question
+curl -X POST http://localhost:3001/api/v1/rag/ask \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{"question": "How can I improve team productivity?", "maxSearchResults": 5}'
+```
+
+#### Using JavaScript/TypeScript
 ```typescript
-import { aiServiceOrchestrator } from './ai/backend/orchestrator/aiOrchestrator';
+// Direct service usage (internal)
+import { aiServiceOrchestrator } from './orchestrator/aiOrchestrator';
 
 // Search for information
 const searchResponse = await aiServiceOrchestrator.search("project management best practices");
@@ -130,16 +162,43 @@ const ragResponse = await aiServiceOrchestrator.askQuestion({
   temperature: 0.7
 });
 
-// Generate analytics insights
-const analyticsResponse = await aiServiceOrchestrator.analyzeProjects({
-  question: "What are the risk factors for my current projects?",
-  analysisType: "prediction"
-});
-
 // Chat completion
 const chatResponse = await aiServiceOrchestrator.createChatCompletion([
   { role: 'user', content: 'Help me plan my project timeline' }
 ]);
+```
+
+#### Using Fetch API (Client-side)
+```javascript
+// Search example
+const searchResponse = await fetch('http://localhost:3001/api/v1/search', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer <your-token>'
+  },
+  body: JSON.stringify({
+    query: 'project management best practices',
+    maxResults: 5,
+    searchType: 'semantic'
+  })
+});
+const searchData = await searchResponse.json();
+
+// RAG example
+const ragResponse = await fetch('http://localhost:3001/api/v1/rag/ask', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer <your-token>'
+  },
+  body: JSON.stringify({
+    question: 'How can I improve team productivity?',
+    maxSearchResults: 5,
+    temperature: 0.7
+  })
+});
+const ragData = await ragResponse.json();
 ```
 
 ## 🔒 Security Best Practices
@@ -286,39 +345,219 @@ az webapp deploy --resource-group rg-project-pulse --name project-pulse-api --sr
 
 ## 📚 API Documentation
 
-### Search Endpoints
-```typescript
-// GET /api/ai/search
-POST /api/ai/search
-{
-  "query": "project management",
-  "maxResults": 10,
-  "enableSemanticSearch": true
-}
+### Base URL
+**All endpoints**: `http://localhost:3001/api/v1`
+
+### Authentication
+**Required for most endpoints**: Include `Authorization: Bearer <token>` header
+**Not required**: Health check endpoints
+
+### 🔍 Search Endpoints
+
+#### Main Search
+```bash
+# POST /api/v1/search
+curl -X POST http://localhost:3001/api/v1/search \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{
+    "query": "project management best practices",
+    "maxResults": 10,
+    "searchType": "semantic",
+    "filters": "category eq 'productivity'"
+  }'
 ```
 
-### RAG Endpoints
-```typescript
-// POST /api/ai/ask
-POST /api/ai/ask
-{
-  "question": "How do I improve team productivity?",
-  "context": "We're a remote team working on software development",
-  "maxSearchResults": 5,
-  "temperature": 0.7
-}
+#### Search with Query Parameters
+```bash
+# GET /api/v1/search?q=project%20management&max=5&type=semantic
+curl "http://localhost:3001/api/v1/search?q=project%20management&max=5&type=semantic" \
+  -H "Authorization: Bearer <your-token>"
 ```
 
-### Analytics Endpoints
-```typescript
-// POST /api/ai/analytics
-POST /api/ai/analytics
-{
-  "question": "What are the risk factors for my projects?",
-  "projectIds": ["proj-123", "proj-456"],
-  "analysisType": "risk"
-}
+#### Semantic Search
+```bash
+# POST /api/v1/search/semantic
+curl -X POST http://localhost:3001/api/v1/search/semantic \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{
+    "query": "How to improve team collaboration?",
+    "maxResults": 5
+  }'
 ```
+
+#### Search Suggestions
+```bash
+# GET /api/v1/search/suggestions?q=proj
+curl "http://localhost:3001/api/v1/search/suggestions?q=proj" \
+  -H "Authorization: Bearer <your-token>"
+```
+
+### 🤖 RAG (Retrieval Augmented Generation) Endpoints
+
+#### Ask Questions
+```bash
+# POST /api/v1/rag/ask
+curl -X POST http://localhost:3001/api/v1/rag/ask \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{
+    "question": "How can I improve my team productivity?",
+    "maxSearchResults": 5,
+    "temperature": 0.7,
+    "includeSearchResults": true
+  }'
+```
+
+#### Conversational RAG
+```bash
+# POST /api/v1/rag/conversational
+curl -X POST http://localhost:3001/api/v1/rag/conversational \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{
+    "question": "What about remote teams specifically?",
+    "conversationHistory": [
+      {"role": "user", "content": "How can I improve team productivity?"},
+      {"role": "assistant", "content": "Here are some strategies..."}
+    ],
+    "maxSearchResults": 3
+  }'
+```
+
+#### Batch RAG Processing
+```bash
+# POST /api/v1/rag/batch
+curl -X POST http://localhost:3001/api/v1/rag/batch \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{
+    "questions": [
+      "What are agile methodologies?",
+      "How to implement scrum?",
+      "Best practices for sprint planning?"
+    ],
+    "maxSearchResults": 3
+  }'
+```
+
+### 💬 Chat Endpoints
+
+#### Chat Completions
+```bash
+# POST /api/v1/chat/completions
+curl -X POST http://localhost:3001/api/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "Help me create a project timeline"}
+    ],
+    "temperature": 0.7,
+    "maxTokens": 500
+  }'
+```
+
+#### Simple Chat
+```bash
+# POST /api/v1/chat/simple
+curl -X POST http://localhost:3001/api/v1/chat/simple \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{
+    "prompt": "Explain the benefits of agile project management",
+    "temperature": 0.5,
+    "maxTokens": 300
+  }'
+```
+
+#### Streaming Chat
+```bash
+# POST /api/v1/chat/stream
+curl -X POST http://localhost:3001/api/v1/chat/stream \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "Provide a detailed project plan"}
+    ],
+    "stream": true
+  }'
+```
+
+#### Chat Analysis
+```bash
+# POST /api/v1/chat/analyze
+curl -X POST http://localhost:3001/api/v1/chat/analyze \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-token>" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "Our team is struggling with deadlines"}
+    ],
+    "analysisType": "sentiment"
+  }'
+```
+
+### 🏥 Health Check Endpoints (No Auth Required)
+
+#### Overall Health
+```bash
+# GET /api/v1/health
+curl http://localhost:3001/api/v1/health
+
+# Detailed health check
+curl "http://localhost:3001/api/v1/health?detailed=true"
+
+# Specific service health
+curl "http://localhost:3001/api/v1/health?service=search"
+```
+
+#### Ping Check
+```bash
+# GET /api/v1/health/ping
+curl http://localhost:3001/api/v1/health/ping
+```
+
+#### Readiness Check
+```bash
+# GET /api/v1/health/ready
+curl http://localhost:3001/api/v1/health/ready
+```
+
+#### Liveness Check
+```bash
+# GET /api/v1/health/live
+curl http://localhost:3001/api/v1/health/live
+```
+
+#### Service Metrics
+```bash
+# GET /api/v1/health/metrics
+curl http://localhost:3001/api/v1/health/metrics
+```
+
+#### Reset Metrics
+```bash
+# POST /api/v1/health/reset-metrics
+curl -X POST http://localhost:3001/api/v1/health/reset-metrics \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### 📖 API Information
+```bash
+# GET /api/v1 - API documentation and available endpoints
+curl http://localhost:3001/api/v1
+```
+
+### ⚠️ Temporarily Disabled
+**Analytics Endpoints** (`/api/v1/analytics/*`) - Currently disabled due to TypeScript compilation issues. Will be restored after fixing:
+- `POST /api/v1/analytics/projects`
+- `POST /api/v1/analytics/insights` 
+- `POST /api/v1/analytics/predictions`
+- `POST /api/v1/analytics/recommendations`
 
 ## 🤝 Contributing
 

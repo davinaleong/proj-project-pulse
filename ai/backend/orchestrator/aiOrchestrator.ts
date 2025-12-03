@@ -11,10 +11,10 @@
  * - Load balancing and failover
  */
 
-import { azureSearchService, SearchOptions, SearchResponse } from './searchService';
-import { azureOpenAIService, ChatCompletionOptions, ChatMessage, ChatCompletionResponse } from './openaiService';
-import { intelligentRAGService, RAGQuery, RAGResponse } from './ragService';
-import { advancedAnalyticsService, AnalyticsQuery, AnalyticsResponse } from './analyticsService';
+import { azureSearchService, SearchOptions, SearchResponse } from '../services/searchService';
+import { azureOpenAIService, ChatCompletionOptions, ChatMessage, ChatCompletionResponse } from '../services/openaiService';
+import { intelligentRAGService, RAGQuery, RAGResponse } from '../services/ragService';
+import { advancedAnalyticsService, AnalyticsQuery, AnalyticsResponse } from '../services/analyticsService';
 import { azureConfig } from '../config/environment';
 
 /**
@@ -441,28 +441,28 @@ export class AIServiceOrchestrator {
           name: 'Azure AI Search',
           status: searchHealth.status,
           lastChecked: new Date(),
-          errorCount: this.getServiceMetrics('search')?.failedRequests || 0,
+          errorCount: (this.getServiceMetrics('search') as ServiceMetrics)?.failedRequests || 0,
           uptime: this.calculateUptime('search')
         },
         {
           name: 'Azure OpenAI',
           status: openaiHealth.status,
           lastChecked: new Date(),
-          errorCount: this.getServiceMetrics('chatCompletion')?.failedRequests || 0,
+          errorCount: (this.getServiceMetrics('chatCompletion') as ServiceMetrics)?.failedRequests || 0,
           uptime: this.calculateUptime('chatCompletion')
         },
         {
           name: 'Intelligent RAG',
           status: ragHealth.status,
           lastChecked: new Date(),
-          errorCount: this.getServiceMetrics('rag')?.failedRequests || 0,
+          errorCount: (this.getServiceMetrics('rag') as ServiceMetrics)?.failedRequests || 0,
           uptime: this.calculateUptime('rag')
         },
         {
           name: 'Advanced Analytics',
           status: analyticsHealth.status,
           lastChecked: new Date(),
-          errorCount: this.getServiceMetrics('analytics')?.failedRequests || 0,
+          errorCount: (this.getServiceMetrics('analytics') as ServiceMetrics)?.failedRequests || 0,
           uptime: this.calculateUptime('analytics')
         }
       ];

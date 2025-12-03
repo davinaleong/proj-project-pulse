@@ -97,7 +97,10 @@ router.post('/', searchValidation, asyncHandler(async (req: Request, res: Respon
       success: false,
       error: 'Search operation failed',
       message: response.error,
-      requestId: response.metadata.requestId
+      metadata: {
+        timestamp: new Date().toISOString(),
+        requestId: response.metadata.requestId
+      }
     } as APIResponse<null>);
   }
 
@@ -108,7 +111,7 @@ router.post('/', searchValidation, asyncHandler(async (req: Request, res: Respon
     searchId: response.metadata.requestId
   };
 
-  res.json({
+  return res.json({
     success: true,
     data: searchResponse,
     metadata: {
@@ -143,18 +146,27 @@ router.get('/', searchQueryValidation, asyncHandler(async (req: Request, res: Re
   // Remove query params to avoid validation conflicts
   req.query = {};
   
-  // Call the POST handler
-  const postHandler = router.stack.find(layer => 
-    layer.route?.path === '/' && layer.route?.methods?.post
-  )?.route?.stack[1]?.handle;
-  
-  if (postHandler) {
-    return postHandler(req, res, () => {});
+  // Call the POST handler by recreating the request
+  try {
+    // Find the POST route handler
+    const postRoute = (router as any).stack.find((layer: any) => 
+      layer.route && layer.route.path === '/' && layer.route.methods.post
+    );
+    
+    if (postRoute && postRoute.route.stack[1]) {
+      return postRoute.route.stack[1].handle(req, res, () => {});
+    }
+  } catch (error) {
+    // Fallback to direct handling
   }
   
-  res.status(500).json({
+  return res.status(500).json({
     success: false,
-    error: 'Internal routing error'
+    error: 'Internal routing error',
+    metadata: {
+      timestamp: new Date().toISOString(),
+      requestId: (req as any).context?.requestId
+    }
   } as APIResponse<null>);
 }));
 
@@ -184,11 +196,14 @@ router.post('/semantic', [
       success: false,
       error: 'Semantic search failed',
       message: response.error,
-      requestId: response.metadata.requestId
+      metadata: {
+        timestamp: new Date().toISOString(),
+        requestId: response.metadata?.requestId
+      }
     } as APIResponse<null>);
   }
 
-  res.json({
+  return res.json({
     success: true,
     data: {
       results: response.data?.results || [],

@@ -11,36 +11,37 @@ import { v4 as uuidv4 } from 'uuid';
  * Request logging and context middleware
  */
 export function requestLogger(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ): void {
+  const authReq = req as AuthenticatedRequest;
   const startTime = Date.now();
   const requestId = uuidv4();
   
   // Set request context
-  req.context = {
+  authReq.context = {
     requestId,
     startTime,
-    user: req.user
+    user: authReq.user
   };
 
   // Log incoming request
-  console.log(`📥 [${requestId}] ${req.method} ${req.path}`, {
-    ip: req.ip,
-    userAgent: req.headers['user-agent'],
-    userId: req.user?.id,
+  console.log(`📥 [${requestId}] ${authReq.method} ${authReq.path}`, {
+    ip: authReq.ip,
+    userAgent: authReq.headers['user-agent'],
+    userId: authReq.user?.id,
     timestamp: new Date().toISOString()
   });
 
   // Log query parameters and body for non-GET requests
-  if (Object.keys(req.query).length > 0) {
-    console.log(`📋 [${requestId}] Query:`, req.query);
+  if (Object.keys(authReq.query).length > 0) {
+    console.log(`📋 [${requestId}] Query:`, authReq.query);
   }
 
-  if (req.method !== 'GET' && req.body && Object.keys(req.body).length > 0) {
+  if (authReq.method !== 'GET' && authReq.body && Object.keys(authReq.body).length > 0) {
     // Don't log sensitive data
-    const safeBody = { ...req.body };
+    const safeBody = { ...authReq.body };
     if (safeBody.password) safeBody.password = '[REDACTED]';
     if (safeBody.token) safeBody.token = '[REDACTED]';
     if (safeBody.apiKey) safeBody.apiKey = '[REDACTED]';
@@ -55,10 +56,10 @@ export function requestLogger(
     const statusCode = res.statusCode;
     
     // Log response
-    console.log(`📤 [${requestId}] ${statusCode} ${req.method} ${req.path} - ${duration}ms`, {
+    console.log(`📤 [${requestId}] ${statusCode} ${authReq.method} ${authReq.path} - ${duration}ms`, {
       success: body?.success !== false,
       error: body?.error,
-      userId: req.user?.id
+      userId: authReq.user?.id
     });
 
     // Log slow requests
@@ -71,8 +72,8 @@ export function requestLogger(
       console.error(`❌ [${requestId}] ERROR ${statusCode}:`, {
         error: body?.error,
         message: body?.message,
-        path: req.path,
-        method: req.method
+        path: authReq.path,
+        method: authReq.method
       });
     }
 
@@ -86,26 +87,27 @@ export function requestLogger(
  * Performance monitoring middleware
  */
 export function performanceLogger(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ): void {
+  const authReq = req as AuthenticatedRequest;
   const startTime = process.hrtime.bigint();
   
   res.on('finish', () => {
     const duration = Number(process.hrtime.bigint() - startTime) / 1000000; // Convert to milliseconds
-    const requestId = req.context?.requestId || 'unknown';
+    const requestId = authReq.context?.requestId || 'unknown';
     
     // Log performance metrics
     const metrics = {
       requestId,
-      method: req.method,
-      path: req.path,
+      method: authReq.method,
+      path: authReq.path,
       statusCode: res.statusCode,
       duration: Math.round(duration * 100) / 100, // Round to 2 decimal places
       contentLength: res.get('content-length') || 0,
-      userId: req.user?.id,
-      userAgent: req.headers['user-agent']
+      userId: authReq.user?.id,
+      userAgent: authReq.headers['user-agent']
     };
 
     console.log(`⏱️  [${requestId}] Performance:`, metrics);
@@ -127,11 +129,12 @@ export function requestSizeLogger(
   res: Response,
   next: NextFunction
 ): void {
-  const contentLength = req.headers['content-length'];
+  const authReq = req as AuthenticatedRequest;
+  const contentLength = authReq.headers['content-length'];
   
   if (contentLength) {
     const sizeInMB = parseInt(contentLength) / (1024 * 1024);
-    const requestId = (req as AuthenticatedRequest).context?.requestId || 'unknown';
+    const requestId = authReq.context?.requestId || 'unknown';
     
     if (sizeInMB > 1) {
       console.warn(`📦 [${requestId}] Large request: ${sizeInMB.toFixed(2)}MB`);

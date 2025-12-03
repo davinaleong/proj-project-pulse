@@ -5,7 +5,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { AuthenticatedRequest, APIResponse } from '../types/api';
+import { AuthenticatedRequest } from '../types/api';
 import { createAPIError } from './errorHandler';
 
 interface JWTPayload {
@@ -20,13 +20,14 @@ interface JWTPayload {
  * Authentication middleware
  */
 export function authMiddleware(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ): void {
+  const authReq = req as AuthenticatedRequest;
   try {
     // Skip auth for health checks and public endpoints
-    if (req.path.includes('/health') || req.path.includes('/ping')) {
+    if (authReq.path.includes('/health') || authReq.path.includes('/ping')) {
       return next();
     }
 
@@ -47,7 +48,7 @@ export function authMiddleware(
     const decoded = jwt.verify(token, jwtSecret) as JWTPayload;
     
     // Set user context
-    req.user = {
+    authReq.user = {
       id: decoded.sub,
       email: decoded.email,
       roles: decoded.roles || []
@@ -69,12 +70,13 @@ export function authMiddleware(
  * Optional authentication middleware (doesn't fail if no token)
  */
 export function optionalAuthMiddleware(
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ): void {
+  const authReq = req as AuthenticatedRequest;
   try {
-    const authHeader = req.headers.authorization;
+    const authHeader = authReq.headers.authorization;
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
@@ -83,7 +85,7 @@ export function optionalAuthMiddleware(
         const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
         const decoded = jwt.verify(token, jwtSecret) as JWTPayload;
         
-        req.user = {
+        authReq.user = {
           id: decoded.sub,
           email: decoded.email,
           roles: decoded.roles || []
@@ -102,12 +104,13 @@ export function optionalAuthMiddleware(
  * Role-based authorization middleware
  */
 export function requireRoles(roles: string[]) {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    if (!req.user) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const authReq = req as AuthenticatedRequest;
+    if (!authReq.user) {
       return next(createAPIError('Authentication required', 401, 'AUTH_REQUIRED'));
     }
 
-    const userRoles = req.user.roles || [];
+    const userRoles = authReq.user.roles || [];
     const hasRequiredRole = roles.some(role => userRoles.includes(role));
     
     if (!hasRequiredRole) {
@@ -145,7 +148,8 @@ export function apiKeyAuthMiddleware(
     }
 
     // Set a basic user context for API key users
-    (req as AuthenticatedRequest).user = {
+    const authReq = req as AuthenticatedRequest;
+    authReq.user = {
       id: `api-key-${apiKey.substring(0, 8)}`,
       roles: ['api-user']
     };

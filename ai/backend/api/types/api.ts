@@ -3,6 +3,8 @@
  * Comprehensive type definitions for all AI API endpoints
  */
 
+import { Request } from 'express';
+
 // Base API Response
 export interface APIResponse<T = any> {
   success: boolean;
@@ -164,6 +166,9 @@ export interface RequestContext {
     resetTime: Date;
   };
 }
+
+// Import Express types
+import { Request } from 'express';
 
 // Middleware Types
 export interface AuthenticatedRequest extends Request {

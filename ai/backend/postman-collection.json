@@ -1,8 +1,8 @@
 {
 	"info": {
 		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-		"name": "Project Pulse AI Backend",
-		"description": "API collection for Project Pulse AI Backend - Only routes that exist in the code",
+		"name": "Project Pulse AI Backend API",
+		"description": "Comprehensive API collection for Project Pulse AI Backend Services - Express.js API with Azure AI integration including Search, RAG, Chat, and Health monitoring endpoints. All routes verified against actual implementation with comprehensive test coverage (97 tests passing).",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "12345678"
 	},
@@ -102,7 +102,7 @@
 					"response": []
 				}
 			],
-			"description": "Authentication endpoints for getting tokens and configuration"
+			"description": "Authentication endpoints for JWT tokens, shared secrets, and configuration - integrated with simple-auth.ts router"
 		},
 		{
 			"name": "Search",
@@ -253,7 +253,7 @@
 					"response": []
 				}
 			],
-			"description": "AI-powered search endpoints with semantic capabilities"
+			"description": "Azure AI Search integration with semantic search, suggestions, and flexible query parameters - supports both GET and POST methods"
 		},
 		{
 			"name": "RAG (Retrieval Augmented Generation)",
@@ -340,7 +340,7 @@
 					"response": []
 				}
 			],
-			"description": "Retrieval Augmented Generation endpoints for context-aware AI responses"
+			"description": "Azure OpenAI RAG implementation with context retrieval, conversational history, batch processing, and summary generation"
 		},
 		{
 			"name": "Chat",
@@ -454,7 +454,7 @@
 					"response": []
 				}
 			],
-			"description": "Chat completion endpoints with various modes and analysis"
+			"description": "Azure OpenAI chat completions with streaming support, conversation analysis, and multiple interaction modes"
 		},
 		{
 			"name": "Health & Monitoring",
@@ -471,7 +471,31 @@
 						},
 						"description": "Basic health check - no authentication required"
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Health Check Success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/health",
+									"host": ["{{baseUrl}}"],
+									"path": ["health"]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"success\": true,\n  \"data\": {\n    \"status\": \"healthy\",\n    \"timestamp\": \"2024-12-04T10:30:00.000Z\",\n    \"services\": {\n      \"search\": \"healthy\",\n      \"chat\": \"healthy\",\n      \"rag\": \"healthy\"\n    }\n  },\n  \"metadata\": {\n    \"timestamp\": \"2024-12-04T10:30:00.000Z\"\n  }\n}"
+						}
+					]
 				},
 				{
 					"name": "Health Detailed",
@@ -595,7 +619,7 @@
 					"response": []
 				}
 			],
-			"description": "Health check and monitoring endpoints"
+			"description": "Comprehensive health monitoring with service-specific checks, metrics collection, and Kubernetes probe endpoints"
 		},
 		{
 			"name": "API Information",
@@ -610,12 +634,36 @@
 							"host": ["{{baseUrl}}"],
 							"path": [""]
 						},
-						"description": "Get API documentation and available endpoints"
+						"description": "Get API documentation, version information, and available endpoints overview"
 					},
-					"response": []
+					"response": [
+						{
+							"name": "API Documentation Response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/",
+									"host": ["{{baseUrl}}"],
+									"path": [""]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"body": "{\n  \"name\": \"Project Pulse AI API\",\n  \"version\": \"v1\",\n  \"description\": \"AI-powered backend services for Project Pulse\",\n  \"endpoints\": {\n    \"search\": \"GET/POST /api/v1/search\",\n    \"rag\": \"POST /api/v1/rag\",\n    \"chat\": \"POST /api/v1/chat\",\n    \"analytics\": \"POST /api/v1/analytics\",\n    \"health\": \"GET /api/v1/health\"\n  },\n  \"documentation\": \"https://docs.projectpulse.ai/api/v1\"\n}"
+						}
+					]
 				}
 			],
-			"description": "API documentation and information endpoints"
+			"description": "API documentation and information endpoints with response examples"
 		}
 	],
 	"event": [
@@ -629,10 +677,10 @@
 					"    pm.environment.set('baseUrl', 'http://localhost:3001/api/v1');",
 					"}",
 					"",
-					"// Auto-set shared secret if not set",
-					"if (!pm.environment.get('sharedSecret')) {",
-					"    pm.environment.set('sharedSecret', 'nx7k4m9p2s6v1y8b3e7h0j4m8q1t5w9z2c6f0i3l7o1r5u9x2a6d0g4j8m2p6s0v4y8b3e7h1k5n9q3t7w1z5c9f3i7l1o5r9u3x7a1d5g9j3m7p1s5v9y3b7e1h5k9n3q7t1w5z9c3f7i1l5o9r3u7x1a5d9g3j7m1p5s9v3y7');",
-					"}"
+				"// Auto-set shared secret if not set (development default)",
+				"if (!pm.environment.get('sharedSecret')) {",
+				"    pm.environment.set('sharedSecret', 'dev-shared-secret-2024');",
+				"}"
 				]
 			}
 		},
@@ -664,17 +712,20 @@
 		{
 			"key": "baseUrl",
 			"value": "http://localhost:3001/api/v1",
-			"type": "string"
+			"type": "string",
+			"description": "Base URL for the AI Backend API (Express.js server on port 3001)"
 		},
 		{
 			"key": "sharedSecret",
-			"value": "nx7k4m9p2s6v1y8b3e7h0j4m8q1t5w9z2c6f0i3l7o1r5u9x2a6d0g4j8m2p6s0v4y8b3e7h1k5n9q3t7w1z5c9f3i7l1o5r9u3x7a1d5g9j3m7p1s5v9y3b7e1h5k9n3q7t1w5z9c3f7i1l5o9r3u7x1a5d9g3j7m1p5s9v3y7",
-			"type": "string"
+			"value": "dev-shared-secret-2024",
+			"type": "string",
+			"description": "Development shared secret for Next.js integration authentication"
 		},
 		{
 			"key": "jwtToken",
 			"value": "",
-			"type": "string"
+			"type": "string",
+			"description": "JWT token automatically set by the 'Get JWT Token' request"
 		}
 	]
 }

@@ -148,34 +148,65 @@ router.get('/', searchQueryValidation, asyncHandler(async (req: Request, res: Re
   const maxResults = parseInt(req.query.max as string || '10');
   const searchType = (req.query.type as string || 'semantic') as 'semantic' | 'basic' | 'hybrid';
 
-  // Delegate to POST handler
-  req.body = { query, maxResults, searchType };
+  // Perform search directly (same logic as POST handler)
+  let response;
   
-  // Remove query params to avoid validation conflicts
-  req.query = {};
-  
-  // Call the POST handler by recreating the request
-  try {
-    // Find the POST route handler
-    const postRoute = (router as any).stack.find((layer: any) => 
-      layer.route && layer.route.path === '/' && layer.route.methods.post
-    );
-    
-    if (postRoute && postRoute.route.stack[1]) {
-      return postRoute.route.stack[1].handle(req, res, () => {});
-    }
-  } catch (error) {
-    // Fallback to direct handling
+  switch (searchType) {
+    case 'semantic':
+      response = await aiServiceOrchestrator.semanticSearch(query, maxResults);
+      break;
+    case 'hybrid':
+      response = await aiServiceOrchestrator.search({
+        query,
+        top: maxResults,
+        enableSemanticSearch: true
+      });
+      break;
+    case 'basic':
+    default:
+      response = await aiServiceOrchestrator.search({
+        query,
+        top: maxResults
+      });
+      break;
   }
-  
-  return res.status(500).json({
-    success: false,
-    error: 'Internal routing error',
+
+  if (!response.success) {
+    return res.status(500).json({
+      success: false,
+      error: 'Search operation failed',
+      message: response.error,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        requestId: response.metadata?.requestId
+      }
+    } as APIResponse<null>);
+  }
+
+  // Map Azure search results to our API format (same as POST handler)
+  const mappedResults: SearchResult[] = (response.data?.results || []).map((result: any) => ({
+    id: result.document?.id || result.id || Math.random().toString(36),
+    title: result.document?.title || result.title || 'Untitled',
+    content: result.document?.content || result.content || '',
+    score: result.score || result['@search.score'] || 0
+  }));
+
+  const searchResponse: SearchResponse = {
+    results: mappedResults,
+    totalCount: mappedResults.length,
+    facets: response.data?.facets || {},
+    searchId: response.metadata?.requestId
+  };
+
+  return res.json({
+    success: true,
+    data: searchResponse,
     metadata: {
+      processingTime: response.metadata?.processingTime,
       timestamp: new Date().toISOString(),
-      requestId: (req as any).context?.requestId
+      requestId: response.metadata?.requestId
     }
-  } as APIResponse<null>);
+  } as APIResponse<SearchResponse>);
 }));
 
 /**

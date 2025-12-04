@@ -215,9 +215,7 @@ describe('API Integration Tests', () => {
     });
 
     describe('GET /api/v1/search', () => {
-      it.skip('should perform search with query parameters', async () => {
-        // Skipped: GET search route has infinite loop issue causing timeout
-        // TODO: Fix GET search route implementation in search.ts
+      it('should perform search with query parameters', async () => {
         const response = await request(app)
           .get('/api/v1/search')
           .set('Authorization', `Bearer ${validJWT}`)
@@ -227,12 +225,11 @@ describe('API Integration Tests', () => {
             type: 'semantic'
           });
 
-        // Expect 500 because GET search has routing issues and Azure services unavailable
-        expect([500, 200]).toContain(response.status);
-        if (response.status === 500) {
-          expect(response.body.success).toBe(false);
-        }
-      }, 20000);
+        // Expect 500 because Azure services aren't available in test environment
+        expect(response.status).toBe(500);
+        expect(response.body.success).toBe(false);
+        expect(response.body.error).toBeTruthy();
+      });
     });
 
     describe('POST /api/v1/search/semantic', () => {

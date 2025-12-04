@@ -12,6 +12,16 @@ import { createMockRequest, createMockResponse } from '../utils/testUtils';
 jest.mock('jsonwebtoken');
 const mockJwt = jwt as jest.Mocked<typeof jwt>;
 
+// Mock config
+jest.mock('../../config/environment', () => ({
+  azureConfig: {
+    security: {
+      sharedSecret: 'your-super-secret-shared-key-here',
+      jwtSecret: 'test-jwt-secret'
+    }
+  }
+}));
+
 describe('Auth Middleware', () => {
   let res: Partial<Response>;
   let next: jest.Mock;
@@ -73,8 +83,10 @@ describe('Auth Middleware', () => {
       
       expect(mockJwt.verify).toHaveBeenCalledWith(token, expect.any(String));
       expect(req.user).toEqual({
-        id: 'test-user',
+        id: undefined,
         client_id: 'test-client',
+        scope: undefined,
+        source: 'jwt-token'
       });
       expect(next).toHaveBeenCalledWith();
     });
@@ -128,8 +140,8 @@ describe('Auth Middleware', () => {
       await authMiddleware(req, res as Response, next);
       
       expect(req.user).toEqual({
-        id: 'system',
-        client_id: 'shared-secret',
+        id: 'nextjs-app',
+        source: 'shared-secret'
       });
       expect(next).toHaveBeenCalledWith();
     });

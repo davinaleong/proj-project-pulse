@@ -7,6 +7,7 @@
 jest.mock('../../services/searchService');
 jest.mock('../../services/openaiService'); 
 jest.mock('../../services/ragService');
+jest.mock('../../services/indexManager');
 jest.mock('../../orchestrator/aiOrchestrator', () => {
   const mockOrchestrator = {
     // Search methods
@@ -84,6 +85,7 @@ jest.mock('../../orchestrator/aiOrchestrator', () => {
 import request from 'supertest';
 import app from '../../api/app';
 import { generateTestJWT } from '../utils/testUtils';
+import { SearchIndexManager } from '../../services/indexManager';
 
 describe('API Integration Tests', () => {
   const validJWT = generateTestJWT({ sub: 'test-user', client_id: 'test-client' });

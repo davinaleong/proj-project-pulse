@@ -8,6 +8,11 @@ import { config } from 'dotenv';
 // Load test environment variables
 config({ path: '.env.testing' });
 
+// Mock Azure SDK modules globally for tests
+jest.mock('@azure/search-documents');
+jest.mock('@azure/storage-blob');
+jest.mock('@azure/openai');
+
 // Global test timeout
 jest.setTimeout(10000);
 

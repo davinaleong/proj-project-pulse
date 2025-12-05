@@ -38,8 +38,8 @@ export const mockIndexCreationSuccess = {
 // Mock CSV upload success response
 export const mockUploadSuccess = {
   results: [
-    { key: '1', succeeded: true, errorMessage: null },
-    { key: '2', succeeded: true, errorMessage: null }
+    { key: '1', succeeded: true, errorMessage: null as string | null },
+    { key: '2', succeeded: true, errorMessage: null as string | null }
   ]
 };
 

@@ -6,49 +6,24 @@
 import { SearchIndexManager } from '../../services/indexManager';
 import { readFileSync } from 'fs';
 
-// Mock the Azure SDK
-jest.mock('@azure/search-documents', () => {
-  const mockSearchClient = {
-    uploadDocuments: jest.fn(),
-    search: jest.fn(),
-    getDocument: jest.fn()
-  };
+// Mock the Azure SDK modules
+jest.mock('@azure/search-documents');
+jest.mock('@azure/storage-blob');
+jest.mock('fs');
+jest.mock('csv-parse/sync');
 
-  const mockIndexClient = {
-    createIndex: jest.fn(),
-    deleteIndex: jest.fn(),
-    getIndex: jest.fn(),
-    listIndexes: jest.fn()
-  };
-
-  return {
-    SearchIndexClient: jest.fn().mockImplementation(() => mockIndexClient),
-    SearchClient: jest.fn().mockImplementation(() => mockSearchClient),
-    AzureKeyCredential: jest.fn(),
-    KnownAnalyzerNames: {
-      EnLucene: 'en.lucene',
-      Keyword: 'keyword'
+// Mock the config
+jest.mock('../../config/environment', () => ({
+  azureConfig: {
+    search: {
+      endpoint: 'https://test-search.search.windows.net',
+      apiKey: 'test-key',
+      indexName: 'test-index',
+      semanticConfigName: 'test-semantic-config',
+      apiVersion: '2024-07-01'
     }
-  };
-});
-
-jest.mock('@azure/storage-blob', () => {
-  const mockBlobServiceClient = {
-    getContainerClient: jest.fn().mockReturnValue({
-      createIfNotExists: jest.fn(),
-      getBlockBlobClient: jest.fn().mockReturnValue({
-        upload: jest.fn(),
-        url: 'https://test-storage.blob.core.windows.net/test-container/test-file.csv'
-      })
-    })
-  };
-
-  return {
-    BlobServiceClient: {
-      fromConnectionString: jest.fn().mockImplementation(() => mockBlobServiceClient)
-    }
-  };
-});
+  }
+}));
 
 jest.mock('fs', () => ({
   readFileSync: jest.fn()
@@ -76,6 +51,8 @@ describe('SearchIndexManager', () => {
   let mockSearchClient: any;
   let mockIndexClient: any;
   let mockBlobServiceClient: any;
+  let csvParse: any;
+  
   const mockCsvPath = './test-data.csv';
   const mockCsvContent = `project_id,project_name,stage,description,tech_stack
 1,Test Project,Implementation,A test project,React TypeScript
@@ -88,23 +65,52 @@ describe('SearchIndexManager', () => {
     // Setup environment variables
     process.env.AZURE_STORAGE_CONNECTION_STRING = 'DefaultEndpointsProtocol=https;AccountName=test;AccountKey=test123;EndpointSuffix=core.windows.net';
     
-    // Get references to the mocked clients
-    const { SearchIndexClient, SearchClient } = require('@azure/search-documents');
+    // Setup mocks for Azure SDK
+    const { SearchIndexClient, SearchClient, AzureKeyCredential, KnownAnalyzerNames } = require('@azure/search-documents');
     const { BlobServiceClient } = require('@azure/storage-blob');
+    csvParse = require('csv-parse/sync');
+    
+    // Create mock instances
+    mockSearchClient = {
+      uploadDocuments: jest.fn(),
+      search: jest.fn(),
+      getDocument: jest.fn()
+    };
+    
+    mockIndexClient = {
+      createIndex: jest.fn(),
+      deleteIndex: jest.fn(),
+      getIndex: jest.fn(),
+      listIndexes: jest.fn()
+    };
+    
+    mockBlobServiceClient = {
+      getContainerClient: jest.fn().mockReturnValue({
+        createIfNotExists: jest.fn(),
+        getBlockBlobClient: jest.fn().mockReturnValue({
+          upload: jest.fn(),
+          url: 'https://test-storage.blob.core.windows.net/test-container/test-file.csv'
+        })
+      })
+    };
+    
+    // Mock constructors
+    SearchIndexClient.mockImplementation(() => mockIndexClient);
+    SearchClient.mockImplementation(() => mockSearchClient);
+    AzureKeyCredential.mockImplementation(() => ({}));
+    BlobServiceClient.fromConnectionString = jest.fn().mockReturnValue(mockBlobServiceClient);
+    
+    // Mock analyzer names
+    KnownAnalyzerNames.EnLucene = 'en.lucene';
+    KnownAnalyzerNames.Keyword = 'keyword';
     
     indexManager = new SearchIndexManager();
-    
-    // Access the mocked instances
-    mockIndexClient = (SearchIndexClient as jest.Mock).mock.results[0].value;
-    mockSearchClient = (SearchClient as jest.Mock).mock.results[0].value;
-    mockBlobServiceClient = (BlobServiceClient.fromConnectionString as jest.Mock).mock.results[0].value;
     
     // Mock CSV file reading
     (readFileSync as jest.Mock).mockReturnValue(mockCsvContent);
     
     // Mock CSV parsing
-    const { parse } = require('csv-parse/sync');
-    (parse as jest.Mock).mockReturnValue([
+    (csvParse.parse as jest.Mock).mockReturnValue([
       {
         project_id: '1',
         project_name: 'Test Project',
@@ -310,8 +316,7 @@ describe('SearchIndexManager', () => {
         completed: 'true'
       }));
 
-      const { parse } = require('csv-parse/sync');
-      (parse as jest.Mock).mockReturnValue(largeDataset);
+      (csvParse.parse as jest.Mock).mockReturnValue(largeDataset);
 
       mockSearchClient.uploadDocuments.mockResolvedValue({
         results: Array.from({ length: 50 }, (_, i) => ({ 
@@ -420,8 +425,7 @@ describe('SearchIndexManager', () => {
       
       // Mock CSV parsing to avoid other errors
       (readFileSync as jest.Mock).mockReturnValue('project_id,project_name\n1,Test');
-      const { parse } = require('csv-parse/sync');
-      (parse as jest.Mock).mockReturnValue([{ project_id: '1', project_name: 'Test' }]);
+      (csvParse.parse as jest.Mock).mockReturnValue([{ project_id: '1', project_name: 'Test' }]);
 
       await expect(indexManager.uploadCsvDataDirectly(mockCsvPath)).rejects.toThrow('Data upload failed');
     });

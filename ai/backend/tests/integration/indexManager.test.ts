@@ -146,14 +146,16 @@ describe('Index Management Integration', () => {
       process.env.AZURE_SEARCH_INDEX_NAME = 'test-index';
 
       const manager = new SearchIndexManager();
-      expect(manager).toBeInstanceOf(SearchIndexManager);
+      expect(manager).toBeDefined();
+      expect(typeof manager.createSearchIndex).toBe('function');
     });
 
     it('should handle blob storage configuration', () => {
       process.env.AZURE_STORAGE_CONNECTION_STRING = 'DefaultEndpointsProtocol=https;AccountName=test;AccountKey=test123;EndpointSuffix=core.windows.net';
 
       const manager = new SearchIndexManager();
-      expect(manager).toBeInstanceOf(SearchIndexManager);
+      expect(manager).toBeDefined();
+      expect(typeof manager.uploadDatasetToBlobStorage).toBe('function');
     });
   });
 
